@@ -1,13 +1,13 @@
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
-//   Date:                $Date: 4 May 2016 $
+//   Date:                $Date: 19 May 2016 $
 //   Revision:            $Revision: 1.0 $
 //
 //
 
-#if !defined(KRATOS_LAYER_APP_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED )
-#define  KRATOS_LAYER_APP_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED
+#if !defined(KRATOS_LAYER_APP_SELECTIVE_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED )
+#define  KRATOS_LAYER_APP_SELECTIVE_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED
 
 // System includes
 #include <string>
@@ -58,7 +58,7 @@ namespace Kratos
 /*** Detail class definition.
     Layer handler keeps a global node information and handle layer collapse properly
  */
-class CollapsibleLayerHandler : public LayerHandler
+class SelectiveCollapsibleLayerHandler : public LayerHandler
 {
 public:
 
@@ -74,14 +74,14 @@ public:
     typedef std::map<std::string, Group::Pointer> GroupsContainerType;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(CollapsibleLayerHandler);
+    KRATOS_CLASS_POINTER_DEFINITION(SelectiveCollapsibleLayerHandler);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CollapsibleLayerHandler() : BaseType()
+    SelectiveCollapsibleLayerHandler() : BaseType()
     {
         mDx = 0.1 * PI;
         mDy = 0.1 * PI;
@@ -89,7 +89,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CollapsibleLayerHandler()
+    virtual ~SelectiveCollapsibleLayerHandler()
     {
     }
 
@@ -108,16 +108,90 @@ public:
         mDz = Dz * PI;
     }
 
-    void Collapse(const double TOL)
+    virtual void AddLayer(std::string name, boost::python::dict& pyDictNodalSet, boost::python::dict& pyDictEntitySet, boost::python::dict& pyDictEntityInfoSet)
     {
+        BaseType::AddLayer(name, pyDictNodalSet, pyDictEntitySet, pyDictEntityInfoSet);
+        mLayerIsCollapsed.insert(std::pair<std::string, bool>(name, false));
+    }
+
+    void AddGroup(std::string name, boost::python::list& pyListLayerNames)
+    {
+        Group::Pointer pGroup = Group::Pointer(new Group(name));
+
+        typedef boost::python::stl_input_iterator<std::string> iterator_value_type;
+        BOOST_FOREACH(const iterator_value_type::value_type& layer_name,
+                      std::make_pair(iterator_value_type(pyListLayerNames), // begin
+                      iterator_value_type() ) ) // end
+        {
+            if(mpLayers.find(layer_name) != mpLayers.end())
+                // check if layer layer_name has been existed in mpLayers
+                pGroup->AddLayer(mpLayers[layer_name]);
+            else
+            {
+                std::stringstream ss;
+                ss << "The layer " << layer_name << " does not exist in the layer list";
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
+        }
+
+        mpGroups.insert(GroupsContainerType::value_type(name, pGroup));
+        mGroupIsCollapsed.insert(std::pair<std::string, bool>(name, false));
+    }
+
+    void CollapseLayer(std::string name, const double TOL)
+    {
+        if(mpLayers.find(name) == mpLayers.end())
+        {
+            std::cout << "Layer " << name << " does not exist" << std::endl;
+            return;
+        }
+
+        Layer& thisLayer = *mpLayers[name];
+
+        // firstly put nodes in layer into bin
         typedef std::map<SpatialKey, Layer::NodesContainerType> BinType;
         BinType Binning;
-
-        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        for(Layer::NodesIteratorType it = thisLayer.NodesBegin(); it != thisLayer.NodesEnd(); ++it)
         {
-            Layer& thisLayer = *(it->second);
+            double X = (*it)->X();
+            double Y = (*it)->Y();
+            double Z = (*it)->Z();
 
-            // firstly put nodes in layer into bin
+            int kx = X / mDx;
+            int ky = Y / mDy;
+            int kz = Z / mDz;
+
+            SpatialKey key(kx, ky, kz);
+            Binning[key].push_back(*it);
+        }
+
+        // for each bin, collapse locally
+        this->CollapseBin(Binning, TOL);
+
+        mLayerIsCollapsed[name] = true;
+    }
+
+    void CollapseGroup(std::string name, const double TOL)
+    {
+        if(mpGroups.find(name) == mpGroups.end())
+        {
+            std::cout << "Group " << name << " does not exist" << std::endl;
+            return;
+        }
+
+        // check if each layer in group is collapsed
+        for(Group::LayerContainerIteratorType it = mpGroups[name]->LayerBegin(); it != mpGroups[name]->LayerEnd(); ++it)
+        {
+            if(mLayerIsCollapsed[*it] == false)
+                CollapseLayer(*it, TOL);
+        }
+
+        // firstly put nodes in layer into bin
+        typedef std::map<SpatialKey, Layer::NodesContainerType> BinType;
+        BinType Binning;
+        for(Group::LayerContainerIteratorType itl = mpGroups[name]->LayerBegin(); itl != mpGroups[name]->LayerEnd(); ++itl)
+        {
+            Layer& thisLayer = *mpLayers[*itl];
             for(Layer::NodesIteratorType it = thisLayer.NodesBegin(); it != thisLayer.NodesEnd(); ++it)
             {
                 double X = (*it)->X();
@@ -135,6 +209,8 @@ public:
 
         // for each bin, collapse locally
         this->CollapseBin(Binning, TOL);
+
+        mGroupIsCollapsed[name] = true;
     }
 
     ///@}
@@ -153,21 +229,23 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "CollapsibleLayerHandler";
+        buffer << "SelectiveCollapsibleLayerHandler";
         return buffer.str();
     }
 
-//    /// Print information about this object.
-//    virtual void PrintInfo(std::ostream& rOStream) const
-//    {
-//        rOStream << this->Info();
-//    }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << this->Info();
+    }
 
-//    /// Print object's data.
-//    virtual void PrintData(std::ostream& rOStream) const
-//    {
-//        BaseType::PrintData(rOStream);
-//    }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        BaseType::PrintData(rOStream);
+        for(GroupsContainerType::const_iterator it = mpGroups.begin(); it != mpGroups.end(); ++it)
+            std::cout << "+" << *(it->second);
+    }
 
     ///@}
     ///@name Friends
@@ -214,6 +292,10 @@ private:
     ///@{
 
     double mDx, mDy, mDz;
+
+    GroupsContainerType mpGroups;
+    std::map<std::string, bool> mLayerIsCollapsed;
+    std::map<std::string, bool> mGroupIsCollapsed;
 
     ///@}
     ///@name Private Operators
@@ -267,19 +349,19 @@ private:
     ///@{
 
     /// Assignment operator.
-    CollapsibleLayerHandler& operator=(CollapsibleLayerHandler const& rOther)
+    SelectiveCollapsibleLayerHandler& operator=(SelectiveCollapsibleLayerHandler const& rOther)
     {
         return *this;
     }
 
     /// Copy constructor.
-    CollapsibleLayerHandler(CollapsibleLayerHandler const& rOther)
+    SelectiveCollapsibleLayerHandler(SelectiveCollapsibleLayerHandler const& rOther)
     {
     }
 
     ///@}
 
-}; // Class CollapsibleLayerHandler
+}; // Class SelectiveCollapsibleLayerHandler
 
 ///@}
 
@@ -291,13 +373,13 @@ private:
 ///@{
 
 /// input stream function
-inline std::istream& operator >>(std::istream& rIStream, CollapsibleLayerHandler& rThis)
+inline std::istream& operator >>(std::istream& rIStream, SelectiveCollapsibleLayerHandler& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-inline std::ostream& operator <<(std::ostream& rOStream, const CollapsibleLayerHandler& rThis)
+inline std::ostream& operator <<(std::ostream& rOStream, const SelectiveCollapsibleLayerHandler& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -310,4 +392,4 @@ inline std::ostream& operator <<(std::ostream& rOStream, const CollapsibleLayerH
 
 }// namespace Kratos.
 
-#endif // KRATOS_LAYER_APP_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED
+#endif // KRATOS_LAYER_APP_SELECTIVE_COLLAPSIBLE_LAYER_HANDLER_H_INCLUDED

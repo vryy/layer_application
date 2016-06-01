@@ -84,6 +84,7 @@ public:
         mLastNode = 1;
         mLastEntity = 1;
         mLastPropId = 0;
+        mLastLayer = 0;
     }
 
     /// Destructor.
@@ -101,7 +102,19 @@ public:
         if(it != mpLayers.end())
             return it->second;
         else
-            KRATOS_THROW_ERROR(std::logic_error, name, " layer does not exist")
+            KRATOS_THROW_ERROR(std::logic_error, "Layer does not exist:", name)
+    }
+
+    Layer::Pointer& operator[] (std::size_t Id)
+    {
+        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            if(it->second->Id() == Id)
+            {
+                return it->second;
+            }
+        }
+        KRATOS_THROW_ERROR(std::logic_error, "Layer does not exist:", Id)
     }
 
     bool Has(std::string name) const
@@ -117,7 +130,7 @@ public:
     virtual void AddLayer(std::string layer_name, boost::python::dict& pyDictNodalSet,
             boost::python::dict& pyDictEntitySet, boost::python::dict& pyDictEntityInfoSet)
     {
-        Layer::Pointer pLayer = Layer::Pointer(new Layer(layer_name));
+        Layer::Pointer pLayer = Layer::Pointer(new Layer(++mLastLayer, layer_name));
 
         // iterate all the given nodes in layer and assign new nodal id; also build the map from the old node id to the new node id
         boost::python::list NodeIds = pyDictNodalSet.keys();
@@ -140,8 +153,8 @@ public:
                 P.push_back(c);
             }
 
-            PointType::Pointer pNewPoint = PointType::Pointer(new PointType(mLastNode, P[0], P[1], P[2]));
-            pLayer->AddNode(pNewPoint, id);
+            PointType::Pointer pNewPoint = PointType::Pointer(new PointType(mLastNode, id, pLayer->Id(), P[0], P[1], P[2]));
+            pLayer->AddNode(pNewPoint);
             mpPoints.push_back(pNewPoint);
             NodeMap[id] = mLastNode;
 
@@ -254,44 +267,48 @@ public:
 
     virtual void RenumberAll()
     {
-        // unique'ize the node container, it effectively removed the node with the same id
-        mpPoints.Unique();
+        // collect all the unique id in the system
+        std::set<IndexType> IdSet;
+        for(PointsContainerType::iterator it = mpPoints.begin(); it != mpPoints.end(); ++it)
+            IdSet.insert(it->Id());
 
-        // renumber all the nodes in nodes container
+        // for each unique id, assign the new id consecutively
         mLastNode = 0;
         std::map<IndexType, IndexType> NodeMap;
+        for(std::set<IndexType>::iterator it = IdSet.begin(); it != IdSet.end(); ++it)
+            NodeMap[*it] = ++mLastNode;
+
+        // renumber all the nodes in nodes container
         for(PointsContainerType::iterator it = mpPoints.begin(); it != mpPoints.end(); ++it)
-        {
-            it->SetId(++mLastNode);
-        }
+            it->SetId(NodeMap[it->Id()]);
 
         // renumber all the entities according to its type (element/condition)
-       IndexType lastElement = 0;
-       IndexType lastConditon = 0;
-       for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
-       {
-           Layer& thisLayer = *(it->second);
+        IndexType lastElement = 0;
+        IndexType lastConditon = 0;
+        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            Layer& thisLayer = *(it->second);
 
-           for(Layer::EntitiesIteratorType it2 = thisLayer.EntitiesBegin(); it2 != thisLayer.EntitiesEnd(); ++it2)
-           {
-               std::string layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
+            for(Layer::EntitiesIteratorType it2 = thisLayer.EntitiesBegin(); it2 != thisLayer.EntitiesEnd(); ++it2)
+            {
+                std::string layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
 
-               if(layer_entity_type == std::string("element") || layer_entity_type == std::string("bezier element")) // element
-               {
-                   (*it2)->SetId(++lastElement);
-               }
-               else if(layer_entity_type == std::string("condition") || layer_entity_type == std::string("bezier condition")) // condition
-               {
-                   (*it2)->SetId(++lastConditon);
-               }
-               else
-               {
-                   std::stringstream ss;
-                   ss << "Unsupported entity type " << layer_entity_type << " of Layer " << thisLayer.Name();
-                   KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
-               }
-           }
-       }
+                if(layer_entity_type == std::string("element") || layer_entity_type == std::string("bezier element")) // element
+                {
+                    (*it2)->SetId(++lastElement);
+                }
+                else if(layer_entity_type == std::string("condition") || layer_entity_type == std::string("bezier condition")) // condition
+                {
+                    (*it2)->SetId(++lastConditon);
+                }
+                else
+                {
+                    std::stringstream ss;
+                    ss << "Unsupported entity type " << layer_entity_type << " of Layer " << thisLayer.Name();
+                    KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+                }
+            }
+        }
 
         std::cout << "RenumberAll completed" << std::endl;
     }
@@ -348,27 +365,27 @@ public:
         {
             Layer& thisLayer = *(it->second);
 
-            std::string layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
+//            std::string layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
 
-            if(layer_entity_type == std::string("element") || layer_entity_type == std::string("bezier element")) // element
-            {}
-            else if(layer_entity_type == std::string("condition") || layer_entity_type == std::string("bezier condition")) // condition
-            {}
-            else if(layer_entity_type == std::string("null")) // none type
-            {
-                continue;
-            }
-            else
-            {
-                std::stringstream ss;
-                ss << "Unsupported entity type " << layer_entity_type << " of Layer " << thisLayer.Name();
-                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
-            }
+//            if(layer_entity_type == std::string("element") || layer_entity_type == std::string("bezier element")) // element
+//            {}
+//            else if(layer_entity_type == std::string("condition") || layer_entity_type == std::string("bezier condition")) // condition
+//            {}
+//            else if(layer_entity_type == std::string("null")) // none type
+//            {
+//                continue;
+//            }
+//            else
+//            {
+//                std::stringstream ss;
+//                ss << "Unsupported entity type " << layer_entity_type << " of Layer " << thisLayer.Name();
+//                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+//            }
 
             // start to write node layer
             fid << "\t" << "layer_nodes_sets['" << thisLayer.Name() << "'] = [";
             std::size_t cnt = 0;
-            for(Layer::NodesIteratorType it2 = thisLayer.NodesBegin(); it2 != thisLayer.NodesEnd(); ++it2)
+            for(Layer::NodesConstIteratorType it2 = thisLayer.NodesBegin(); it2 != thisLayer.NodesEnd(); ++it2)
             {
                 fid << (*it2)->Id() << ", ";
                 if(++cnt % 10 == 0)
@@ -416,6 +433,48 @@ public:
             fid << "]\n";
         }
         fid << "\t" << "return layer_conds_sets\n\n";
+
+        // write nodal tables
+        fid << "def ReadTableNodesSets():\n";
+        fid << "\t" << "table_nodes_sets = {}\n";
+        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            Layer& thisLayer = *(it->second);
+            fid << "\t" << "table_nodes_sets['" << thisLayer.Name() << "'] = {}\n";
+
+            std::vector<std::string> table_names = thisLayer.GetTableNames();
+            for(std::size_t i = 0; i < table_names.size(); ++i)
+            {
+                fid << "\t" << "nodes_set = [";
+                Layer::NodesContainerType table_nodes = thisLayer.Table(table_names[i]);
+                std::size_t cnt = 0;
+                for(Layer::NodesConstIteratorType it2 = table_nodes.ptr_begin(); it2 != table_nodes.ptr_end(); ++it2)
+                {
+                    fid << (*it2)->Id() << ", ";
+                    if(++cnt % 10 == 0)
+                        fid << "\n\t";
+                }
+                fid << "]\n";
+                fid << "\t" << "table_nodes_sets['" << thisLayer.Name() << "']['" << table_names[i] << "'] = nodes_set\n";
+            }
+        }
+        fid << "\t" << "return table_nodes_sets\n\n";
+
+        // write the map from current node id to the original node id (ref id of node)
+        fid << "def ReadLocalReferenceIds():\n";
+        fid << "\t" << "layer_node_map = {}\n";
+        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            Layer& thisLayer = *(it->second);
+
+            fid << "\t" << "node_map = {}\n";
+            for(Layer::NodesConstIteratorType it2 = thisLayer.NodesBegin(); it2 != thisLayer.NodesEnd(); ++it2)
+            {
+                fid << "\t" << "node_map[" << (*it2)->Id() << "] = " << (*it2)->LocalId() << "\n";
+            }
+            fid << "\t" << "layer_node_map['" << thisLayer.Name() << "'] = node_map\n";
+        }
+        fid << "\t" << "return layer_node_map\n\n";
 
         fid.close();
     }
@@ -475,6 +534,7 @@ protected:
     IndexType mLastNode;
     IndexType mLastEntity;
     IndexType mLastPropId;
+    IndexType mLastLayer;
 
     ///@}
     ///@name Protected Operators
@@ -487,20 +547,51 @@ protected:
     virtual void MDPA_Properties(std::ostream& rOStream)
     {
         typedef ParameterList<std::string> ParameterListType;
+//        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+//        {
+//            Layer& thisLayer = *(it->second);
+//            int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+//            Begin(rOStream, "Properties", layer_prop_id);
+//            for(ParameterListType::pair_iterator it2 = thisLayer.pair_begin(); it2 != thisLayer.pair_end(); ++it2)
+//            {
+//                // ignore the default underlying attributes
+//                if(it2->first == std::string("LAYER_PROP_ID")
+//                    || it2->first == std::string("LAYER_ENTITY_TYPE")
+//                    || it2->first == std::string("LAYER_ENTITY_NAME"))
+//                    continue;
+//                rOStream << it2->first << " " << it2->second << std::endl;
+//            }
+//            End(rOStream, "Properties");
+//        }
+
+        // firstly collect all possible properties id
+        std::set<int> prop_id_set;
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
         {
             Layer& thisLayer = *(it->second);
+            int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+            prop_id_set.insert(layer_prop_id);
+        }
 
-            IndexType layer_prop_id = thisLayer.get<IndexType>("LAYER_PROP_ID");
-            Begin(rOStream, "Properties", layer_prop_id);
-            for(ParameterListType::pair_iterator it2 = thisLayer.pair_begin(); it2 != thisLayer.pair_end(); ++it2)
+        for(std::set<int>::iterator it_id = prop_id_set.begin(); it_id != prop_id_set.end(); ++it_id)
+        {
+            Begin(rOStream, "Properties", *it_id);
+            for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
             {
-                // ignore the default underlying attributes
-                if(it2->first == std::string("LAYER_PROP_ID")
-                    || it2->first == std::string("LAYER_ENTITY_TYPE")
-                    || it2->first == std::string("LAYER_ENTITY_NAME"))
-                    continue;
-                rOStream << it2->first << " " << it2->second << std::endl;
+                Layer& thisLayer = *(it->second);
+                int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+                if(layer_prop_id == *it_id)
+                {
+                    for(ParameterListType::pair_iterator it2 = thisLayer.pair_begin(); it2 != thisLayer.pair_end(); ++it2)
+                    {
+                        // ignore the default underlying attributes
+                        if(it2->first == std::string("LAYER_PROP_ID")
+                            || it2->first == std::string("LAYER_ENTITY_TYPE")
+                            || it2->first == std::string("LAYER_ENTITY_NAME"))
+                            continue;
+                        rOStream << it2->first << " " << it2->second << std::endl;
+                    }
+                }
             }
             End(rOStream, "Properties");
         }
@@ -508,8 +599,11 @@ protected:
 
     virtual void MDPA_Nodes(std::ostream& rOStream)
     {
+        PointsContainerType pNodeList = mpPoints;
+        pNodeList.Unique();
+
         Begin(rOStream, "Nodes");
-        for(PointsContainerType::iterator it = mpPoints.begin(); it != mpPoints.end(); ++it)
+        for(PointsContainerType::iterator it = pNodeList.begin(); it != pNodeList.end(); ++it)
         {
             rOStream << it->Id()
                      << " " << it->X()
@@ -535,9 +629,9 @@ protected:
 
             if(layer_entity_type == std::string("element")) // element
             {
-                IndexType layer_prop_id = thisLayer.get<IndexType>("LAYER_PROP_ID");
-                KRATOS_WATCH(layer_entity_name)
-                KRATOS_WATCH(thisLayer.Name())
+                int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+//                KRATOS_WATCH(layer_entity_name)
+//                KRATOS_WATCH(thisLayer.Name())
 
                 // write the entity connectivities
                 Begin(rOStream, "Elements", layer_entity_name);
@@ -569,7 +663,7 @@ protected:
             }
             else if(layer_entity_type == std::string("bezier element")) // bezier element
             {
-                IndexType layer_prop_id = thisLayer.get<IndexType>("LAYER_PROP_ID");
+                int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
 
                 // write the bezier block
                 Begin(rOStream, "BezierBlock", "");
@@ -594,6 +688,10 @@ protected:
                         rOStream << "2 2 ";
                     }
                     else if(layer_entity_name.find("Bezier3D") != std::string::npos)
+                    {
+                        rOStream << "3 3 ";
+                    }
+                    else if(layer_entity_name.find("Geo3dBezier") != std::string::npos)
                     {
                         rOStream << "3 3 ";
                     }
@@ -811,6 +909,10 @@ protected:
                         rOStream << "2 2 ";
                     }
                     else if(layer_entity_name.find("Bezier3D") != std::string::npos)
+                    {
+                        rOStream << "3 3 ";
+                    }
+                    else if(layer_entity_name.find("Geo3dBezier") != std::string::npos)
                     {
                         rOStream << "3 3 ";
                     }

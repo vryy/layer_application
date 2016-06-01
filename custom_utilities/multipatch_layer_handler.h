@@ -69,6 +69,9 @@ public:
     typedef typename BaseType::PointsContainerType PointsContainerType;
     typedef typename BaseType::LayersContainerType LayersContainerType;
 
+    typedef std::pair<std::string, std::string> pair_t;
+    typedef std::pair<std::size_t, std::size_t> point_t;
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(MultipatchLayerHandler);
 
@@ -77,7 +80,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MultipatchLayerHandler() : BaseType()
+    MultipatchLayerHandler() : BaseType(), mLastBucket(0)
     {
     }
 
@@ -97,10 +100,13 @@ public:
     void AddLayerConnection(std::string layer1_name, std::string layer1_boundary,
             std::string layer2_name, std::string layer2_boundary)
     {
+        const double TOL = 1.0e-10;
+
+        std::vector<Layer::PointType::Pointer>& layer1_nodes = mpLayers[layer1_name]->Table(layer1_boundary);
+        std::vector<Layer::PointType::Pointer>& layer2_nodes = mpLayers[layer2_name]->Table(layer2_boundary);
+
         /* check the consistency between two boundaries */
         // first count the number of nodes on the boundary
-        Layer::NodesContainerType& layer1_nodes = mpLayers[layer1_name]->Table(layer1_boundary);
-        Layer::NodesContainerType& layer2_nodes = mpLayers[layer2_name]->Table(layer2_boundary);
         std::size_t num_nodes_1 = layer1_nodes.size();
         std::size_t num_nodes_2 = layer2_nodes.size();
         if(num_nodes_1 != num_nodes_2)
@@ -111,7 +117,6 @@ public:
         }
 
         // check the coordinates of each node one by one
-        const double TOL = 1.0e-10;
         for(std::size_t i = 0; i < num_nodes_1; ++i)
         {
             Layer::PointType::Pointer p1 = layer1_nodes[i];
@@ -121,17 +126,101 @@ public:
             if(diff > TOL)
             {
                 KRATOS_WATCH(diff)
-                KRATOS_WATCH(p1)
-                KRATOS_WATCH(p2)
+                KRATOS_WATCH(*p1)
+                KRATOS_WATCH(*p2)
                 KRATOS_THROW_ERROR(std::logic_error, "The node coordinates are different", "")
             }
 
-            // now we set the id of node in layer 2 to be the same as node in layer 1, essentially remove 1 node
-            p2->SetId(p1->Id());
+            // now we make the indicator of the two node the same
+            point_t pnt1(p1->LayerId(), p1->LocalId());
+            point_t pnt2(p2->LayerId(), p2->LocalId());
+
+            if(mPointMap.find(pnt1) == mPointMap.end())
+            {
+                if(mPointMap.find(pnt2) == mPointMap.end())
+                {
+                    mPointMap[pnt1] = mLastBucket;
+                    mPointMap[pnt2] = mLastBucket;
+                    ++mLastBucket;
+                }
+                else
+                {
+                    mPointMap[pnt1] = mPointMap[pnt2];
+                }
+            }
+            else
+            {
+                if(mPointMap.find(pnt2) == mPointMap.end())
+                {
+                    mPointMap[pnt2] = mPointMap[pnt1];
+                }
+                else
+                {
+                    std::size_t OldBucket = mPointMap[pnt2];
+                    std::size_t NewBucket = mPointMap[pnt1];
+
+                    for(std::map<point_t, std::size_t>::iterator it = mPointMap.begin(); it != mPointMap.end(); ++it)
+                    {
+                        if(it->second == OldBucket)
+                            it->second = NewBucket;
+                    }
+                }
+            }
         }
 
         std::cout << "Layer connection (" << layer1_name << ", " << layer1_boundary
-                  << ")-(" << layer2_name << ", " << layer2_boundary << ") is set" << std::endl;
+                  << ")-(" << layer2_name << ", " << layer2_boundary << ") is added" << std::endl;
+    }
+
+
+    void FinalizeLayerConnection()
+    {
+//        for(std::map<point_t, std::size_t>::iterator it = mPointMap.begin(); it != mPointMap.end(); ++it)
+//        {
+//            Layer::Pointer& layer = this->operator[](it->first.first);
+//            Layer::PointType& p = layer->Nodes()[it->first.second];
+
+//            std::cout << "point " << p.Id() << " bucket " << it->second << std::endl;
+//        }
+
+        // extract the pairs with the same flag
+        std::map<std::size_t, std::set<point_t> > point_set;
+        for(std::map<point_t, std::size_t>::iterator it = mPointMap.begin(); it != mPointMap.end(); ++it)
+        {
+            point_set[it->second].insert(it->first);
+        }
+
+//        for(std::map<std::size_t, std::set<point_t> >::iterator it = point_set.begin(); it != point_set.end(); ++it)
+//        {
+//            std::cout << "bucket " << it->first << ":";
+//            for(std::set<point_t>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+//            {
+//                Layer::Pointer& layer = this->operator[](it2->first);
+//                Layer::PointType& p = layer->Nodes()[it2->second];
+//                std::cout << " " << p.Id();
+//            }
+//            std::cout << std::endl;
+//        }
+
+        // for each set of pair, try to equalize the id of each nodes in pair
+        for(std::map<std::size_t, std::set<point_t> >::iterator it = point_set.begin(); it != point_set.end(); ++it)
+        {
+            std::vector<point_t> points(it->second.begin(), it->second.end());
+
+            if(points.size() > 1)
+            {
+                Layer::Pointer& layer1 = this->operator[](points[0].first);
+                Layer::PointType& p1 = layer1->Nodes()[points[0].second];
+
+                for(std::size_t i = 1; i < points.size(); ++i)
+                {
+                    Layer::Pointer& layeri = this->operator[](points[i].first);
+                    Layer::PointType& pi = layeri->Nodes()[points[i].second];
+
+                    pi.SetId(p1.Id());
+                }
+            }
+        }
     }
 
 
@@ -198,6 +287,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    std::size_t mLastBucket;
+    std::map<point_t, std::size_t> mPointMap;
 
     ///@}
     ///@name Private Operators

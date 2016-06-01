@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "custom_utilities/spatial_point.h"
 #include "includes/kratos_application.h"
 
 

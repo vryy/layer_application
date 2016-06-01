@@ -21,6 +21,7 @@
 #include "custom_utilities/layer.h"
 #include "custom_utilities/layer_handler.h"
 #include "custom_utilities/collapsible_layer_handler.h"
+#include "custom_utilities/selective_collapsible_layer_handler.h"
 #include "custom_utilities/multipatch_layer_handler.h"
 #include "custom_utilities/auto_collapse_spatial_binning.h"
 #include "custom_utilities/spatial_grid_binning.h"
@@ -44,7 +45,7 @@ void LayerApp_AddCustomUtilitiesToPython()
     typedef ParameterList<std::string> ParameterListType;
 
     class_<Layer, Layer::Pointer, boost::noncopyable, bases<ParameterListType> >
-    ("Layer", init<std::string>())
+    ("Layer", init<std::size_t, std::string>())
     .def("AddTable", &Layer::AddTable)
     .def(self_ns::str(self))
     ;
@@ -71,14 +72,21 @@ void LayerApp_AddCustomUtilitiesToPython()
     class_<CollapsibleLayerHandler, CollapsibleLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
      ("CollapsibleLayerHandler", init<>())
     .def("SetSpacing", &CollapsibleLayerHandler::SetSpacing)
-    .def("AddGroup", &CollapsibleLayerHandler::AddGroup)
-    .def("CollapseLayer", &CollapsibleLayerHandler::CollapseLayer)
-    .def("CollapseGroup", &CollapsibleLayerHandler::CollapseGroup)
+    .def("Collapse", &CollapsibleLayerHandler::Collapse)
+    ;
+
+    class_<SelectiveCollapsibleLayerHandler, SelectiveCollapsibleLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
+     ("SelectiveCollapsibleLayerHandler", init<>())
+    .def("SetSpacing", &SelectiveCollapsibleLayerHandler::SetSpacing)
+    .def("AddGroup", &SelectiveCollapsibleLayerHandler::AddGroup)
+    .def("CollapseLayer", &SelectiveCollapsibleLayerHandler::CollapseLayer)
+    .def("CollapseGroup", &SelectiveCollapsibleLayerHandler::CollapseGroup)
     ;
 
     class_<MultipatchLayerHandler, MultipatchLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
      ("MultipatchLayerHandler", init<>())
     .def("AddLayerConnection", &MultipatchLayerHandler::AddLayerConnection)
+    .def("FinalizeLayerConnection", &MultipatchLayerHandler::FinalizeLayerConnection)
     ;
 
     class_<AutoCollapseSpatialBinning, AutoCollapseSpatialBinning::Pointer, boost::noncopyable>

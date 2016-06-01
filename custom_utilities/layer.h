@@ -53,6 +53,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<class TObjectType>
+class LocalIdentFunction
+{
+public:
+    typedef typename TObjectType::IndexType IndexType;
+    typedef IndexType result_type;
+
+    IndexType operator()(TObjectType const& rThisObject) const
+    {
+        return rThisObject.LocalId();
+    }
+};
+
 
 /// Short class definition.
 /*** Detail class definition.
@@ -69,8 +82,13 @@ public:
     typedef EntityType::PointType PointType;
     typedef EntityType::IndexType IndexType;
     typedef ParameterList<std::string> BaseType;
-    typedef std::vector<PointType::Pointer> NodesContainerType;
-    typedef NodesContainerType::iterator NodesIteratorType;
+
+//    typedef std::vector<PointType::Pointer> NodesContainerType;
+//    typedef NodesContainerType::iterator NodesIteratorType;
+    typedef PointerVectorSet<PointType, LocalIdentFunction<PointType> > NodesContainerType;
+    typedef NodesContainerType::ptr_iterator NodesIteratorType;
+    typedef NodesContainerType::ptr_const_iterator NodesConstIteratorType;
+
     typedef std::vector<EntityType::Pointer> EntitiesContainerType;
     typedef EntitiesContainerType::iterator EntitiesIteratorType;
     typedef std::set<std::string>::iterator InfoNamesIteratorType;
@@ -83,7 +101,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Layer(std::string Name) : mName(Name)
+    Layer(std::size_t Id, std::string Name) : mName(Name), mId(Id)
     {
         (*this)["LAYER_ENTITY_TYPE"] = std::string("element");
         (*this)["LAYER_ENTITY_NAME"] = std::string("Entity");
@@ -98,14 +116,29 @@ public:
     ///@name Operators
     ///@{
 
+    NodesContainerType& Nodes()
+    {
+        return mpNodes;
+    }
+
     NodesIteratorType NodesBegin()
     {
-        return mpNodes.begin();
+        return mpNodes.ptr_begin();
+    }
+
+    NodesConstIteratorType NodesBegin() const
+    {
+        return mpNodes.ptr_begin();
     }
 
     NodesIteratorType NodesEnd()
     {
-        return mpNodes.end();
+        return mpNodes.ptr_end();
+    }
+
+    NodesConstIteratorType NodesEnd() const
+    {
+        return mpNodes.ptr_end();
     }
 
     EntitiesIteratorType EntitiesBegin()
@@ -141,9 +174,17 @@ public:
         return mInfoNames.end();
     }
 
-    NodesContainerType& Table(std::string name)
+    std::vector<std::string> GetTableNames() const
     {
-        std::map<std::string, NodesContainerType>::iterator it = mpTables.find(name);
+        std::vector<std::string> table_names;
+        for(std::map<std::string, std::vector<PointType::Pointer> >::const_iterator it = mpTables.begin(); it != mpTables.end(); ++it)
+            table_names.push_back(it->first);
+        return table_names;
+    }
+
+    std::vector<PointType::Pointer>& Table(std::string name)
+    {
+        std::map<std::string, std::vector<PointType::Pointer> >::iterator it = mpTables.find(name);
         if(it == mpTables.end())
         {
             std::stringstream ss;
@@ -167,11 +208,9 @@ public:
         mpEntities.clear();
     }
 
-    // RefNumber is the unique id (locally at layer) to identify the node. This helps to search the node faster.
-    void AddNode(PointType::Pointer pPoint, const IndexType RefNumber)
+    void AddNode(PointType::Pointer pPoint)
     {
         mpNodes.push_back(pPoint);
-        mNodeMap[RefNumber] = mpNodes.size() - 1;
     }
 
     void AddEntity(EntityType::Pointer pEntity)
@@ -191,13 +230,13 @@ public:
 
     void AddTable(std::string table_name, boost::python::list& pyListNodes)
     {
-        NodesContainerType& table_nodes = mpTables[table_name];
+        std::vector<PointType::Pointer>& table_nodes = mpTables[table_name];
         typedef boost::python::stl_input_iterator<int> iterator_type;
         BOOST_FOREACH(const iterator_type::value_type& id,
                       std::make_pair(iterator_type(pyListNodes), // begin
                         iterator_type() ) ) // end
         {
-            table_nodes.push_back(mpNodes[mNodeMap[id]]);
+            table_nodes.push_back(mpNodes(id));
         }
         std::cout << "Table " << table_name << " is added to layer " << mName << std::endl;
     }
@@ -219,6 +258,11 @@ public:
     std::string Name() const
     {
         return mName;
+    }
+
+    std::size_t Id() const
+    {
+        return mId;
     }
 
     ///@}
@@ -247,7 +291,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         rOStream << "-->Nodes:";
-        for(NodesContainerType::const_iterator it = mpNodes.begin(); it != mpNodes.end(); ++it)
+        for(NodesConstIteratorType it = NodesBegin(); it != NodesEnd(); ++it)
             rOStream << " " << *(*it);
         rOStream << std::endl;
         rOStream << "-->Entities:" << std::endl;
@@ -309,12 +353,12 @@ private:
     ///@{
 
     std::string mName;
+    std::size_t mId;
     NodesContainerType mpNodes;
     EntitiesContainerType mpEntities;
     std::set<std::string> mGroups; // list of group contain this layer
     std::set<std::string> mInfoNames; // list of info names associated with this layer
-    std::map<IndexType, std::size_t> mNodeMap; // this map from reference number of node to the index of node in the container. That helps to search the node faster.
-    std::map<std::string, NodesContainerType> mpTables; // container of the subset of nodes in the layer (i.e to contain the boundary nodes)
+    std::map<std::string, std::vector<PointType::Pointer> > mpTables; // container of the subset of nodes in the layer (i.e to contain the boundary nodes)
 
     ///@}
     ///@name Private Operators
