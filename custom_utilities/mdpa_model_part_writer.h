@@ -154,7 +154,7 @@ protected:
         std::time_t curTime = std::time(NULL);
         std::tm* timePtr = localtime(&curTime);
         rOStream << "//KRATOS analysis data file\n";
-        rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang Giang Bui, Ruhr-University Bochum\n";
+        rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang-Giang Bui, Ruhr-University Bochum\n";
         rOStream << "//This file is created at " << timePtr->tm_mday << "/" << timePtr->tm_mon << "/" << (timePtr->tm_year + 1900) % 100;
         rOStream << " " << timePtr->tm_hour << ":" << timePtr->tm_min << ":" << timePtr->tm_sec << "\n\n";
     }

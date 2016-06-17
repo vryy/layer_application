@@ -12,6 +12,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications )
 set( KRATOS_LAYER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/layer_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_io_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_parameter_list_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/layer_python_application.cpp
 )

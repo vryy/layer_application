@@ -109,20 +109,31 @@ public:
 //        fid.setf(std::ios_base::scientific);
 //        fid.setf(std::ios_base::floatfield);
 //        fid.setf(std::ios_base::scientific, std::ios_base::floatfield);
-        
+
+        std::cout << "MDPA_Header starts" << std::endl;
         MDPA_Header(fid);
         std::cout << "MDPA_Header completed" << std::endl;
+
+        std::cout << "MDPA_Data starts" << std::endl;
         MDPA_Data(fid);
         std::cout << "MDPA_Data completed" << std::endl;
+
+        std::cout << "MDPA_Properties starts" << std::endl;
         MDPA_Properties(fid);
         std::cout << "MDPA_Properties completed" << std::endl;
+
+        std::cout << "MDPA_Nodes starts" << std::endl;
         MDPA_Nodes(fid);
         std::cout << "MDPA_Nodes completed" << std::endl;
+
+        std::cout << "MDPA_Elements starts" << std::endl;
         MDPA_Elements(fid);
         std::cout << "MDPA_Elements completed" << std::endl;
+
+        std::cout << "MDPA_Conditions starts" << std::endl;
         MDPA_Conditions(fid);
         std::cout << "MDPA_Conditions completed" << std::endl;
-        
+
         fid.close();
     }
 
@@ -179,7 +190,7 @@ protected:
         std::time_t curTime = std::time(NULL);
         std::tm* timePtr = localtime(&curTime);
         rOStream << "//KRATOS isogeometric application data file\n";
-        rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang Giang Bui, Ruhr-University Bochum\n";
+        rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang-Giang Bui, Ruhr-University Bochum\n";
         rOStream << "//This file is created at " << timePtr->tm_mday << "/" << timePtr->tm_mon << "/" << (timePtr->tm_year + 1900) % 100;
         rOStream << " " << timePtr->tm_hour << ":" << timePtr->tm_min << ":" << timePtr->tm_sec << "\n\n";
     }

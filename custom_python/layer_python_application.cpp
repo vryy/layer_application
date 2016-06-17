@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "layer_application.h"
 #include "custom_python/add_utilities_to_python.h"
+#include "custom_python/add_io_to_python.h"
 #include "custom_python/add_parameter_list_to_python.h"
 
 namespace Kratos
@@ -37,9 +38,9 @@ namespace Python
 
         AddParameterListToPython();
         LayerApp_AddCustomUtilitiesToPython();
+        LayerApplication_AddIOToPython();
         
         KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAYER_ENTITY_TYPE )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAYER_ENTITY_NAME )
     }
 
 } // namespace Python.

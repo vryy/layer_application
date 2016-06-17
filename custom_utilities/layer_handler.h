@@ -265,6 +265,25 @@ public:
         mpLayers.insert(std::pair<std::string, Layer::Pointer>(layer_name, pLayer));
     }
 
+    /// Check the integrity of all the layers
+    void Check() const
+    {
+        for(LayersContainerType::const_iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            Layer& thisLayer = *(it->second);
+            try
+            {
+                thisLayer.get<int>("LAYER_PROP_ID");
+            }
+            catch(std::exception& e)
+            {
+                std::stringstream ss;
+                ss << "Layer " << thisLayer.Name() << " does not have a LAYER_PROP_ID";
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
+        }
+    }
+
     virtual void RenumberAll()
     {
         // collect all the unique id in the system
@@ -533,7 +552,7 @@ protected:
     LayersContainerType mpLayers; // layer container
     IndexType mLastNode;
     IndexType mLastEntity;
-    IndexType mLastPropId;
+    int mLastPropId;
     IndexType mLastLayer;
 
     ///@}
@@ -569,7 +588,17 @@ protected:
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
         {
             Layer& thisLayer = *(it->second);
-            int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+            int layer_prop_id;
+            try
+            {
+                layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+            }
+            catch(std::exception& e)
+            {
+                std::stringstream ss;
+                ss << "Layer " << thisLayer.Name() << " does not have a LAYER_PROP_ID";
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
             prop_id_set.insert(layer_prop_id);
         }
 
@@ -622,10 +651,29 @@ protected:
         {
             Layer& thisLayer = *(it->second);
 
-            std::string layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
-//            KRATOS_WATCH(layer_entity_type)
-            std::string layer_entity_name = thisLayer.get<std::string>("LAYER_ENTITY_NAME");
-//            KRATOS_WATCH(layer_entity_name)
+            std::string layer_entity_type;
+            try
+            {
+                layer_entity_type = thisLayer.get<std::string>("LAYER_ENTITY_TYPE");
+            }
+            catch(std::exception& e)
+            {
+                std::stringstream ss;
+                ss << "Layer " << thisLayer.Name() << " does not have LAYER_ENTITY_TYPE";
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
+
+            std::string layer_entity_name;
+            try
+            {
+                layer_entity_name = thisLayer.get<std::string>("LAYER_ENTITY_NAME");
+            }
+            catch(std::exception& e)
+            {
+                std::stringstream ss;
+                ss << "Layer " << thisLayer.Name() << " does not have LAYER_ENTITY_NAME";
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
 
             if(layer_entity_type == std::string("element")) // element
             {
@@ -995,6 +1043,29 @@ protected:
                 End(rOStream, "ConditionsWithGeometry");
 
                 End(rOStream, "BezierBlock");
+
+                //write the entity info
+                for(Layer::InfoNamesIteratorType it2 = thisLayer.InfoNamesBegin(); it2 != thisLayer.InfoNamesEnd(); ++it2)
+                {
+                    if(it2->find("EXTRACTION_OPERATOR") != std::string::npos
+                        || it2->find("NURBS_WEIGHT") != std::string::npos
+                        || it2->find("NURBS_DEGREE") != std::string::npos )
+                    {
+                        continue;
+                    }
+
+                    Begin(rOStream, "ConditionalData", *it2);
+                    for(Layer::EntitiesIteratorType it3 = thisLayer.EntitiesBegin(); it3 != thisLayer.EntitiesEnd(); ++it3)
+                    {
+                        EntityInfoIterator it4 = (*it3)->find(*it2);
+                        // check if this entity contain the info
+                        if(it4 != (*it3)->end())
+                        {
+                            rOStream << (*it3)->Id() << " " << *it4 << std::endl;
+                        }
+                    }
+                    End(rOStream, "ConditionalData");
+                }
 
                 std::cout << "Layer name " << thisLayer.Name() << " of type " << layer_entity_name << "(" << layer_entity_type << ") is written to Mdpa" << std::endl;
             }
