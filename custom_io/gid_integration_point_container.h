@@ -536,7 +536,12 @@ public:
             const Element::GeometryType::IntegrationPointsArrayType& integration_points = mMeshConditions.begin()->GetGeometry().IntegrationPoints( mIntegrationMethod );
             mSize = integration_points.size();
 
-            GiD_fBeginGaussPoint( MeshFile, GPTitle, mGidElementFamily, NULL, integration_points.size(), 0, 0 );
+            if(mGidElementFamily != GiD_Linear)
+                GiD_fBeginGaussPoint( MeshFile, GPTitle, mGidElementFamily, NULL, integration_points.size(), 0, 0 );
+            else
+                GiD_fBeginGaussPoint( MeshFile, GPTitle, mGidElementFamily, NULL, integration_points.size(), 0, 1 );
+            // Note: By now, Natural Coordinates for line elements cannot be "Given"
+
             if(mGidElementFamily == GiD_Tetrahedra || mGidElementFamily == GiD_Hexahedra)
             {
                 for(std::size_t i = 0; i < integration_points.size(); ++i)

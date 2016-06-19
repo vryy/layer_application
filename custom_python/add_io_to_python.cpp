@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_io/explicit_gid_io.h"
 #include "custom_io/gid_integration_point_container.h"
-#include "includes/gid_mesh_container.h"
+#include "custom_io/gid_unchanged_mesh_container.h"
 #include "custom_python/add_io_to_python.h"
 
 namespace Kratos
@@ -64,7 +64,7 @@ namespace Kratos
 namespace Python
 {
 
-typedef ExplicitGidIO<GidIntegrationPointsContainer, GidMeshContainer> GidIOType;
+typedef ExplicitGidIO<GidIntegrationPointsContainer, GidUnchangedMeshContainer> GidIOType;
 
 void ExplicitGidIO_WriteNodeMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
 {
