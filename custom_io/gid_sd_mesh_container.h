@@ -9,15 +9,15 @@
 //
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: hbui $
+//   Last Modified by:    $Author: Hoang-Giang Bui $
 //   Date:                $Date: 14 Jun 2016 $
 //   Revision:            $Revision: 1.0 $
 //
 //
 
 
-#if !defined(KRATOS_GID_UNCHANGED_MESH_CONTAINER_H_INCLUDED)
-#define  KRATOS_GID_UNCHANGED_MESH_CONTAINER_H_INCLUDED
+#if !defined(KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED)
+#define  KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED
 // System includes
 #include <string>
 #include <iostream>
@@ -48,15 +48,72 @@ typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
  */
-class GidUnchangedMeshContainer
+class GidSDMeshContainer
 {
 public:
 
     ///Constructor
-    GidUnchangedMeshContainer ( GeometryData::KratosGeometryType geometryType,
-            GiD_ElementType elementType, const char* mesh_title )
-    : mGeometryType (geometryType), mGidElementType (elementType), mMeshTitle (mesh_title)
-    {}
+    GidSDMeshContainer ( GeometryData::KratosGeometryType geometryType, const char* mesh_title )
+    : mMeshTitle (mesh_title)
+    {
+        mGeometryType = geometryType;
+
+        if(     mGeometryType == GeometryData::Kratos_Hexahedra3D8
+            ||  mGeometryType == GeometryData::Kratos_Hexahedra3D20
+            ||  mGeometryType == GeometryData::Kratos_Hexahedra3D27
+        )
+        {
+            mGidElementType = GiD_Hexahedra;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Tetrahedra3D4
+            ||  mGeometryType == GeometryData::Kratos_Tetrahedra3D10
+        )
+        {
+            mGidElementType = GiD_Tetrahedra;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Prism3D6
+            ||  mGeometryType == GeometryData::Kratos_Prism3D15
+        )
+        {
+            mGidElementType = GiD_Prism;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Quadrilateral3D4
+            ||  mGeometryType == GeometryData::Kratos_Quadrilateral3D8
+            ||  mGeometryType == GeometryData::Kratos_Quadrilateral3D9
+            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D4
+            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D8
+            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D9
+        )
+        {
+            mGidElementType = GiD_Quadrilateral;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Triangle3D3
+            ||  mGeometryType == GeometryData::Kratos_Triangle3D6
+            ||  mGeometryType == GeometryData::Kratos_Triangle2D3
+            ||  mGeometryType == GeometryData::Kratos_Triangle2D6
+        )
+        {
+            mGidElementType = GiD_Triangle;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Line3D3
+            ||  mGeometryType == GeometryData::Kratos_Line3D2
+            ||  mGeometryType == GeometryData::Kratos_Line2D3
+            ||  mGeometryType == GeometryData::Kratos_Line2D2
+        )
+        {
+            mGidElementType = GiD_Linear;
+        }
+        else if(mGeometryType == GeometryData::Kratos_Point3D
+            ||  mGeometryType == GeometryData::Kratos_Point2D
+        )
+        {
+            mGidElementType = GiD_Point;
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry type", mGeometryType)
+        }
+    }
 
     bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
@@ -329,9 +386,9 @@ protected:
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
     const char* mMeshTitle;
-};//class GidUnchangedMeshContainer
+};//class GidSDMeshContainer
 
 }// namespace Kratos.
 
-#endif // KRATOS_GID_UNCHANGED_MESH_CONTAINER_H_INCLUDED defined
+#endif // KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED defined
 

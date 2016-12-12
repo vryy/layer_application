@@ -7,8 +7,9 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
+//
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: hbui $
+//   Last Modified by:    $Author: Hoang-Giang Bui $
 //   Date:                $Date: 14 Jun 2016 $
 //   Revision:            $Revision: 1.0 $
 //
@@ -18,8 +19,8 @@
 
 
 
-#if !defined(KRATOS_GID_INTEGRATION_POINT_CONTAINER_H_INCLUDED)
-#define  KRATOS_GID_INTEGRATION_POINT_CONTAINER_H_INCLUDED
+#if !defined(KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED)
+#define  KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED
 
 // System includes
 #include <string>
@@ -52,17 +53,49 @@ typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
  * Auxiliary class to store integration point containers and perform result printing
  * on integration points
  */
-class GidIntegrationPointsContainer
+class GidSDIntegrationPointsContainer
 {
 public:
     ///Constructor
-    GidIntegrationPointsContainer( const char * gp_title, KratosGeometryFamily geometryFamily,
-                             GiD_ElementType gid_element_type,
-                             GeometryData::IntegrationMethod integration_method)
-        :
-        mGPTitle(gp_title), mKratosElementFamily(geometryFamily),
-        mGidElementFamily(gid_element_type), mIntegrationMethod(integration_method)
-    {}
+    GidSDIntegrationPointsContainer( const char * gp_title, KratosGeometryFamily geometryFamily,
+                             GeometryData::IntegrationMethod integration_method )
+    : mGPTitle(gp_title), mIntegrationMethod(integration_method)
+    {
+        mKratosElementFamily = geometryFamily;
+
+        if(     mKratosElementFamily == GeometryData::Kratos_Hexahedra )
+        {
+            mGidElementFamily = GiD_Hexahedra;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Tetrahedra )
+        {
+            mGidElementFamily = GiD_Tetrahedra;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Prism )
+        {
+            mGidElementFamily = GiD_Prism;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Quadrilateral)
+        {
+            mGidElementFamily = GiD_Quadrilateral;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Triangle)
+        {
+            mGidElementFamily = GiD_Triangle;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Linear)
+        {
+            mGidElementFamily = GiD_Linear;
+        }
+        else if(mKratosElementFamily == GeometryData::Kratos_Point)
+        {
+            mGidElementFamily = GiD_Point;
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry family type", mKratosElementFamily)
+        }
+    }
 
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
@@ -89,7 +122,7 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-    
+
     virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
@@ -182,10 +215,8 @@ public:
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mSize; i++)
                         {
-    //                                    GiD_WriteScalar( it->Id(), ValuesOnIntPoint[i] );
                             GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[i][0],
                                              ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
-
                         }
                     }
                 }
@@ -568,8 +599,8 @@ protected:
     std::size_t mSize;
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
-};//class GidIntegrationPointsContainer
+};//class GidSDIntegrationPointsContainer
 }// namespace Kratos.
 
-#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED defined 
 

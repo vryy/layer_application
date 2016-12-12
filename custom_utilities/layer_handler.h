@@ -602,9 +602,32 @@ protected:
             prop_id_set.insert(layer_prop_id);
         }
 
+//        for(std::set<int>::iterator it_id = prop_id_set.begin(); it_id != prop_id_set.end(); ++it_id)
+//        {
+//            Begin(rOStream, "Properties", *it_id);
+//            for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+//            {
+//                Layer& thisLayer = *(it->second);
+//                int layer_prop_id = thisLayer.get<int>("LAYER_PROP_ID");
+//                if(layer_prop_id == *it_id)
+//                {
+//                    for(ParameterListType::pair_iterator it2 = thisLayer.pair_begin(); it2 != thisLayer.pair_end(); ++it2)
+//                    {
+//                        // ignore the default underlying attributes
+//                        if(    it2->first == std::string("LAYER_PROP_ID")
+//                            || it2->first == std::string("LAYER_ENTITY_TYPE")
+//                            || it2->first == std::string("LAYER_ENTITY_NAME"))
+//                            continue;
+//                        rOStream << it2->first << " " << it2->second << std::endl;
+//                    }
+//                }
+//            }
+//            End(rOStream, "Properties");
+//        }
+
+        std::map<int, std::map<ParameterListType::KeyType, ParameterListType::DataType> > prop_set;
         for(std::set<int>::iterator it_id = prop_id_set.begin(); it_id != prop_id_set.end(); ++it_id)
         {
-            Begin(rOStream, "Properties", *it_id);
             for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
             {
                 Layer& thisLayer = *(it->second);
@@ -614,14 +637,25 @@ protected:
                     for(ParameterListType::pair_iterator it2 = thisLayer.pair_begin(); it2 != thisLayer.pair_end(); ++it2)
                     {
                         // ignore the default underlying attributes
-                        if(it2->first == std::string("LAYER_PROP_ID")
+                        if(    it2->first == std::string("LAYER_PROP_ID")
                             || it2->first == std::string("LAYER_ENTITY_TYPE")
                             || it2->first == std::string("LAYER_ENTITY_NAME"))
                             continue;
-                        rOStream << it2->first << " " << it2->second << std::endl;
+                        prop_set[layer_prop_id][it2->first] = it2->second;
                     }
                 }
             }
+        }
+
+        for(std::set<int>::iterator it_id = prop_id_set.begin(); it_id != prop_id_set.end(); ++it_id)
+        {
+            Begin(rOStream, "Properties", *it_id);
+
+            for(std::map<ParameterListType::KeyType, ParameterListType::DataType>::iterator it_prop = prop_set[*it_id].begin(); it_prop != prop_set[*it_id].end(); ++it_prop)
+            {
+                rOStream << it_prop->first << "\t" << it_prop->second << std::endl;
+            }
+
             End(rOStream, "Properties");
         }
     }

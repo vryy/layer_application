@@ -30,7 +30,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "NodalMonitoringProcesses/NodalMonitoringProcess.h"
+
 
 namespace Kratos
 {
@@ -39,13 +39,6 @@ namespace Kratos
 ///@{
 
 /// The base class for all NodalMonitoringProcesses in Kratos.
-/** The NodalMonitoringProcess is the base class for all NodalMonitoringProcesses and defines a simple interface for them.
-    Execute method is used to execute the NodalMonitoringProcess algorithms. While the parameters of this method
-  can be very different from one NodalMonitoringProcess to other there is no way to create enough overridden
-  versions of it. For this reason this method takes no argument and all NodalMonitoringProcess parameters must
-  be passed at construction time. The reason is that each constructor can take different set of
-  argument without any dependency to other NodalMonitoringProcesses or the base NodalMonitoringProcess class.
-*/
 class NodalMonitoringProcess : public Process
 {
 public:

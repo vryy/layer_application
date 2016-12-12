@@ -62,7 +62,7 @@ class CollapsibleLayerHandler : public LayerHandler
 {
 public:
 
-    const double PI = std::atan(1.0)*4;
+    const double PI = 3.14159265358979323846;
 
     ///@name Type Definitions
     ///@{
