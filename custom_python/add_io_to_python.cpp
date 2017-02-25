@@ -122,6 +122,12 @@ void (SDGidPostIOType::*local_axes_write_nodal_results_NH)( Variable<array_1d<do
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
     = &SDGidPostIOType::WriteLocalAxesOnNodesNonHistorical;
 
+void PrintElementalPartitionIndex( SDGidPostIOType& dummy, const Variable<double>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag, int rank)
+{
+    dummy.PrintElementalPartitionIndex( rVariable, r_model_part, SolutionTag, 0, rank );
+}
+
 void DoublePrintOnGaussPoints( SDGidPostIOType& dummy, const Variable<double>& rVariable,
                                ModelPart& r_model_part, double SolutionTag )
 {
@@ -184,6 +190,7 @@ void  LayerApplication_AddIOToPython()
     .def("WriteNodalResultsNonHistorical", pointer_to_matrix_write_nodal_results_NH)
     .def("WriteLocalAxesOnNodesNonHistorical", local_axes_write_nodal_results_NH)
 
+    .def("PrintElementalPartitionIndex", PrintElementalPartitionIndex)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)

@@ -123,6 +123,52 @@ public:
         KRATOS_CATCH("")
     }
 
+
+    void PrintPartitionIndex( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index, int rank )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Name();
+            char* new_gp_title = (char*)(ss.str().c_str());
+
+            WriteGaussPoints(ResultFile, new_gp_title);
+            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title, NULL, 0, NULL );
+            if( mMeshElements.size() != 0 )
+            {
+                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                        it != mMeshElements.end(); ++it )
+                {
+                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
+                    {
+                        for(unsigned int i=0; i<mSize; i++)
+                        {
+                            GiD_fWriteScalar( ResultFile, it->Id(), (double) rank );
+                        }
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 )
+            {
+                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                        it != mMeshConditions.end(); ++it )
+                {
+                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
+                    {
+                        for(unsigned int i=0; i<mSize; i++)
+                        {
+                            GiD_fWriteScalar( ResultFile, it->Id(), (double) rank );
+                        }                    
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+
     virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {

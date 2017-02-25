@@ -137,7 +137,7 @@ public:
         KRATOS_CATCH ("")
     }
 
-    bool AddCondition (const ModelPart::ConditionsContainerType::iterator pCondIt)
+    bool AddCondition ( const ModelPart::ConditionsContainerType::iterator pCondIt )
     {
         KRATOS_TRY
 
@@ -171,7 +171,7 @@ public:
         }
     }
 
-    void WriteMesh (GiD_FILE MeshFile, bool deformed)
+    void WriteMesh ( GiD_FILE MeshFile, bool deformed )
     {
         KRATOS_TRY
 
@@ -251,13 +251,16 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [2].Id();
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
+                        nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
                         if ( it->Has ( IS_INACTIVE ) )
                         {
                             if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
                             {
+//                                std::cout << "element " << (it)->Id() << " is written" << std::endl;
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                             }
+//                            else
+//                                std::cout << "element " << (it)->Id() << " is inactive" << std::endl;
                         }
                         else
                         {

@@ -767,6 +767,34 @@ public:
 
 
     ///functions for printing results on gauss points
+
+    /**
+     * Prints variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param r_model_part the current model part
+     */
+    void PrintElementalPartitionIndex( const Variable<double>& rVariable, ModelPart& r_model_part,
+                                     double SolutionTag, int value_index, int rank )
+    {
+        KRATOS_TRY;
+
+        if(rVariable.Name() == "PARTITION_INDEX")
+        {
+            Timer::Start("Writing Results");
+
+            for ( typename std::vector<TGaussPointContainer>::iterator it =
+                        BaseType::mGaussPointContainers.begin();
+                    it != BaseType::mGaussPointContainers.end(); it++ )
+            {
+                it->PrintPartitionIndex( mResultFile, rVariable, r_model_part, SolutionTag, value_index, rank );
+            }
+
+            Timer::Stop("Writing Results");
+        }
+
+        KRATOS_CATCH("");
+    }
+
     /**
      * Prints variables of type double on gauss points of the complete mesh
      * @param rVariable the given variable name
