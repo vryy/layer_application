@@ -320,6 +320,10 @@ public:
                 {
                     (*it2)->SetId(++lastConditon);
                 }
+                else if(layer_entity_type == std::string("null"))
+                {
+                    continue;
+                }
                 else
                 {
                     std::stringstream ss;

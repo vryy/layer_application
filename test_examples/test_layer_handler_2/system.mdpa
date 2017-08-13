@@ -1,0 +1,48 @@
+//KRATOS isogeometric application data file
+//(c) 2014 Hoang Giang Bui, Ruhr-University Bochum
+//This file is created at 4/10/14 0:1:6
+
+Begin ModelPartData
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+Begin Properties 3
+End Properties
+
+Begin Properties 4
+End Properties
+
+Begin Nodes
+1 0 0 0
+2 1 0 0
+3 1 1 0
+4 0 1 0
+5 2 0 0
+6 2 1 0
+7 2 2 0
+8 1 2 0
+9 0 1 0
+10 0 2 0
+End Nodes
+
+Begin Elements Entity
+1 1 1 2 3 4
+End Elements
+
+Begin Elements Entity
+2 2 2 5 6 3
+End Elements
+
+Begin Elements Entity
+3 3 3 6 7 8
+End Elements
+
+Begin Elements Entity
+4 4 9 3 8 10
+End Elements
+

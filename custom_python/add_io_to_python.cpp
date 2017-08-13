@@ -60,6 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_io/gid_sd_mesh_container.h"
 #include "custom_io/tikz_integration_point_container.h"
 #include "custom_io/tikz_mesh_container.h"
+#include "custom_io/vtk_io.h"
+#include "custom_io/vtk_mesh_container.h"
 #include "custom_python/add_io_to_python.h"
 
 namespace Kratos
@@ -70,6 +72,7 @@ namespace Python
 
 typedef SDGidPostIO<GidSDIntegrationPointsContainer, GidSDMeshContainer> SDGidPostIOType;
 typedef SDTikzPostIO<TikzIntegrationPointsContainer, TikzMeshContainer> SDTikzPostIOType;
+typedef VtkIO<VtkMeshContainer> VtkIOType;
 
 void SDGidPostIO_WriteNodeMesh( SDGidPostIOType& dummy, SDGidPostIOType::MeshType& rThisMesh )
 {
@@ -153,7 +156,12 @@ void MatrixPrintOnGaussPoints( SDGidPostIOType& dummy, const Variable<Matrix>& r
 }
 
 /////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+
+void (VtkIOType::*pointer_to_register_nodal_results_double)( Variable<double> const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+void (VtkIOType::*pointer_to_register_nodal_results_array1d)( Variable<array_1d<double, 3> > const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> const&, const std::size_t&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+
+
 /////////////////////////////////////////////////////////////
 
 void  LayerApplication_AddIOToPython()
@@ -214,6 +222,21 @@ void  LayerApplication_AddIOToPython()
     .def("FinalizeMesh", &SDTikzPostIOType::FinalizeMesh)
     .def("WriteMesh", &SDTikzPostIOType::WriteMesh)
     .def("WriteNodeMesh", &SDTikzPostIOType::WriteNodeMesh)
+    ;
+
+    enum_<VTK_PostMode>("VTKPostMode")
+    .value("VTK_PostAscii", VTK_PostAscii)
+    .value("VTK_PostBinary", VTK_PostBinary)
+    ;
+
+    class_<VtkIOType, VtkIOType::Pointer, boost::noncopyable>(
+        "VtkIO", init<std::string const&, VTK_PostMode>()
+    )
+    .def("Initialize", &VtkIOType::Initialize)
+    .def("Finalize", &VtkIOType::Finalize)
+    .def("RegisterNodalResults", pointer_to_register_nodal_results_double)
+    .def("RegisterNodalResults", pointer_to_register_nodal_results_array1d)
+    .def("RegisterNodalResults", pointer_to_register_nodal_results_vector)
     ;
 }
 

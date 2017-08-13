@@ -97,11 +97,11 @@ public:
     ///@name Operations
     ///@{
 
+    // make a connection between layer1_name-layer1_boundary and layer2_name-layer2_boundary; those nodes on the two boundaries will have the same id. This is a caching operation.
+    // This subroutine is useful to connect the patch
     void AddLayerConnection(std::string layer1_name, std::string layer1_boundary,
-            std::string layer2_name, std::string layer2_boundary)
+            std::string layer2_name, std::string layer2_boundary, const double& TOL)
     {
-        const double TOL = 1.0e-10;
-
         std::vector<Layer::PointType::Pointer>& layer1_nodes = mpLayers[layer1_name]->Table(layer1_boundary);
         std::vector<Layer::PointType::Pointer>& layer2_nodes = mpLayers[layer2_name]->Table(layer2_boundary);
 
@@ -128,7 +128,7 @@ public:
                 KRATOS_WATCH(diff)
                 KRATOS_WATCH(*p1)
                 KRATOS_WATCH(*p2)
-                KRATOS_THROW_ERROR(std::logic_error, "The node coordinates are different", "")
+                KRATOS_THROW_ERROR(std::logic_error, "The node coordinates are different within tolerance", TOL)
             }
 
             // now we make the indicator of the two node the same
@@ -172,7 +172,7 @@ public:
                   << ")-(" << layer2_name << ", " << layer2_boundary << ") is added" << std::endl;
     }
 
-
+    // finalize the layer connection
     void FinalizeLayerConnection()
     {
 //        for(std::map<point_t, std::size_t>::iterator it = mPointMap.begin(); it != mPointMap.end(); ++it)

@@ -91,11 +91,6 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethodType;
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
-    ///Flags for mesh writing
-//             enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
-//             enum WriteConditionsFlag{WriteConditions, WriteElementsOnly};
-//             enum MultiFileFlag{SingleFile, MultipleFiles};
-
     ///Constructor
     ///single stream IO constructor
     SDPostIO( const std::string& rDatafilename)
