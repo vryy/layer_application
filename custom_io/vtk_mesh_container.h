@@ -109,11 +109,14 @@ public:
     typedef Element::GeometryType GeometryType;
     typedef std::map<std::size_t, ModelPart::ElementsContainerType> MeshElementsContainerType;
     typedef std::map<std::size_t, ModelPart::ConditionsContainerType> MeshConditionsContainerType;
+    typedef std::map<std::size_t, ModelPart::NodesContainerType> MeshNodesContainerType;
 
     ///Constructor
     VtkMeshContainer ( GeometryData::KratosGeometryType geometryType,
                        VTK_ElementType elementType, const char* mesh_title )
         : mGeometryType (geometryType), mVtkElementType (elementType), mMeshTitle (mesh_title) {}
+
+    const std::string MeshTitle() const {return mMeshTitle;}
 
     bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
@@ -169,87 +172,198 @@ public:
     }
 
     template<class TNodesContainerType, class TElementsContainerType>
-    void WriteMesh(FILE* MeshFile, TNodesContainerType& MeshNodes, TElementsContainerType& MeshElements, bool deformed)
+    void WriteMesh(FILE* MeshFile, TNodesContainerType& MeshNodes, TElementsContainerType& MeshElements, bool deformed, VTK_PostMode mode)
     {
         // printing nodes
         std::map<std::size_t, std::size_t> NodeIdMap;
         std::size_t cnt = 0;
-        VTK_fBeginCoordinates(MeshFile);
-        for ( typename TNodesContainerType::iterator it = MeshNodes.begin();
-                it != MeshNodes.end(); ++it )
+
+        VTK_fBeginCoordinates(MeshFile, mode);
+        if (mode == VTK_PostAscii)
         {
-            if ( deformed )
-                VTK_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
-                                       (it)->Y(), (it)->Z() );
-            else
-                VTK_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
-                                       (it)->Y0(), (it)->Z0() );
-            NodeIdMap[(it)->Id()] = cnt++;
+            for ( typename TNodesContainerType::iterator it = MeshNodes.begin();
+                    it != MeshNodes.end(); ++it )
+            {
+                if ( deformed )
+                    VTK_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
+                                           (it)->Y(), (it)->Z() );
+                else
+                    VTK_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
+                                           (it)->Y0(), (it)->Z0() );
+                NodeIdMap[(it)->Id()] = cnt++;
+            }
+        }
+        else if (mode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(3*(MeshNodes.end() - MeshNodes.begin()));
+
+            for ( typename TNodesContainerType::iterator it = MeshNodes.begin();
+                    it != MeshNodes.end(); ++it )
+            {
+                if ( deformed )
+                {
+                    data_list.push_back((it)->X());
+                    data_list.push_back((it)->Y());
+                    data_list.push_back((it)->Z());
+                }
+                else
+                {
+                    data_list.push_back((it)->X0());
+                    data_list.push_back((it)->Y0());
+                    data_list.push_back((it)->Z0());
+                }
+                NodeIdMap[(it)->Id()] = cnt++;
+            }
+
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( MeshFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
         VTK_fEndCoordinates(MeshFile);
 
         // printing elements
         VTK_fBeginElements(MeshFile);
-        VTK_fBeginElementsConnectivity(MeshFile);
+        VTK_fBeginElementsConnectivity(MeshFile, mode);
         unsigned int nodes_size = MeshElements.begin()->GetGeometry().size();
-        int* nodes_id = new int[nodes_size];
-        for ( typename TElementsContainerType::iterator it = MeshElements.begin();
-                it != MeshElements.end(); ++it )
-        {
-            for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                nodes_id[i] = NodeIdMap[(it)->GetGeometry()[i].Id()];
 
-            if ( it->Has ( IS_INACTIVE ) )
+        if (mode == VTK_PostAscii)
+        {
+            int* nodes_id = new int[nodes_size];
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
             {
-                if ( ! it->GetValue ( IS_INACTIVE ) )
+                for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
+                    nodes_id[i] = NodeIdMap[(it)->GetGeometry()[i].Id()];
+
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
+                    }
+                }
+                else
                 {
                     VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
                 }
             }
-            else
-            {
-                VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
-            }
+            delete [] nodes_id;
         }
-        delete [] nodes_id;
+        else if (mode == VTK_PostBinary)
+        {
+            std::vector<int> data_list;
+            data_list.reserve(nodes_size*(MeshElements.end() - MeshElements.begin()));
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
+            {
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
+                            data_list.push_back(NodeIdMap[(it)->GetGeometry()[i].Id()]);
+                    }
+                }
+                else
+                {
+                    for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
+                        data_list.push_back(NodeIdMap[(it)->GetGeometry()[i].Id()]);
+                }
+            }
+            int* tmp = (int*)(&data_list[0]);
+            vtk_write_compressed(MeshFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+        }
         VTK_fEndElementsConnectivity(MeshFile);
 
-        VTK_fBeginElementsOffsets(MeshFile);
+        VTK_fBeginElementsOffsets(MeshFile, mode);
         std::size_t offset = 0;
-        for ( typename TElementsContainerType::iterator it = MeshElements.begin();
-                it != MeshElements.end(); ++it )
+
+        if (mode == VTK_PostAscii)
         {
-            if ( it->Has ( IS_INACTIVE ) )
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
             {
-                if ( ! it->GetValue ( IS_INACTIVE ) )
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        offset += nodes_size;
+                        VTK_fWriteElementOffset ( MeshFile, offset );
+                    }
+                }
+                else
                 {
                     offset += nodes_size;
                     VTK_fWriteElementOffset ( MeshFile, offset );
                 }
             }
-            else
+        }
+        else if (mode == VTK_PostBinary)
+        {
+            std::vector<int> data_list;
+            data_list.reserve(MeshElements.end() - MeshElements.begin());
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
             {
-                offset += nodes_size;
-                VTK_fWriteElementOffset ( MeshFile, offset );
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        offset += nodes_size;
+                        data_list.push_back(offset);
+                    }
+                }
+                else
+                {
+                    offset += nodes_size;
+                    data_list.push_back(offset);
+                }
             }
+            int* tmp = (int*)(&data_list[0]);
+            vtk_write_compressed(MeshFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
         VTK_fEndElementsOffsets(MeshFile);
 
-        VTK_fBeginElementsTypes(MeshFile);
-        for ( typename TElementsContainerType::iterator it = MeshElements.begin();
-                it != MeshElements.end(); ++it )
+        VTK_fBeginElementsTypes(MeshFile, mode);
+        if (mode == VTK_PostAscii)
         {
-            if ( it->Has ( IS_INACTIVE ) )
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
             {
-                if ( ! it->GetValue ( IS_INACTIVE ) )
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        VTK_fWriteElementType ( MeshFile, mVtkElementType );
+                    }
+                }
+                else
                 {
                     VTK_fWriteElementType ( MeshFile, mVtkElementType );
                 }
             }
-            else
+        }
+        else if (mode == VTK_PostBinary)
+        {
+            std::vector<uint8_t> data_list;
+            data_list.reserve(MeshElements.end() - MeshElements.begin());
+            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+                    it != MeshElements.end(); ++it )
             {
-                VTK_fWriteElementType ( MeshFile, mVtkElementType );
+                if ( it->Has ( IS_INACTIVE ) )
+                {
+                    if ( ! it->GetValue ( IS_INACTIVE ) )
+                    {
+                        data_list.push_back(mVtkElementType);
+                    }
+                }
+                else
+                {
+                    data_list.push_back(mVtkElementType);
+                }
             }
+            uint8_t* tmp = (uint8_t*)(&data_list[0]);
+            vtk_write_compressed(MeshFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
         VTK_fEndElementsTypes(MeshFile);
 
@@ -303,9 +417,13 @@ protected:
     GeometryData::KratosGeometryType mGeometryType;
     VTK_ElementType mVtkElementType;
 
-    std::map<std::size_t, ModelPart::NodesContainerType> mMeshElementNodes;
+    // here we sort out the mesh based on Properties Id and element/condition. In sort, different element/condition type with
+    // different Properties Id will be contained as a separate mesh, and will be export as a Piece in Paraview's Vtk format.
+    // each mesh will have respective nodes container.
 
-    std::map<std::size_t, ModelPart::NodesContainerType> mMeshConditionNodes;
+    MeshNodesContainerType mMeshElementNodes;
+
+    MeshNodesContainerType mMeshConditionNodes;
 
     MeshElementsContainerType mMeshElements;
 

@@ -36,8 +36,9 @@ namespace Kratos
 {
 
 /**
- * This class defines an interface to the GiDPost library
- * in order to provide GiD compliant I/O functionality
+ * This class defines an interface to Paraview
+ * in order to provide VTK compliant I/O functionality
+ * 14 Aug 2017: supports only nodal scalar & vector results
  */
 template<class TMeshContainer = VtkMeshContainer>
 class VtkIO// : public IO
@@ -174,6 +175,33 @@ public:
                                           GeometryData::Kratos_Decagon,
                                           VTK_Polygon, "Kratos_Decagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Hendecagon,
+                                          VTK_Polygon, "Kratos_Hendecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Dodecagon,
+                                          VTK_Polygon, "Kratos_Dodecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Triskaidecagon,
+                                          VTK_Polygon, "Kratos_Triskaidecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Tetrakaidecagon,
+                                          VTK_Polygon, "Kratos_Tetrakaidecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Pentadecagon,
+                                          VTK_Polygon, "Kratos_Pentadecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Hexakaidecagon,
+                                          VTK_Polygon, "Kratos_Hexakaidecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Heptadecagon,
+                                          VTK_Polygon, "Kratos_Heptadecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Octakaidecagon,
+                                          VTK_Polygon, "Kratos_Octakaidecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Enneadecagon,
+                                          VTK_Polygon, "Kratos_Enneadecagon_Mesh" ) );
+        mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Octahedron,
                                           VTK_Polyhedron, "Kratos_Octahedron_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
@@ -182,23 +210,10 @@ public:
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Icosahedron,
                                           VTK_Polyhedron, "Kratos_Icosahedron_Mesh" ) );
-
     }//SetUpMeshContainers
 
-    ///general VtkIO related functions
     /**
-     * TODO: to be removed
-     */
-    void ChangeOutputName(const std::string& rDatafilename )
-    {
-        KRATOS_TRY
-        mResultFileName = rDatafilename;
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * sets up the file names and opens the result file in case there
-     * is ASCII mode and only one file written
+     * sets up the file name
      */
     void InitializeResultFile( std::string const& rResultFileName )
     {
@@ -207,7 +222,7 @@ public:
     }
 
     /**
-     * TODO: check whether this is still necessary!
+     * close the file
      */
     void CloseResultFile()
     {
@@ -223,7 +238,7 @@ public:
      */
     virtual std::string Info() const
     {
-        return "vtk io";
+        return "VTK IO";
     }
 
     /**
@@ -239,6 +254,7 @@ public:
      */
     virtual void PrintData(std::ostream& rOStream) const
     {
+        rOStream << "Number of vtk mesh container: " << mVtkMeshContainers.size();
     }
 
     /**
@@ -255,6 +271,12 @@ public:
             file_name << mResultFileName << std::setprecision(12) << "_" << name << ".vtu";
             mResultFile = VTK_fOpenPostResultFile(file_name.str().c_str(), mMode);
             mResultFileOpen = true;
+        }
+
+        for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
+                        it != mVtkMeshContainers.end(); it++ )
+        {
+            it->Reset();
         }
 
         if ( mResultFileOpen )
@@ -302,7 +324,7 @@ public:
                 VTK_fBeginMesh ( mResultFile, MeshName.c_str(), MeshNodes.size(), MeshElements.size() );
 
                 // write the points & connectivities
-                it->WriteMesh( mResultFile, MeshNodes, MeshElements, false );
+                it->WriteMesh( mResultFile, MeshNodes, MeshElements, false, mMode );
 
                 // write the nodal results
                 BeginResultsHeader();
@@ -327,7 +349,7 @@ public:
                 VTK_fBeginMesh ( mResultFile, MeshName.c_str(), MeshNodes.size(), MeshConditions.size() );
 
                 // write the points & connectivities
-                it->WriteMesh( mResultFile, MeshNodes, MeshConditions, false );
+                it->WriteMesh( mResultFile, MeshNodes, MeshConditions, false, mMode );
 
                 // write the nodal results
                 BeginResultsHeader();
@@ -472,8 +494,20 @@ private:
 
         VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), 1, mMode );
 
-        for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
-            VTK_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
+        if (mMode == VTK_PostAscii)
+        {
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+                VTK_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
+        }
+        else if (mMode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(rNodes.end() - rNodes.begin());
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+                data_list.push_back(i_node->GetSolutionStepValue(rVariable, SolutionStepNumber));
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+        }
 
         VTK_fEndResult( mResultFile );
 
@@ -491,10 +525,27 @@ private:
 
         VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), 3, mMode );
 
-        for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+        if (mMode == VTK_PostAscii)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
-            VTK_fWriteVector3( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            {
+                array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
+                VTK_fWriteVector3( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            }
+        }
+        else if (mMode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(3*(rNodes.end() - rNodes.begin()));
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            {
+                array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
+                data_list.push_back(temp[0]);
+                data_list.push_back(temp[1]);
+                data_list.push_back(temp[2]);
+            }
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
 
         VTK_fEndResult( mResultFile );
@@ -513,17 +564,32 @@ private:
         Timer::Start("Writing Results");
 
         VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), NumberOfComponents, mMode );
-        double* temp = new double[NumberOfComponents];
 
-        for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+        if (mMode == VTK_PostAscii)
         {
-            const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
-            for ( unsigned int i = 0; i < NumberOfComponents; ++i )
-                temp[i] = solution(i);
-            VTK_fWriteVector( mResultFile, i_node->Id(), NumberOfComponents, temp );
+            double* temp = new double[NumberOfComponents];
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            {
+                const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
+                for ( unsigned int i = 0; i < NumberOfComponents; ++i )
+                    temp[i] = solution(i);
+                VTK_fWriteVector( mResultFile, i_node->Id(), NumberOfComponents, temp );
+            }
+            delete temp;
         }
-
-        delete temp;
+        else if (mMode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(NumberOfComponents*(rNodes.end() - rNodes.begin()));
+            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            {
+                const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
+                for ( unsigned int i = 0; i < NumberOfComponents; ++i )
+                    data_list.push_back(solution(i));
+            }
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+        }
 
         VTK_fEndResult( mResultFile );
 

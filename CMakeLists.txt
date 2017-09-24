@@ -5,8 +5,18 @@ message("**** configuring KratosLayerApplication ****")
 ######### add include directory here
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications )
+include_directories( ${CMAKE_SOURCE_DIR} )
 #######################################################################
 
+set( libb64_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cdecode.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cencode.c
+)
+add_library(b64 SHARED ${libb64_src})
+install(TARGETS b64 DESTINATION libs)
+
+add_definitions(-D_USE_ZLIB)
+add_definitions(-D_USE_LIBB64)
 
 ######### add compilation units here
 set( KRATOS_LAYER_APPLICATION_SOURCES
@@ -18,10 +28,11 @@ set( KRATOS_LAYER_APPLICATION_SOURCES
 )
 #######################################################################
 
-
 ## define library Kratos which defines the basic python interface
 add_library(KratosLayerApplication SHARED ${KRATOS_LAYER_APPLICATION_SOURCES})
 target_link_libraries(KratosLayerApplication KratosCore)
+target_link_libraries(KratosLayerApplication zlibstatic)
+target_link_libraries(KratosLayerApplication b64)
 set_target_properties(KratosLayerApplication PROPERTIES PREFIX "")
 install(TARGETS KratosLayerApplication DESTINATION libs )
 #######################################################################
