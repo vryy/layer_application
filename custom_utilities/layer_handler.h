@@ -336,13 +336,14 @@ public:
         std::cout << "RenumberAll completed" << std::endl;
     }
 
-    void WriteLayers(std::string fn)
+    void WriteLayers(const std::string& fn)
     {
         std::ofstream fid;
         std::string new_fn = fn + std::string(".py");
         fid.open(new_fn.c_str());
 
         // write element layers
+        fid << "## return the list of the elements in the layer\n";
         fid << "def ReadLayerSets():\n";
         fid << "\t" << "layer_sets = {}\n";
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
@@ -382,6 +383,7 @@ public:
         fid << "\t" << "return layer_sets\n\n";
 
         // write nodal layers
+        fid << "## return the nodes in the layer in global index\n";
         fid << "def ReadLayerNodesSets():\n";
         fid << "\t" << "layer_nodes_sets = {}\n";
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
@@ -419,6 +421,7 @@ public:
         fid << "\t" << "return layer_nodes_sets\n\n";
 
         // write condition layers
+        fid << "## return the list of the conditions in the layer\n";
         fid << "def ReadLayerConditionsSets():\n";
         fid << "\t" << "layer_conds_sets = {}\n";
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
@@ -458,6 +461,7 @@ public:
         fid << "\t" << "return layer_conds_sets\n\n";
 
         // write nodal tables
+        fid << "## return the tables in global index\n";
         fid << "def ReadTableNodesSets():\n";
         fid << "\t" << "table_nodes_sets = {}\n";
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
@@ -484,6 +488,7 @@ public:
         fid << "\t" << "return table_nodes_sets\n\n";
 
         // write the map from current node id to the original node id (ref id of node)
+        fid << "## return the mapping index from global to local\n";
         fid << "def ReadLocalReferenceIds():\n";
         fid << "\t" << "layer_node_map = {}\n";
         for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
@@ -498,6 +503,35 @@ public:
             fid << "\t" << "layer_node_map['" << thisLayer.Name() << "'] = node_map\n";
         }
         fid << "\t" << "return layer_node_map\n\n";
+
+        // write the map from original node id to current node id
+        fid << "## return the mapping index from local to global\n";
+        fid << "def ReadGlobalReferenceIds():\n";
+        fid << "\t" << "layer_node_map = {}\n";
+        for(LayersContainerType::iterator it = mpLayers.begin(); it != mpLayers.end(); ++it)
+        {
+            Layer& thisLayer = *(it->second);
+
+            fid << "\t" << "node_map = {}\n";
+            for(Layer::NodesConstIteratorType it2 = thisLayer.NodesBegin(); it2 != thisLayer.NodesEnd(); ++it2)
+            {
+                fid << "\t" << "node_map[" << (*it2)->LocalId() << "] = " << (*it2)->Id() << "\n";
+            }
+            fid << "\t" << "layer_node_map['" << thisLayer.Name() << "'] = node_map\n";
+        }
+        fid << "\t" << "return layer_node_map\n\n";
+
+        fid.close();
+    }
+
+    void WriteSimpleFunction(const std::string& fn, const std::string& func_name, const std::string& str_value) const
+    {
+        std::ofstream fid;
+        std::string new_fn = fn + std::string(".py");
+        fid.open(new_fn.c_str(), std::ofstream::out | std::ofstream::app);
+
+        fid << "def " << func_name << "():\n";
+        fid << "\treturn " << str_value << "\n\n";
 
         fid.close();
     }

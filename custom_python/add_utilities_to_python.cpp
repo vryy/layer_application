@@ -67,6 +67,7 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("Check", &LayerHandler::Check)
     .def("RenumberAll", &LayerHandler::RenumberAll)
     .def("WriteLayers", &LayerHandler::WriteLayers)
+    .def("WriteSimpleFunction", &LayerHandler::WriteSimpleFunction)
     .def(self_ns::str(self))
     ;
 

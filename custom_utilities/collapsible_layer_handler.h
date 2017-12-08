@@ -101,14 +101,14 @@ public:
     ///@name Operations
     ///@{
 
-    void SetSpacing(double Dx, double Dy, double Dz)
+    void SetSpacing(const double& Dx, const double& Dy, const double& Dz)
     {
         mDx = Dx * PI; // this is to make sure that we have a non-trivial spacecing
         mDy = Dy * PI;
         mDz = Dz * PI;
     }
 
-    void Collapse(const double TOL)
+    void Collapse(const double& TOL)
     {
         typedef std::map<SpatialKey, Layer::NodesContainerType> BinType;
         BinType Binning;
