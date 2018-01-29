@@ -63,7 +63,7 @@ void VTK_fEndCoordinates(FILE* file)
 
 void VTK_fWriteCoordinates(FILE* file, unsigned int id, double x, double y, double z)
 {
-    fprintf(file, "          %f %f %f\n", x, y, z);
+    fprintf(file, "          %e %e %e\n", x, y, z);
 }
 
 void VTK_fBeginElements(FILE* file)
@@ -153,19 +153,19 @@ void VTK_fEndResult(FILE* file)
 
 void VTK_fWriteScalar(FILE* file, unsigned int id, double value)
 {
-    fprintf(file, "          %f\n", value);
+    fprintf(file, "          %e\n", value);
 }
 
 void VTK_fWriteVector3(FILE* file, unsigned int id, double value1, double value2, double value3)
 {
-    fprintf(file, "          %f %f %f\n", value1, value2, value3);
+    fprintf(file, "          %e %e %e\n", value1, value2, value3);
 }
 
 void VTK_fWriteVector(FILE* file, unsigned int id, unsigned int size, double* values)
 {
     fprintf(file, "         ");
     for(unsigned int i = 0; i < size; ++i)
-        fprintf(file, " %f", values[i]);
+        fprintf(file, " %e", values[i]);
     fprintf(file, "\n");
 }
 
