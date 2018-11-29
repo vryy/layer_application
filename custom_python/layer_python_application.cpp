@@ -41,6 +41,7 @@ namespace Python
         LayerApplication_AddIOToPython();
         
         KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAYER_ENTITY_TYPE )
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAYER_NAME )
     }
 
 } // namespace Python.

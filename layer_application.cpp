@@ -24,6 +24,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(int, LAYER_ENTITY_TYPE)
     KRATOS_CREATE_VARIABLE(int, LAYER_PROP_ID)
     KRATOS_CREATE_VARIABLE(std::string, LAYER_ENTITY_NAME)
+    KRATOS_CREATE_VARIABLE(std::string, LAYER_NAME)
     
     void KratosLayerApplication::Register()
     {
@@ -34,6 +35,7 @@ namespace Kratos
         // register variables to Kratos kernel
         KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_TYPE)
         KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_NAME)
+        KRATOS_REGISTER_VARIABLE(LAYER_NAME)
         KRATOS_REGISTER_VARIABLE(LAYER_PROP_ID)
     }
 } // namespace Kratos
