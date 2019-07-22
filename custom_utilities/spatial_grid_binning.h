@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 8 Nov 2014 $
 //   Revision:            $Revision: 1.0 $
@@ -16,7 +16,7 @@
 #include <iostream>
 #include <map>
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -59,12 +59,12 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t IndexType;    
+    typedef std::size_t IndexType;
     typedef std::map<SpatialKey, std::set<int> > BinType;
-    
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(SpatialGridBinning);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,7 +87,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * This function add node to the spatial binning
      */
@@ -100,7 +100,7 @@ public:
             int ix = (int) floor((it->X() - mX0) / mDx);
             int iy = (int) floor((it->Y() - mY0) / mDy);
             int iz = (int) floor((it->Z() - mZ0) / mDz);
-            
+
             // create the spatial key
             SpatialKey key(ix, iy, iz);
 
@@ -121,12 +121,12 @@ public:
         int ix = (int) floor((x - mX0) / mDx);
         int iy = (int) floor((y - mY0) / mDy);
         int iz = (int) floor((z - mZ0) / mDz);
-        
+
         // compute the cell span
         int d_ix = (int) ceil(r / mDx);
         int d_iy = (int) ceil(r / mDy);
         int d_iz = (int) ceil(r / mDz);
-        
+
         // iterate through cell span to find neighbours
         std::set<int> Neighbours;
         for(int i = ix - d_ix; i <= ix + d_ix; ++i)
@@ -153,10 +153,10 @@ public:
                 }
             }
         }
-        
+
         return Neighbours;
     }
-    
+
     // wrapped python for GetNeighbourNodes
     boost::python::list GetNeighboursList(ModelPart& r_model_part, int id, double r)
     {
@@ -168,7 +168,7 @@ public:
         }
         return list;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -242,7 +242,7 @@ private:
     double mTol;
 
     BinType mBin;
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -254,8 +254,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -263,7 +263,7 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{

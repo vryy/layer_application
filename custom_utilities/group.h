@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 31 Oct 2014 $
 //   Revision:            $Revision: 1.0 $
@@ -89,13 +89,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     void AddLayer(Layer::Pointer& pLayer)
     {
         mLayers.insert(pLayer->Name());
         pLayer->AddGroup(mName);
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -109,7 +109,7 @@ public:
     {
         return mLayers.end();
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -187,7 +187,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -209,7 +209,7 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{

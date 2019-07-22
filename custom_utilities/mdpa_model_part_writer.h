@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 15 Nov 2014 $
 //   Revision:            $Revision: 1.0 $
@@ -62,11 +62,11 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
-    
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(MDPAModelPartWriter);
-    
-    
+
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -88,7 +88,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -164,7 +164,7 @@ protected:
         Begin(rOStream, "ModelPartData");
         End(rOStream, "ModelPartData");
     }
-    
+
     virtual void MDPA_Properties(std::ostream& rOStream)
     {
         for(typename ModelPart::PropertiesContainerType::ContainerType::iterator it = mp_model_part->PropertiesArray().begin();
@@ -188,24 +188,24 @@ protected:
         }
         End(rOStream, "Nodes");
     }
-    
+
     virtual void MDPA_Elements(std::ostream& rOStream)
     {
         //TODO
         // extract the list of element types in the model part and put into the container
 //        std::set<std::string> ElementNames;
-//        
+//
 //        ElementsArrayType& pElements = r_model_part.Elements();
 //        for (typename ModelPart::ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 //        {
-//            
+//
 //        }
     }
 
     virtual void MDPA_Conditions(std::ostream& rOStream)
     {
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -223,13 +223,13 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart::Pointer mp_model_part;
-    
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -237,7 +237,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-        
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -245,7 +245,7 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{

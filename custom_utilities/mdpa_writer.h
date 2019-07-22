@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 15 Nov 2014 $
 //   Revision:            $Revision: 1.0 $
@@ -61,11 +61,11 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
-    
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(MDPAWriter);
-    
-    
+
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -87,7 +87,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -200,7 +200,7 @@ protected:
         Begin(rOStream, "ModelPartData");
         End(rOStream, "ModelPartData");
     }
-    
+
     virtual void MDPA_Properties(std::ostream& rOStream)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
@@ -210,7 +210,7 @@ protected:
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
-    
+
     virtual void MDPA_Elements(std::ostream& rOStream)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
@@ -220,7 +220,7 @@ protected:
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
-    
+
     void Begin(std::ostream& rOStream, const std::string& section)
     {
         rOStream << "Begin " << section << std::endl;
@@ -258,11 +258,11 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -270,7 +270,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-        
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -278,7 +278,7 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
