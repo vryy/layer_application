@@ -25,6 +25,7 @@
 #include "custom_utilities/multipatch_layer_handler.h"
 #include "custom_utilities/auto_collapse_spatial_binning.h"
 #include "custom_utilities/spatial_grid_binning.h"
+#include "custom_utilities/model_part_utilities.h"
 #include "custom_python/add_utilities_to_python.h"
 
 namespace Kratos
@@ -36,6 +37,32 @@ namespace Python
 Layer::Pointer LayerHandler_getitem(LayerHandler& dummy, std::string name)
 {
     return dummy[name];
+}
+
+void ModelPartUtilities_ExportNodesAndEdgesInfomation(ModelPartUtilities& rDummy,
+    const std::string& filename, ModelPart& r_model_part,
+    const bool& with_id, const bool& with_x, const bool& with_y, const bool& with_z,
+    const std::string& separator, const int& precision)
+{
+    std::ofstream fid;
+    fid.open(filename.c_str());
+
+    rDummy.ExportNodalCoordinates(fid, r_model_part, with_id, with_x, with_y, with_z, separator, precision);
+    rDummy.ExportEdgeInformation(fid, r_model_part.Elements(), separator);
+
+    fid.close();
+}
+
+void ModelPartUtilities_ExportNodesAndEdgesInfomationToGiD(ModelPartUtilities& rDummy,
+    const std::string& filename, ModelPart& r_model_part, const int& precision)
+{
+    std::ofstream fid;
+    fid.open(filename.c_str());
+
+    rDummy.ExportNodalCoordinatesToGiD(fid, r_model_part, precision);
+    rDummy.ExportEdgeInformationToGiD(fid, r_model_part.Elements());
+
+    fid.close();
 }
 
 void LayerApp_AddCustomUtilitiesToPython()
@@ -106,6 +133,11 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("GetNeighboursList", &SpatialGridBinning::GetNeighboursList)
     ;
 
+    class_<ModelPartUtilities, ModelPartUtilities::Pointer, boost::noncopyable>
+    ("ModelPartUtilities", init<>())
+    .def("ExportNodesAndEdgesInfomation", &ModelPartUtilities_ExportNodesAndEdgesInfomation)
+    .def("ExportNodesAndEdgesInfomationToGiD", &ModelPartUtilities_ExportNodesAndEdgesInfomationToGiD)
+    ;
 }
 
 }  // namespace Python.

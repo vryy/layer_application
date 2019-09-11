@@ -20,6 +20,7 @@ add_definitions(-D_USE_LIBB64)
 
 ######### add compilation units here
 set( KRATOS_LAYER_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/model_part_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/layer_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_io_to_python.cpp
