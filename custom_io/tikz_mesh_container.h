@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -51,7 +51,6 @@ class TikzMeshContainer
 {
 public:
 
-
     class Line
     {
         public:
@@ -81,6 +80,7 @@ public:
             std::size_t mN1, mN2;
     };
 
+    KRATOS_CLASS_POINTER_DEFINITION(TikzMeshContainer);
 
     ///Constructor
     TikzMeshContainer ( GeometryData::KratosGeometryType geometryType, const char* mesh_title )

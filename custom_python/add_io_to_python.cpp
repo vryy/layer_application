@@ -110,19 +110,19 @@ void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results)( Variable<Matrix>
 /// NON-HISTORICAL DATABASE                               ///
 /////////////////////////////////////////////////////////////
 void (SDGidPostIOType::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
+        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
+        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
+        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results_NH)( Variable<Matrix > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
+        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag) 
+        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteLocalAxesOnNodesNonHistorical;
 
 void PrintElementalPartitionIndex( SDGidPostIOType& dummy, const Variable<double>& rVariable,
@@ -161,19 +161,15 @@ void (VtkIOType::*pointer_to_register_nodal_results_double)( Variable<double> co
 void (VtkIOType::*pointer_to_register_nodal_results_array1d)( Variable<array_1d<double, 3> > const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
 void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> const&, const std::size_t&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
 
-
 /////////////////////////////////////////////////////////////
 
 void  LayerApplication_AddIOToPython()
 {
     using namespace boost::python;
 
-    class_<SDGidPostIOType, SDGidPostIOType::Pointer, boost::noncopyable>(
-        "SDGidPostIO", init<std::string const&, GiD_PostMode,
-        MultiFileFlag,
-        WriteDeformedMeshFlag,
-        WriteConditionsFlag>()
-    )
+    class_<SDGidPostIOType, SDGidPostIOType::Pointer, boost::noncopyable>
+    ("SDGidPostIO", init<std::string const&, GiD_PostMode, MultiFileFlag, WriteDeformedMeshFlag, WriteConditionsFlag>())
+
     .def("WriteMesh", SDGidPostIO_WriteMesh)
     .def("WriteNodeMesh", SDGidPostIO_WriteNodeMesh)
 
@@ -211,9 +207,8 @@ void  LayerApplication_AddIOToPython()
     //.def(self_ns::str(self))
     ;
 
-    class_<SDTikzPostIOType, SDTikzPostIOType::Pointer, boost::noncopyable>(
-        "SDTikzPostIO", init<std::string const&, WriteDeformedMeshFlag, WriteConditionsFlag>()
-    )
+    class_<SDTikzPostIOType, SDTikzPostIOType::Pointer, boost::noncopyable>
+    ("SDTikzPostIO", init<std::string const&, WriteDeformedMeshFlag, WriteConditionsFlag>())
     .def("SetWriteId", &SDTikzPostIOType::SetWriteId)
     .def("SetCamera", &SDTikzPostIOType::SetCamera)
     .def("SetStyle", &SDTikzPostIOType::SetStyle)
@@ -229,9 +224,8 @@ void  LayerApplication_AddIOToPython()
     .value("VTK_PostBinary", VTK_PostBinary)
     ;
 
-    class_<VtkIOType, VtkIOType::Pointer, boost::noncopyable>(
-        "VtkIO", init<std::string const&, VTK_PostMode>()
-    )
+    class_<VtkIOType, VtkIOType::Pointer, boost::noncopyable>
+    ("VtkIO", init<std::string const&, VTK_PostMode>())
     .def("Initialize", &VtkIOType::Initialize)
     .def("Finalize", &VtkIOType::Finalize)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_double)

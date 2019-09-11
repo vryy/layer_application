@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -91,14 +91,17 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethodType;
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
+    typedef std::vector<TMeshContainer> MeshContainerVectorType;
+    typedef std::vector<TGaussPointContainer> GaussPointContainerVectorType;
+
     ///Constructor
     ///single stream IO constructor
     SDPostIO( const std::string& rDatafilename)
     {
         mResultFileName = rDatafilename;
         mMeshFileName = rDatafilename;
-        SetUpMeshContainers();
-        SetUpGaussPointContainers();
+        SetUpMeshContainers(); // setup default mesh containers
+        SetUpGaussPointContainers(); // setup default integration point containers
     }
 
     ///Destructor.
@@ -179,7 +182,6 @@ public:
         mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_5_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_5 ) );
     }//SetUpGaussPointContainers
 
-
     ///general SDPostIO related functions
     /**
      * TODO: to be removed
@@ -202,8 +204,8 @@ protected:
     /**
      * member variables
      */
-    std::vector<TMeshContainer> mMeshContainers;
-    std::vector<TGaussPointContainer> mGaussPointContainers;
+    MeshContainerVectorType mMeshContainers;
+    GaussPointContainerVectorType mGaussPointContainers;
 
 private:
     /**
@@ -270,5 +272,5 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_SD_POST_IO_H_INCLUDED  defined 
+#endif // KRATOS_SD_POST_IO_H_INCLUDED  defined
 

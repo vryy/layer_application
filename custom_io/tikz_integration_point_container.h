@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -56,6 +56,9 @@ typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 class TikzIntegrationPointsContainer
 {
 public:
+
+    KRATOS_CLASS_POINTER_DEFINITION(TikzIntegrationPointsContainer);
+
     ///Constructor
     TikzIntegrationPointsContainer( const char * gp_title, KratosGeometryFamily geometryFamily,
                              GeometryData::IntegrationMethod integration_method )
@@ -130,7 +133,7 @@ public:
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
 //                            GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[i] );
-//                        }                    
+//                        }
 //                    }
 //                }
 //            }
@@ -567,5 +570,5 @@ protected:
 };//class TikzIntegrationPointsContainer
 }// namespace Kratos.
 
-#endif // KRATOS_TIKZ_INTEGRATION_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_TIKZ_INTEGRATION_POINT_CONTAINER_H_INCLUDED defined
 

@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -79,6 +79,8 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethodType;
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
+    typedef typename BaseType::MeshContainerVectorType MeshContainerVectorType;
+    typedef typename BaseType::GaussPointContainerVectorType GaussPointContainerVectorType;
 
     ///Constructor
     ///single stream IO constructor
@@ -140,7 +142,7 @@ public:
                     mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                     mResultFileOpen = true;
                 }
-				mMeshFile = mResultFile;
+                mMeshFile = mResultFile;
             }
         }
         if ( mUseMultiFile == SingleFile )
@@ -149,7 +151,7 @@ public:
             {
                 std::stringstream file_name;
                 file_name << BaseType::mResultFileName << ".post.bin";
-		        mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+                mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
@@ -157,7 +159,7 @@ public:
                     KRATOS_THROW_ERROR(std::runtime_error, buffer.str(), "");
                 }
                 mResultFileOpen = true;
-				mMeshFile = mResultFile;
+                mMeshFile = mResultFile;
             }
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
@@ -166,7 +168,6 @@ public:
                 mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }
-
         }
     }
 
@@ -256,23 +257,23 @@ public:
         {
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
-                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
+                for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
                         it != BaseType::mMeshContainers.end(); it++ )
                     if ( it->AddElement( element_iterator ) )
                         break;
         }
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
-		{
+        {
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
-                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
+                for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
                         it != BaseType::mMeshContainers.end(); it++ )
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
-		}
+        }
 
-        for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
+        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
                 it != BaseType::mMeshContainers.end(); ++it )
         {
             it->FinalizeMeshCreation();
@@ -285,7 +286,6 @@ public:
 
             it->Reset();
         }
-
 
         Timer::Stop("Writing Mesh");
 
@@ -363,7 +363,7 @@ public:
             file_name << BaseType::mResultFileName << std::setprecision(12) << "_" << name << ".post.res";
             mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
-            
+
         }
 
         //initializing gauss points containers
@@ -372,16 +372,16 @@ public:
             int i=0;
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
-            {            
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+            {
+                for ( typename GaussPointContainerVectorType::iterator it =
                             BaseType::mGaussPointContainers.begin();
                         it != BaseType::mGaussPointContainers.end(); it++ )
-                {                      
+                {
                     i++;
                     if ( it->AddElement( element_iterator ) )
                         break;
                 }
-                
+
             }
         }
 
@@ -391,10 +391,10 @@ public:
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
             {
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+                for ( typename GaussPointContainerVectorType::iterator it =
                             BaseType::mGaussPointContainers.begin();
                         it != BaseType::mGaussPointContainers.end(); it++ )
-                {                      
+                {
 
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
@@ -415,7 +415,7 @@ public:
             mResultFileOpen = false;
         }
         //resetting gauss point containers
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )
         {
@@ -425,9 +425,9 @@ public:
 
     ///functions for writing nodal results
 
-	///////////////////////////////////////////////////////////////////////
-	//////                  HISTORICAL DATABASE BLOCK                 /////
-	///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    //////                  HISTORICAL DATABASE BLOCK                 /////
+    ///////////////////////////////////////////////////////////////////////
     void WriteNodalResults( const char* FlagName, Flags const& rFlag,
                             NodesContainerType& rNodes, double SolutionTag)
     {
@@ -444,7 +444,7 @@ public:
         Timer::Stop("Writing Results");
     }
 
-	 /**
+     /**
      * writes nodal results for variables of type bool
      */
     void WriteNodalResults( Variable<bool> const& rVariable,
@@ -609,10 +609,10 @@ public:
         Timer::Stop("Writing Results");
     }
 
-   	///////////////////////////////////////////////////////////////////////
-	//////                 NON- HISTORICAL DATABASE BLOCK                 /////
-	///////////////////////////////////////////////////////////////////////
-	 /**
+    ///////////////////////////////////////////////////////////////////////
+    //////                 NON- HISTORICAL DATABASE BLOCK                 /////
+    ///////////////////////////////////////////////////////////////////////
+     /**
      * writes nodal results for variables of type bool
      */
     void WriteNodalResultsNonHistorical( Variable<bool> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
@@ -782,7 +782,7 @@ public:
         {
             Timer::Start("Writing Results");
 
-            for ( typename std::vector<TGaussPointContainer>::iterator it =
+            for ( typename GaussPointContainerVectorType::iterator it =
                         BaseType::mGaussPointContainers.begin();
                     it != BaseType::mGaussPointContainers.end(); it++ )
             {
@@ -807,7 +807,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )
         {
@@ -830,7 +830,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )
         {
@@ -853,7 +853,7 @@ public:
         KRATOS_TRY;
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )
         {
@@ -875,7 +875,7 @@ public:
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )
         {
@@ -973,5 +973,5 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_SD_GID_POST_IO_H_INCLUDED  defined 
+#endif // KRATOS_SD_GID_POST_IO_H_INCLUDED  defined
 
