@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -18,18 +18,22 @@
 
 #if !defined(KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED
+
 // System includes
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstddef>
+
 // External includes
 #include "gidpost/source/gidpost.h"
+
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry_data.h"
 #include "includes/deprecated_variables.h"
+#include "layer_application/layer_application.h"
 
 
 namespace Kratos
@@ -52,9 +56,11 @@ class GidSDMeshContainer
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION(GidSDMeshContainer);
+
     ///Constructor
-    GidSDMeshContainer ( GeometryData::KratosGeometryType geometryType, const char* mesh_title )
-    : mMeshTitle (mesh_title)
+    GidSDMeshContainer ( GeometryData::KratosGeometryType geometryType, std::string mesh_title )
+    : mMeshTitle(mesh_title)
     {
         mGeometryType = geometryType;
 
@@ -204,7 +210,19 @@ public:
                 {
                     //create an appropiate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
-                    current_layer_name << mMeshTitle << "_" << current_layer ;
+                    current_layer_name << mMeshTitle << "_" << current_layer;
+                    for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        if ( it->GetProperties().Id() == current_layer )
+                        {
+                            if (it->GetProperties().Has(LAYER_NAME))
+                                current_layer_name << "_" << it->GetProperties().GetValue(LAYER_NAME);
+                            break;
+                        }
+                    }
+
+                    //begin mesh
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         //std::cout << " -print element 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
@@ -217,6 +235,7 @@ public:
                     }
                     else
                         KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
+
                     //printing nodes
                     if(nodes_written == false)
                     {
@@ -235,6 +254,7 @@ public:
 
                         nodes_written = true;
                     }
+
                     //printing elements
                     GiD_fBeginElements(MeshFile);
                     int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() + 1];
@@ -252,22 +272,17 @@ public:
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
                         nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
-                            {
-//                                std::cout << "element " << (it)->Id() << " is written" << std::endl;
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-//                            else
-//                                std::cout << "element " << (it)->Id() << " is inactive" << std::endl;
-                        }
-                        else
+
+                        bool element_is_active = true;
+                        if( it->IsDefined( ACTIVE ) )
+                            element_is_active = it->Is(ACTIVE);
+                        if ( element_is_active )
                         {
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
+
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
                     GiD_fEndMesh(MeshFile);
@@ -301,9 +316,22 @@ public:
             {
                 if (conditions_per_layer[current_layer] > 0)
                 {
+                    // determine mesh name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
-                    current_layer_name << mMeshTitle << "_" << current_layer ;
+                    current_layer_name << mMeshTitle << "_" << current_layer;
 
+                    for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        if ( it->GetProperties().Id() == current_layer )
+                        {
+                            if (it->GetProperties().Has(LAYER_NAME))
+                                current_layer_name << "_" << it->GetProperties().GetValue(LAYER_NAME);
+                            break;
+                        }
+                    }
+
+                    // begin mesh
                     if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         //std::cout << " -print condition 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
@@ -318,6 +346,7 @@ public:
                     }
                     else
                         KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
+
                     //printing nodes
                     if(nodes_written == false)
                     {
@@ -335,6 +364,7 @@ public:
                         GiD_fEndCoordinates(MeshFile);
                         nodes_written = true;
                     }
+
                     //printing elements
                     GiD_fBeginElements(MeshFile);
                     int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() + 1];
@@ -344,20 +374,17 @@ public:
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry() [i].Id();
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
-                            {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-                        }
-                        else
+
+                        bool condition_is_active = true;
+                        if( it->IsDefined( ACTIVE ) )
+                            condition_is_active = it->Is(ACTIVE);
+                        if ( condition_is_active )
                         {
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
+
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
                     GiD_fEndMesh(MeshFile);
@@ -388,7 +415,7 @@ protected:
     ModelPart::NodesContainerType mMeshNodes;
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
-    const char* mMeshTitle;
+    std::string mMeshTitle;
 };//class GidSDMeshContainer
 
 }// namespace Kratos.
