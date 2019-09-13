@@ -146,10 +146,14 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -182,10 +186,14 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             std::vector<double> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -223,10 +231,14 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             GiD_fBeginResult( ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
             if( mMeshElements.size() != 0 )
             {
@@ -266,10 +278,14 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), ( char*)("Kratos"),
-                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -313,7 +329,11 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             if( rVariable.Name() == std::string("INSITU_STRESS")
              || rVariable.Name() == std::string("PRESTRESS")
@@ -321,7 +341,7 @@ public:
              || rVariable.Name() == std::string("PLASTIC_STRAIN_VECTOR") )
             {
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
-                                 GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                                 GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             }
             else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
                   || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
@@ -330,12 +350,12 @@ public:
                 param_index << value_index;
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name() + param_index.str() ).c_str(),
                                  "Kratos", SolutionTag, GiD_Scalar, GiD_OnGaussPoints,
-                                 mGPTitle, NULL, 0, NULL );
+                                 new_gp_title.c_str(), NULL, 0, NULL );
             }
             else
             {
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
-                                 GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                                 GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             }
 
             std::vector<Vector> ValuesOnIntPoint(mSize);
@@ -454,10 +474,14 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile, mGPTitle);
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
-                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -600,7 +624,7 @@ protected:
 
 
     ///member variables
-    const char* mGPTitle;
+    std::string mGPTitle;
     KratosGeometryFamily mKratosElementFamily;
     GiD_ElementType mGidElementFamily;
     GeometryData::IntegrationMethod mIntegrationMethod;
