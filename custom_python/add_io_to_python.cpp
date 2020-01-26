@@ -61,6 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_io/tikz_integration_point_container.h"
 #include "custom_io/tikz_mesh_container.h"
 #include "custom_io/vtk_io.h"
+#include "custom_io/vtk_vtu_io.h"
+#include "custom_io/vtk_vtm_io.h"
 #include "custom_io/vtk_mesh_container.h"
 #include "custom_python/add_io_to_python.h"
 
@@ -73,6 +75,8 @@ namespace Python
 typedef SDGidPostIO<GidSDIntegrationPointsContainer, GidSDMeshContainer> SDGidPostIOType;
 typedef SDTikzPostIO<TikzIntegrationPointsContainer, TikzMeshContainer> SDTikzPostIOType;
 typedef VtkIO<VtkMeshContainer> VtkIOType;
+typedef VtkVTUIO<VtkMeshContainer> VtkVTUIOType;
+typedef VtkVTMIO<VtkMeshContainer> VtkVTMIOType;
 
 void SDGidPostIO_WriteNodeMesh( SDGidPostIOType& dummy, SDGidPostIOType::MeshType& rThisMesh )
 {
@@ -88,21 +92,39 @@ void SDGidPostIO_WriteMesh( SDGidPostIOType& dummy, SDGidPostIOType::MeshType& r
     std::cout<<"end printing mesh "<<std::endl;
 }
 
-void (SDGidPostIOType::*pointer_to_flag_write_nodal_results)( const char* FlagName, Flags const& rFlag,
+void (SDGidPostIOType::*pointer_to_flag_write_nodal_results1)( const char* FlagName, Flags const& rFlag,
+        double SolutionTag ) = &SDGidPostIOType::WriteNodalResults;
+void (SDGidPostIOType::*pointer_to_bool_write_nodal_results1)( Variable<bool> const& rVariable,
+        double SolutionTag,
+        std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
+void (SDGidPostIOType::*pointer_to_double_write_nodal_results1)( Variable<double> const& rVariable,
+        double SolutionTag,
+        std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
+void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results1)( Variable<array_1d<double, 3> > const& rVariable,
+        double SolutionTag,
+        std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
+void (SDGidPostIOType::*pointer_to_vector_write_nodal_results1)( Variable<Vector> const& rVariable,
+        double SolutionTag,
+        std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
+void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results1)( Variable<Matrix> const& rVariable,
+        double SolutionTag,
+        std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
+
+void (SDGidPostIOType::*pointer_to_flag_write_nodal_results2)( const char* FlagName, Flags const& rFlag,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &SDGidPostIOType::WriteNodalResults;
-void (SDGidPostIOType::*pointer_to_bool_write_nodal_results)( Variable<bool> const& rVariable,
+void (SDGidPostIOType::*pointer_to_bool_write_nodal_results2)( Variable<bool> const& rVariable,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
-void (SDGidPostIOType::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
+void (SDGidPostIOType::*pointer_to_double_write_nodal_results2)( Variable<double> const& rVariable,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
-void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results)( Variable<array_1d<double, 3> > const& rVariable,
+void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results2)( Variable<array_1d<double, 3> > const& rVariable,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
-void (SDGidPostIOType::*pointer_to_vector_write_nodal_results)( Variable<Vector> const& rVariable,
+void (SDGidPostIOType::*pointer_to_vector_write_nodal_results2)( Variable<Vector> const& rVariable,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
-void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results)( Variable<Matrix> const& rVariable,
+void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results2)( Variable<Matrix> const& rVariable,
         SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 
@@ -179,12 +201,19 @@ void  LayerApplication_AddIOToPython()
     .def("InitializeResults", &SDGidPostIOType::InitializeResults)
     .def("FinalizeResults", &SDGidPostIOType::FinalizeResults)
 
-    .def("WriteNodalResults", pointer_to_flag_write_nodal_results)
-    .def("WriteNodalResults", pointer_to_bool_write_nodal_results)
-    .def("WriteNodalResults", pointer_to_double_write_nodal_results)
-    .def("WriteNodalResults", pointer_to_array1d_write_nodal_results)
-    .def("WriteNodalResults", pointer_to_vector_write_nodal_results)
-    .def("WriteNodalResults", pointer_to_matrix_write_nodal_results)
+    .def("WriteNodalResults", pointer_to_flag_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_bool_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_double_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_array1d_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_vector_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_matrix_write_nodal_results1)
+
+    .def("WriteNodalResults", pointer_to_flag_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_bool_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_double_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_array1d_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_vector_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_matrix_write_nodal_results2)
 
 //    .def("WriteLocalAxesOnNodes",local_axes_write_nodal_results)
     // NonHistorical
@@ -203,6 +232,7 @@ void  LayerApplication_AddIOToPython()
     .def("Flush", &SDGidPostIOType::Flush)
     .def("ChangeOutputName", &SDGidPostIOType::ChangeOutputName)
     .def("CloseResultFile", &SDGidPostIOType::CloseResultFile)
+    .def("Reset", &SDGidPostIOType::Reset)
     //.def("",&DatafileIO::)
     //.def(self_ns::str(self))
     ;
@@ -224,13 +254,26 @@ void  LayerApplication_AddIOToPython()
     .value("VTK_PostBinary", VTK_PostBinary)
     ;
 
+    enum_<VTK_PostFileFormat>("VTK_PostFileFormat")
+    .value("VTK_PostVTU", VTK_PostVTU)
+    .value("VTK_PostVTM", VTK_PostVTM)
+    ;
+
     class_<VtkIOType, VtkIOType::Pointer, boost::noncopyable>
-    ("VtkIO", init<std::string const&, VTK_PostMode>())
+    ("VtkIO", init<std::string const&, const VTK_PostMode&>())
     .def("Initialize", &VtkIOType::Initialize)
     .def("Finalize", &VtkIOType::Finalize)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_double)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_array1d)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_vector)
+    ;
+
+    class_<VtkVTUIOType, VtkVTUIOType::Pointer, bases<VtkIOType>, boost::noncopyable>
+    ("VtkVTUIO", init<std::string const&, const VTK_PostMode&>())
+    ;
+
+    class_<VtkVTMIOType, VtkVTMIOType::Pointer, bases<VtkIOType>, boost::noncopyable>
+    ("VtkVTMIO", init<std::string const&, const VTK_PostMode&>())
     ;
 }
 

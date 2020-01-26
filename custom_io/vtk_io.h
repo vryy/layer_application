@@ -1,8 +1,8 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
 //  License:         layer_application/LICENSE.txt
 //                     Kratos default license: kratos/license.txt
@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_VTK_IO_BASE_H_INCLUDED)
-#define  KRATOS_VTK_IO_BASE_H_INCLUDED
+#if !defined(KRATOS_VTK_IO_H_INCLUDED)
+#define  KRATOS_VTK_IO_H_INCLUDED
 
 // System includes
 #include <string>
@@ -30,7 +30,7 @@
 #include "includes/io.h"
 #include "geometries/geometry_data.h"
 #include "utilities/timer.h"
-#include "vtk_mesh_container.h"
+#include "custom_utilities/vtk.h"
 
 namespace Kratos
 {
@@ -40,7 +40,7 @@ namespace Kratos
  * in order to provide VTK compliant I/O functionality
  * 14 Aug 2017: supports only nodal scalar & vector results
  */
-template<class TMeshContainer = VtkMeshContainer>
+template<class TMeshContainer>
 class VtkIO// : public IO
 {
 public:
@@ -56,20 +56,17 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethodType;
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
-    ///Constructor
-    ///single stream IO constructor
-    VtkIO( const std::string& rDatafilename,
-           VTK_PostMode Mode
-         )
+    /// Constructor
+    VtkIO( const std::string& rDatafilename, const VTK_PostMode& rMode)
     {
-        mMode = Mode;
+        mMode = rMode;
         mResultFileOpen = false;
         mResultFileName = rDatafilename;
         InitializeResultFile(mResultFileName);
         SetUpMeshContainers();
     }
 
-    ///Destructor.
+    /// Destructor.
     virtual ~VtkIO()
     {
         Timer::PrintTimingInformation();
@@ -228,7 +225,7 @@ public:
     {
         if ( mResultFileOpen )
         {
-            VTK_fClosePostResultFile( mResultFile );
+            fclose(mResultFile);
             mResultFileOpen = false;
         }
     }
@@ -263,108 +260,18 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    virtual void Initialize( double name, MeshType rThisMesh )
+    virtual void Initialize( double name, MeshType& rThisMesh )
     {
-        if ( !mResultFileOpen )
-        {
-            std::stringstream file_name;
-            file_name << mResultFileName << std::setprecision(12) << "_" << name << ".vtu";
-            mResultFile = VTK_fOpenPostResultFile(file_name.str().c_str(), mMode);
-            mResultFileOpen = true;
-        }
-
-        for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
-                        it != mVtkMeshContainers.end(); it++ )
-        {
-            it->Reset();
-        }
-
-        if ( mResultFileOpen )
-        {
-            for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
-                    element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
-                for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
-                        it != mVtkMeshContainers.end(); it++ )
-                    if ( it->AddElement( element_iterator ) )
-                        break;
-
-            for ( MeshType::ConditionsContainerType::iterator conditions_iterator = rThisMesh.ConditionsBegin();
-                    conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
-                for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
-                        it != mVtkMeshContainers.end(); it++ )
-                    if ( it->AddCondition( conditions_iterator ) )
-                        break;
-
-            for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
-                    it != mVtkMeshContainers.end(); ++it )
-            {
-                it->FinalizeMeshCreation();
-            }
-        }
+        KRATOS_THROW_ERROR(std::logic_error, "Calling base class function", __FUNCTION__)
     }
 
     /**
      * This has to be called for each solution step to write all the results to file
      * have been written
      */
-    void Finalize()
+    virtual void Finalize()
     {
-        for ( typename std::vector<TMeshContainer>::iterator it = mVtkMeshContainers.begin();
-                    it != mVtkMeshContainers.end(); ++it )
-        {
-            // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshElementsContainerType::iterator it2 = it->GetMeshElements().begin();
-                    it2 != it->GetMeshElements().end(); ++it2 )
-            {
-                ModelPart::ElementsContainerType& MeshElements = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshElementNodes(it2->first);
-                const std::string& MeshName = it->GetMeshElementsName(it2->first);
-
-                // start writing the piece
-                VTK_fBeginMesh ( mResultFile, MeshName.c_str(), MeshNodes.size(), MeshElements.size() );
-
-                // write the points & connectivities
-                it->WriteMesh( mResultFile, MeshNodes, MeshElements, false, mMode );
-
-                // write the nodal results
-                BeginResultsHeader();
-
-                WriteNodalResults( MeshNodes );
-
-                EndResultsHeader();
-
-                // end writing the piece
-                VTK_fEndMesh ( mResultFile );
-            }
-
-            // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshConditionsContainerType::iterator it2 = it->GetMeshConditions().begin();
-                    it2 != it->GetMeshConditions().end(); ++it2 )
-            {
-                ModelPart::ConditionsContainerType& MeshConditions = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshConditionNodes(it2->first);
-                const std::string& MeshName = it->GetMeshConditionsName(it2->first);
-
-                // start writing the piece
-                VTK_fBeginMesh ( mResultFile, MeshName.c_str(), MeshNodes.size(), MeshConditions.size() );
-
-                // write the points & connectivities
-                it->WriteMesh( mResultFile, MeshNodes, MeshConditions, false, mMode );
-
-                // write the nodal results
-                BeginResultsHeader();
-
-                WriteNodalResults( MeshNodes );
-
-                EndResultsHeader();
-
-                // end writing the piece
-                VTK_fEndMesh ( mResultFile );
-            }
-        }
-
-        // close the result file
-        this->CloseResultFile();
+        KRATOS_THROW_ERROR(std::logic_error, "Calling base class function", __FUNCTION__)
     }
 
     /**
@@ -397,7 +304,7 @@ protected:
      * File names
      */
     std::string mResultFileName;
-    
+
     FILE* mResultFile;
 
     /**
@@ -416,88 +323,78 @@ protected:
     std::map<Variable<Vector>, std::size_t> mNodalVectorVariablesMap;
     std::map<Variable<Vector>, std::size_t> mNodalVectorVariablesSizeMap;
 
-private:
-    /**
-     * assignment operator
-     */
-    VtkIO& operator=(VtkIO const& rOther);
-
-    /**
-     * Copy constructor
-     */
-    VtkIO(VtkIO const& rOther);
-
-    void BeginResultsHeader( )
+    void BeginResultsHeader( FILE* pResultFile ) const
     {
         std::stringstream ScalarVars;
         std::stringstream VectorVars;
 
-        for(std::map<Variable<double>, std::size_t>::iterator it = mNodalDoubleVariablesMap.begin();
+        for(std::map<Variable<double>, std::size_t>::const_iterator it = mNodalDoubleVariablesMap.begin();
                 it != mNodalDoubleVariablesMap.end(); ++it)
         {
             ScalarVars << it->first.Name() << ",";
         }
 
-        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::iterator it = mNodalArray1dVariablesMap.begin();
+        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::const_iterator it = mNodalArray1dVariablesMap.begin();
                 it != mNodalArray1dVariablesMap.end(); ++it)
         {
             VectorVars << it->first.Name() << ",";
         }
 
-        for(std::map<Variable<Vector>, std::size_t>::iterator it = mNodalVectorVariablesMap.begin();
+        for(std::map<Variable<Vector>, std::size_t>::const_iterator it = mNodalVectorVariablesMap.begin();
                 it != mNodalVectorVariablesMap.end(); ++it)
         {
             VectorVars << it->first.Name() << ",";
         }
 
-        fprintf( mResultFile, "      <PointData Scalars=\"%s\" Vectors=\"%s\">\n", ScalarVars.str().c_str(), VectorVars.str().c_str() );
+        fprintf( pResultFile, "      <PointData Scalars=\"%s\" Vectors=\"%s\">\n", ScalarVars.str().c_str(), VectorVars.str().c_str() );
     }
 
-    void EndResultsHeader( )
+    void EndResultsHeader( FILE* pResultFile ) const
     {
-        fprintf( mResultFile, "      </PointData>\n" );
+        fprintf( pResultFile, "      </PointData>\n" );
     }
 
     /**
      * writes nodal results for all variables at once
      */
-    void WriteNodalResults( NodesContainerType& rNodes )
+    void WriteNodalResults( FILE* pResultFile, NodesContainerType& rNodes ) const
     {
-        for(std::map<Variable<double>, std::size_t>::iterator it = mNodalDoubleVariablesMap.begin();
+        for(std::map<Variable<double>, std::size_t>::const_iterator it = mNodalDoubleVariablesMap.begin();
                 it != mNodalDoubleVariablesMap.end(); ++it)
         {
-            WriteNodalResults( it->first, rNodes, it->second );
+            WriteNodalResults( pResultFile, it->first, rNodes, it->second );
         }
 
-        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::iterator it = mNodalArray1dVariablesMap.begin();
+        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::const_iterator it = mNodalArray1dVariablesMap.begin();
                 it != mNodalArray1dVariablesMap.end(); ++it)
         {
-            WriteNodalResults( it->first, rNodes, it->second );
+            WriteNodalResults( pResultFile, it->first, rNodes, it->second );
         }
 
-        for(std::map<Variable<Vector>, std::size_t>::iterator it = mNodalVectorVariablesMap.begin();
+        for(std::map<Variable<Vector>, std::size_t>::const_iterator it = mNodalVectorVariablesMap.begin();
                 it != mNodalVectorVariablesMap.end(); ++it)
         {
-            std::size_t vec_size = mNodalVectorVariablesSizeMap[it->first];
-            WriteNodalResults( it->first, rNodes, it->second, vec_size );
+            auto it_size = mNodalVectorVariablesSizeMap.find(it->first);
+            WriteNodalResults( pResultFile, it->first, rNodes, it->second, it_size->second );
         }
     }
 
     /**
      * writes nodal results for variables of type double
      */
-    void WriteNodalResults( Variable<double> const& rVariable,
+    void WriteNodalResults( FILE* pResultFile,
+                            Variable<double> const& rVariable,
                             NodesContainerType& rNodes,
-                            const std::size_t& SolutionStepNumber)
+                            const std::size_t& SolutionStepNumber ) const
     {
         Timer::Start("Writing Results");
 
-        VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), 1, mMode );
+        VTK_fBeginResult( pResultFile, (char*)(rVariable.Name().c_str()), 1, mMode );
 
         if (mMode == VTK_PostAscii)
         {
             for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
-                VTK_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
+                VTK_fWriteScalar( pResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
         }
         else if (mMode == VTK_PostBinary)
         {
@@ -506,10 +403,10 @@ private:
             for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
                 data_list.push_back(i_node->GetSolutionStepValue(rVariable, SolutionStepNumber));
             float* tmp = (float*)(&data_list[0]);
-            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+            vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
 
-        VTK_fEndResult( mResultFile );
+        VTK_fEndResult( pResultFile );
 
         Timer::Stop("Writing Results");
     }
@@ -517,20 +414,21 @@ private:
     /**
      * writes nodal results for variables of type array_1d
      */
-    void WriteNodalResults( Variable<array_1d<double, 3> > const& rVariable,
+    void WriteNodalResults( FILE* pResultFile,
+                            Variable<array_1d<double, 3> > const& rVariable,
                             NodesContainerType& rNodes,
-                            const std::size_t& SolutionStepNumber)
+                            const std::size_t& SolutionStepNumber ) const
     {
         Timer::Start("Writing Results");
 
-        VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), 3, mMode );
+        VTK_fBeginResult( pResultFile, (char*)(rVariable.Name().c_str()), 3, mMode );
 
         if (mMode == VTK_PostAscii)
         {
             for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
             {
                 array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
-                VTK_fWriteVector3( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+                VTK_fWriteVector3( pResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
             }
         }
         else if (mMode == VTK_PostBinary)
@@ -545,10 +443,10 @@ private:
                 data_list.push_back(temp[2]);
             }
             float* tmp = (float*)(&data_list[0]);
-            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+            vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
 
-        VTK_fEndResult( mResultFile );
+        VTK_fEndResult( pResultFile );
 
         Timer::Stop("Writing Results");
     }
@@ -556,14 +454,15 @@ private:
     /**
      * writes nodal results for variables of type Vector
      */
-    void WriteNodalResults( Variable<Vector> const& rVariable,
+    void WriteNodalResults( FILE* pResultFile,
+                            Variable<Vector> const& rVariable,
                             NodesContainerType& rNodes,
                             const std::size_t& SolutionStepNumber,
-                            const std::size_t& NumberOfComponents)
+                            const std::size_t& NumberOfComponents ) const
     {
         Timer::Start("Writing Results");
 
-        VTK_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), NumberOfComponents, mMode );
+        VTK_fBeginResult( pResultFile, (char*)(rVariable.Name().c_str()), NumberOfComponents, mMode );
 
         if (mMode == VTK_PostAscii)
         {
@@ -573,7 +472,7 @@ private:
                 const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 for ( unsigned int i = 0; i < NumberOfComponents; ++i )
                     temp[i] = solution(i);
-                VTK_fWriteVector( mResultFile, i_node->Id(), NumberOfComponents, temp );
+                VTK_fWriteVector( pResultFile, i_node->Id(), NumberOfComponents, temp );
             }
             delete temp;
         }
@@ -588,33 +487,28 @@ private:
                     data_list.push_back(solution(i));
             }
             float* tmp = (float*)(&data_list[0]);
-            vtk_write_compressed ( mResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+            vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
         }
 
-        VTK_fEndResult( mResultFile );
+        VTK_fEndResult( pResultFile );
 
         Timer::Stop("Writing Results");
     }
 
+private:
+    /**
+     * assignment operator
+     */
+    VtkIO& operator=(VtkIO const& rOther);
+
+    /**
+     * Copy constructor
+     */
+    VtkIO(VtkIO const& rOther);
+
 }; // Class VtkIO
-
-
-/**
- * Input and output
- */
-
-/**
- * output stream function
- */
-inline std::ostream& operator << (std::ostream& rOStream, const VtkIO<>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
 
 }// namespace Kratos.
 
-#endif // KRATOS_VTK_IO_BASE_H_INCLUDED  defined 
+#endif // KRATOS_VTK_IO_H_INCLUDED  defined
 

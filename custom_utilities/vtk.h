@@ -1,3 +1,6 @@
+#if !defined(KRATOS_VTK_H_INCLUDED)
+#define  KRATOS_VTK_H_INCLUDED
+
 #include <cstdlib>
 
 #if defined(_USE_ZLIB) && defined(_USE_LIBB64)
@@ -8,8 +11,63 @@
 
 ///Flags for mesh writing
 enum VTK_PostMode {VTK_PostAscii, VTK_PostBinary};
+enum VTK_PostFileFormat {VTK_PostVTU, VTK_PostVTM};
 
-FILE* VTK_fOpenPostResultFile(const char* filename, VTK_PostMode mode)
+// reference: vtkCellType.h
+enum VTK_ElementType {
+    VTK_Empty_Cell = 0,
+    VTK_Vertex = 1,
+    VTK_Poly_Vertex = 2,
+    VTK_Line = 3,
+    VTK_Poly_Line = 4,
+    VTK_Triangle = 5,
+    VTK_Triangle_Strip = 6,
+    VTK_Polygon = 7,
+    VTK_Pixel = 8,
+    VTK_Quad = 9,
+    VTK_Tetra = 10,
+    VTK_Voxel = 11,
+    VTK_Hexahedron = 12,
+    VTK_Wedge = 13,
+    VTK_Pyramid = 14,
+    VTK_Pentagonal_Prism = 15,
+    VTK_Hexagonal_Prism = 16,
+    VTK_Quadratic_Edge = 21,
+    VTK_Quadratic_Triangle = 22,
+    VTK_Quadratic_Quad = 23,
+    VTK_Quadratic_Polygon = 36,
+    VTK_Quadratic_Tetra = 24,
+    VTK_Quadratic_Hexahedron = 25,
+    VTK_Quadratic_Wedge = 26,
+    VTK_Quadratic_Pyramid = 27,
+    VTK_Biquadratic_Quad = 28,
+    VTK_Triquadratic_Hexahedron = 29,
+    VTK_Quadratic_Linear_Quad = 30,
+    VTK_Quadratic_Linear_Wedge = 31,
+    VTK_Biquadratic_Quadratic_Wedge = 32,
+    VTK_Biquadratic_Quadratic_Hexahedron = 33,
+    VTK_Biquadratic_Triangle = 34,
+    VTK_Cubix_Line = 35,
+    VTK_Convex_Point_Set = 41,
+    VTK_Polyhedron = 42,
+    VTK_Parametric_Curve = 51,
+    VTK_Parametric_Surface = 52,
+    VTK_Parametric_Tri_Surface = 53,
+    VTK_Parametric_Quad_Surface = 54,
+    VTK_Parametric_Tetra_Region = 55,
+    VTK_Parametric_Hex_Region = 56,
+    VTK_Higher_Order_Edge = 60,
+    VTK_Higher_Order_Triangle = 61,
+    VTK_Higher_Order_Quad = 62,
+    VTK_Higher_Order_Polygon = 63,
+    VTK_Higher_Order_Tetrahedron = 64,
+    VTK_Higher_Order_Wedge = 65,
+    VTK_Higher_Order_Pyramid = 66,
+    VTK_Higher_Order_Hexahedron = 67,
+    VTK_Number_Of_Cell_Types
+};
+
+FILE* VTK_fOpenPostVTUFile(const char* filename, VTK_PostMode mode)
 {
     FILE* file = fopen(filename, "w");
 
@@ -29,9 +87,36 @@ FILE* VTK_fOpenPostResultFile(const char* filename, VTK_PostMode mode)
     return file;
 }
 
-void VTK_fClosePostResultFile( FILE* file )
+void VTK_fClosePostVTUFile( FILE* file )
 {
     fprintf(file, "  </UnstructuredGrid>\n");
+    fprintf(file, "</VTKFile>\n");
+    fclose(file);
+}
+
+FILE* VTK_fOpenPostVTMFile(const char* filename, VTK_PostMode mode)
+{
+    FILE* file = fopen(filename, "w");
+
+    if(mode == VTK_PostAscii)
+    {
+        fprintf(file, "<?xml version=\"1.0\"?>\n");
+        fprintf(file, "<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n");
+        fprintf(file, "  <vtkMultiBlockDataSet>\n");
+    }
+    else if(mode == VTK_PostBinary)
+    {
+        fprintf(file, "<?xml version=\"1.0\"?>\n");
+        fprintf(file, "<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\" compressor=\"vtkZLibDataCompressor\" byte_order=\"LittleEndian\">\n");
+        fprintf(file, "  <vtkMultiBlockDataSet>\n");
+    }
+
+    return file;
+}
+
+void VTK_fClosePostVTMFile( FILE* file )
+{
+    fprintf(file, "  </vtkMultiBlockDataSet>\n");
     fprintf(file, "</VTKFile>\n");
     fclose(file);
 }
@@ -92,27 +177,27 @@ void VTK_fEndElementsConnectivity(FILE* file)
 void VTK_fBeginElementsOffsets(FILE* file, VTK_PostMode mode)
 {
     if (mode == VTK_PostAscii)
-        fprintf(file, "        <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">");
+        fprintf(file, "        <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n");
     else if (mode == VTK_PostBinary)
-        fprintf(file, "        <DataArray type=\"Int32\" Name=\"offsets\" format=\"binary\">");
+        fprintf(file, "        <DataArray type=\"Int32\" Name=\"offsets\" format=\"binary\">\n");
 }
 
 void VTK_fEndElementsOffsets(FILE* file)
 {
-    fprintf(file, "</DataArray>\n");
+    fprintf(file, "\n        </DataArray>\n");
 }
 
 void VTK_fBeginElementsTypes(FILE* file, VTK_PostMode mode)
 {
     if (mode == VTK_PostAscii)
-        fprintf(file, "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">");
+        fprintf(file, "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">\n");
     else if (mode == VTK_PostBinary)
-        fprintf(file, "        <DataArray type=\"UInt8\" Name=\"types\" format=\"binary\">");
+        fprintf(file, "        <DataArray type=\"UInt8\" Name=\"types\" format=\"binary\">\n");
 }
 
 void VTK_fEndElementsTypes(FILE* file)
 {
-    fprintf(file, "</DataArray>\n");
+    fprintf(file, "\n        </DataArray>\n");
 }
 
 void VTK_fWriteElementConnectivity(FILE* file, unsigned int id, int* nodes_id, unsigned int nodes_size)
@@ -167,6 +252,16 @@ void VTK_fWriteVector(FILE* file, unsigned int id, unsigned int size, double* va
     for(unsigned int i = 0; i < size; ++i)
         fprintf(file, " %e", values[i]);
     fprintf(file, "\n");
+}
+
+void VTK_fBeginDataset(FILE* file, const char* name, const char* filename, unsigned int index)
+{
+    fprintf(file, "    <DataSet index=\"%d\" name=\"%s\" file=\"%s\">\n", index, name, filename);
+}
+
+void VTK_fEndDataset(FILE* file)
+{
+    fprintf(file, "    </DataSet>\n");
 }
 
 #if defined(_USE_ZLIB) && defined(_USE_LIBB64)
@@ -285,7 +380,7 @@ int vtk_write_compressed (FILE * vtkfile, char *numeric_data, size_t byte_length
     return 0;
 }
 
-#endif
+#endif // defined(_USE_ZLIB) && defined(_USE_LIBB64)
 
-
+#endif // KRATOS_VTK_H_INCLUDED
 
