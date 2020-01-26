@@ -125,17 +125,27 @@ public:
     {
         KRATOS_TRY
 
+        bool element_is_active;
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
-//            std::cout << "element " << pElemIt->Id() << " of geometryType "
-//                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
-            mMeshElements.push_back ( * (pElemIt.base() ) );
-            Geometry<Node<3> >&geom = pElemIt->GetGeometry();
-            for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+            element_is_active = true;
+            if( pElemIt->IsDefined( ACTIVE ) )
+                element_is_active = pElemIt->Is(ACTIVE);
+
+            if (element_is_active)
             {
-                mMeshNodes.push_back ( * (it.base() ) );
+    //            std::cout << "element " << pElemIt->Id() << " of geometryType "
+    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
+                mMeshElements.push_back ( * (pElemIt.base() ) );
+                Geometry<Node<3> >&geom = pElemIt->GetGeometry();
+                for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+                {
+                    mMeshNodes.push_back ( * (it.base() ) );
+                }
+                return true;
             }
-            return true;
+            else
+                return false;
         }
         else
             return false;
@@ -147,17 +157,27 @@ public:
     {
         KRATOS_TRY
 
+        bool condition_is_active;
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
-//            std::cout << "condition " << pCondIt->Id() << " of geometryType "
-//                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
-            mMeshConditions.push_back ( * (pCondIt.base() ) );
-            Geometry<Node<3> >&geom = pCondIt->GetGeometry();
-            for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+            condition_is_active = true;
+            if( pCondIt->IsDefined( ACTIVE ) )
+                condition_is_active = pCondIt->Is(ACTIVE);
+
+            if (condition_is_active)
             {
-                mMeshNodes.push_back ( * (it.base() ) );
+    //            std::cout << "condition " << pCondIt->Id() << " of geometryType "
+    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
+                mMeshConditions.push_back ( * (pCondIt.base() ) );
+                Geometry<Node<3> >&geom = pCondIt->GetGeometry();
+                for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+                {
+                    mMeshNodes.push_back ( * (it.base() ) );
+                }
+                return true;
             }
-            return true;
+            else
+                return false;
         }
         else
             return false;
@@ -271,7 +291,8 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [2].Id();
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
-                        nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
+                        // nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
+                        nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
                         bool element_is_active = true;
                         if( it->IsDefined( ACTIVE ) )
@@ -373,7 +394,8 @@ public:
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry() [i].Id();
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
+                        // nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
+                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
 
                         bool condition_is_active = true;
                         if( it->IsDefined( ACTIVE ) )
@@ -403,7 +425,7 @@ public:
         mMeshConditions.clear();
     }
 
-    ModelPart::NodesContainerType GetMeshNodes()
+    const ModelPart::NodesContainerType& GetMeshNodes() const
     {
         return mMeshNodes;
     }

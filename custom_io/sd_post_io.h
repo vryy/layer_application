@@ -194,6 +194,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// Reset the internal data
+    void Reset()
+    {
+        // resetting mesh containers
+        for ( typename MeshContainerVectorType::iterator it = mMeshContainers.begin();
+                it != mMeshContainers.end(); ++it )
+        {
+            it->Reset();
+        }
+
+        // resetting gauss point containers
+        for ( typename GaussPointContainerVectorType::iterator it = mGaussPointContainers.begin();
+                it != mGaussPointContainers.end(); ++it )
+        {
+            it->Reset();
+        }
+    }
+
 protected:
     /**
      * File names
