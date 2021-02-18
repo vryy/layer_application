@@ -179,6 +179,40 @@ public:
         }
     }
 
+    /// Create a new entity out from a geometry
+    template<class TEntityType>
+    static typename TEntityType::Pointer CreateEntity(const std::string& sample_entity_name,
+        const std::size_t& Id, Properties::Pointer pProperties, typename TEntityType::GeometryType& rGeometry)
+    {
+        if(!KratosComponents<TEntityType>::Has(sample_entity_name))
+            KRATOS_THROW_ERROR(std::logic_error, sample_entity_name, "is not registered to the KRATOS kernel")
+        TEntityType const& r_clone_entity = KratosComponents<TEntityType>::Get(sample_entity_name);
+
+        typename TEntityType::Pointer pNewEntity = r_clone_entity.Create(Id, rGeometry, pProperties);
+
+        return pNewEntity;
+    }
+
+    /// Create a new entity out from a list of nodes
+    template<class TEntityType>
+    static typename TEntityType::Pointer CreateEntity(ModelPart& r_model_part, const std::string& sample_entity_name,
+        const std::size_t& Id, Properties::Pointer pProperties, const std::vector<std::size_t>& node_ids)
+    {
+        if(!KratosComponents<TEntityType>::Has(sample_entity_name))
+            KRATOS_THROW_ERROR(std::logic_error, sample_entity_name, "is not registered to the KRATOS kernel")
+        TEntityType const& r_clone_entity = KratosComponents<TEntityType>::Get(sample_entity_name);
+
+        // create the points array
+        typename TEntityType::GeometryType::PointsArrayType Points;
+        for(std::size_t i = 0; i < node_ids.size(); ++i)
+            Points.push_back(r_model_part.pGetNode(node_ids[i]));
+
+        // create new entity
+        typename TEntityType::Pointer pNewEntity = r_clone_entity.Create(Id, Points, pProperties);
+
+        return pNewEntity;
+    }
+
     ///@}
     ///@name Access
     ///@{

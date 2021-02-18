@@ -112,7 +112,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -128,7 +128,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -162,7 +162,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -180,7 +180,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -214,7 +214,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -233,7 +233,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -292,7 +292,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -348,7 +348,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -421,7 +421,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
@@ -464,7 +464,7 @@ public:
 //                {
 //                    if( !it->GetValue( IS_INACTIVE ) || it->Is(ACTIVE) )
 //                    {
-//                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+//                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
 //                                                         r_model_part.GetProcessInfo() );
 //                        for(unsigned int i=0; i<mSize; i++)
 //                        {
