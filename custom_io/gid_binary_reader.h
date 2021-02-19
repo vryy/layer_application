@@ -43,7 +43,6 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include "boost/algorithm/string.hpp"
 
 #include "zlib.h"
