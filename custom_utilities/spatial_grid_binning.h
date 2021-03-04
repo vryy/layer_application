@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spatial_point.h"
 #include "spatial_key.h"
 
 
