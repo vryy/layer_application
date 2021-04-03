@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: Oct 30, 2014 $
@@ -23,8 +23,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "custom_utilities/spatial_point.h"
 #include "includes/kratos_application.h"
+#include "custom_utilities/spatial_point.h"
+#include "custom_elements/post_element.h"
 
 
 namespace Kratos
@@ -63,16 +64,16 @@ namespace Kratos
     public:
         ///@name Type Definitions
         ///@{
-        
+
         /// Pointer definition of KratosMultiphaseApplication
         KRATOS_CLASS_POINTER_DEFINITION(KratosLayerApplication);
 
         ///@}
         ///@name Life Cycle
-        ///@{ 
+        ///@{
 
         /// Default constructor.
-        KratosLayerApplication(){}
+        KratosLayerApplication();
 
         /// Destructor.
         virtual ~KratosLayerApplication(){}
@@ -165,7 +166,7 @@ namespace Kratos
 
         ///@}
         ///@name Protected Inquiry
-        ///@{ 
+        ///@{
 
 
         ///@}
@@ -184,8 +185,24 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        // declare static Element & Condition instances
-        
+        const PostElement mPostElement2D3N;
+        const PostElement mPostElement2D4N;
+        const PostElement mPostElement2D6N;
+        const PostElement mPostElement2D8N;
+        const PostElement mPostElement2D9N;
+        const PostElement mPostFaceElement3D3N;
+        const PostElement mPostFaceElement3D4N;
+        const PostElement mPostFaceElement3D6N;
+        const PostElement mPostFaceElement3D8N;
+        const PostElement mPostFaceElement3D9N;
+        const PostElement mPostElement3D4N;
+        const PostElement mPostElement3D10N;
+        const PostElement mPostElement3D8N;
+        const PostElement mPostElement3D20N;
+        const PostElement mPostElement3D27N;
+        const PostElement mPostElement3D6N;
+        const PostElement mPostElement3D15N;
+
         ///@}
         ///@name Private Operators
         ///@{
