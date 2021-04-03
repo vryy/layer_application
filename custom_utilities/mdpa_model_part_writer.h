@@ -62,6 +62,8 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(MDPAModelPartWriter);
@@ -72,7 +74,8 @@ public:
     ///@{
 
     /// Default constructor.
-    MDPAModelPartWriter(ModelPart::Pointer p_model_part) : mp_model_part(p_model_part)
+    MDPAModelPartWriter(ModelPart::Pointer p_model_part)
+    : mp_model_part(p_model_part), mnode_id_offset(0)
     {
     }
 
@@ -89,6 +92,11 @@ public:
     ///@name Operations
     ///@{
 
+    void SetNodeIndexOffset(const std::size_t& Number)
+    {
+        mnode_id_offset = Number;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -102,7 +110,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const final
     {
         std::stringstream buffer;
         buffer << "MDPAModelPartWriter";
@@ -110,21 +118,14 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const final
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const final
     {
-    }
-
-    void Print()
-    {
-        PrintInfo(std::cout);
-        std::cout << std::endl;
-        PrintData(std::cout);
     }
 
     ///@}
@@ -149,23 +150,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void MDPA_Header(std::ostream& rOStream)
+    void MDPA_Header(std::ostream& rOStream) final
     {
         std::time_t curTime = std::time(NULL);
         std::tm* timePtr = localtime(&curTime);
         rOStream << "//KRATOS analysis data file\n";
         rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang-Giang Bui, Ruhr-University Bochum\n";
-        rOStream << "//This file is created at " << timePtr->tm_mday << "/" << timePtr->tm_mon << "/" << (timePtr->tm_year + 1900) % 100;
+        rOStream << "//This file is created at " << timePtr->tm_mday << "/" << (timePtr->tm_mon + 1) << "/" << (timePtr->tm_year + 1900) % 100;
         rOStream << " " << timePtr->tm_hour << ":" << timePtr->tm_min << ":" << timePtr->tm_sec << "\n\n";
     }
 
-    virtual void MDPA_Data(std::ostream& rOStream)
+    void MDPA_Data(std::ostream& rOStream) final
     {
         Begin(rOStream, "ModelPartData");
         End(rOStream, "ModelPartData");
     }
 
-    virtual void MDPA_Properties(std::ostream& rOStream)
+    void MDPA_Properties(std::ostream& rOStream) final
     {
         for(typename ModelPart::PropertiesContainerType::ContainerType::iterator it = mp_model_part->PropertiesArray().begin();
             it != mp_model_part->PropertiesArray().end(); ++it)
@@ -175,12 +176,12 @@ protected:
         }
     }
 
-    virtual void MDPA_Nodes(std::ostream& rOStream)
+    void MDPA_Nodes(std::ostream& rOStream) final
     {
         Begin(rOStream, "Nodes");
         for(ModelPart::NodeIterator it = mp_model_part->NodesBegin(); it != mp_model_part->NodesEnd(); ++it)
         {
-            rOStream << it->Id()
+            rOStream << it->Id() + mnode_id_offset
                      << " " << it->X0()
                      << " " << it->Y0()
                      << " " << it->Z0()
@@ -189,21 +190,70 @@ protected:
         End(rOStream, "Nodes");
     }
 
-    virtual void MDPA_Elements(std::ostream& rOStream)
+    void MDPA_Elements(std::ostream& rOStream) final
     {
-        //TODO
         // extract the list of element types in the model part and put into the container
-//        std::set<std::string> ElementNames;
-//
-//        ElementsArrayType& pElements = r_model_part.Elements();
-//        for (typename ModelPart::ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-//        {
-//
-//        }
+        std::map<std::string, std::vector<std::size_t> > ElementList;
+
+        ElementsContainerType& pElements = mp_model_part->Elements();
+        for (typename ElementsContainerType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        {
+            std::stringstream ElementName;
+            ElementName << (*it)->Info() << (*it)->GetGeometry().WorkingSpaceDimension() << "D"
+                        << (*it)->GetGeometry().size() << "N";
+
+            ElementList[ElementName.str()].push_back((*it)->Id());
+        }
+
+        // write the connectivities
+        for (auto it = ElementList.begin(); it != ElementList.end(); ++it)
+        {
+            this->Begin(rOStream, "Elements", it->first);
+
+            for (std::size_t i = 0; i < it->second.size(); ++i)
+            {
+                const Element& rElement = pElements[it->second[i]];
+                rOStream << rElement.Id() << " " << rElement.GetProperties().Id();
+                for (std::size_t j = 0; j < rElement.GetGeometry().size(); ++j)
+                    rOStream << " " << rElement.GetGeometry()[j].Id() + mnode_id_offset;
+                rOStream << std::endl;
+            }
+
+            this->End(rOStream, "Elements");
+        }
     }
 
-    virtual void MDPA_Conditions(std::ostream& rOStream)
+    void MDPA_Conditions(std::ostream& rOStream) final
     {
+        // extract the list of Condition types in the model part and put into the container
+        std::map<std::string, std::vector<std::size_t> > ConditionList;
+
+        ConditionsContainerType& pConditions = mp_model_part->Conditions();
+        for (typename ConditionsContainerType::ptr_iterator it = pConditions.ptr_begin(); it != pConditions.ptr_end(); ++it)
+        {
+            std::stringstream ConditionName;
+            ConditionName << (*it)->Info() << (*it)->GetGeometry().WorkingSpaceDimension() << "D"
+                        << (*it)->GetGeometry().size() << "N";
+
+            ConditionList[ConditionName.str()].push_back((*it)->Id());
+        }
+
+        // write the connectivities
+        for (auto it = ConditionList.begin(); it != ConditionList.end(); ++it)
+        {
+            this->Begin(rOStream, "Conditions", it->first);
+
+            for (std::size_t i = 0; i < it->second.size(); ++i)
+            {
+                const Condition& rCondition = pConditions[it->second[i]];
+                rOStream << rCondition.Id() << " " << rCondition.GetProperties().Id();
+                for (std::size_t j = 0; j < rCondition.GetGeometry().size(); ++j)
+                    rOStream << " " << rCondition.GetGeometry()[j].Id() + mnode_id_offset;
+                rOStream << std::endl;
+            }
+
+            this->End(rOStream, "Conditions");
+        }
     }
 
     ///@}
@@ -221,6 +271,7 @@ protected:
     ///@}
 
 private:
+
     ///@name Static Member Variables
     ///@{
 
@@ -229,6 +280,7 @@ private:
     ///@{
 
     ModelPart::Pointer mp_model_part;
+    std::size_t mnode_id_offset;
 
     ///@}
     ///@name Private Operators

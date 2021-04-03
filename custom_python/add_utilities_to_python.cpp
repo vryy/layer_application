@@ -107,6 +107,7 @@ void LayerApp_AddCustomUtilitiesToPython()
 
     class_<MDPAModelPartWriter, MDPAModelPartWriter::Pointer, boost::noncopyable, bases<MDPAWriter> >
     ("MDPAModelPartWriter", init<ModelPart::Pointer>())
+    .def("SetNodeIndexOffset", &MDPAModelPartWriter::SetNodeIndexOffset)
     ;
 
     class_<LayerHandler, LayerHandler::Pointer, boost::noncopyable, bases<MDPAWriter> >

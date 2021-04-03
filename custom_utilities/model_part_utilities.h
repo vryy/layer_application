@@ -149,7 +149,7 @@ public:
     /// Export the edge information to output stream
     /// REMARK: for second order element, only the 2-node edge on the side is returned
     static void ExportEdgeInformation(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements,
-    	const std::string& separator)
+        const std::string& separator)
     {
         typedef std::pair<std::size_t, std::size_t> edge_t;
         typedef std::set<edge_t> edge_container_t;
@@ -159,7 +159,7 @@ public:
 
         for (edge_container_t::iterator it = edges.begin(); it != edges.end(); ++it)
         {
-        	rOStream << it->first << separator << it->second << std::endl;
+            rOStream << it->first << separator << it->second << std::endl;
         }
     }
 
