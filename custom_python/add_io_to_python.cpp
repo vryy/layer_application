@@ -185,6 +185,65 @@ void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> co
 
 /////////////////////////////////////////////////////////////
 
+boost::python::list GiDBinaryReader_GetMeshesName(GiDBinaryReader& rDummy)
+{
+    std::vector<std::string> mesh_list;
+    rDummy.GetMeshesName(mesh_list);
+
+    boost::python::list Output;
+    for (std::size_t i = 0; i < mesh_list.size(); ++i)
+        Output.append(mesh_list[i]);
+    return Output;
+}
+
+boost::python::dict GiDBinaryReader_ReadNodalScalarValues(GiDBinaryReader& rDummy, const Variable<double>& rVariable, const std::size_t& step_index)
+{
+    std::map<std::size_t, double> Values;
+
+    rDummy.ReadNodalScalarValues(rVariable.Name(), step_index, Values);
+
+    boost::python::dict Output;
+    for (auto it = Values.begin(); it != Values.end(); ++it)
+        Output[it->first] = it->second;
+    return Output;
+}
+
+boost::python::dict GiDBinaryReader_ReadNodalArray1DValues(GiDBinaryReader& rDummy, const Variable<array_1d<double, 3> >& rVariable, const std::size_t& step_index)
+{
+    std::map<std::size_t, std::vector<double> > Values;
+
+    rDummy.ReadNodalVectorValues(rVariable.Name(), step_index, Values, 3);
+
+    boost::python::dict Output;
+    for (auto it = Values.begin(); it != Values.end(); ++it)
+    {
+        boost::python::list vector;
+        for (std::size_t i = 0; i < it->second.size(); ++i)
+            vector.append(it->second[i]);
+        Output[it->first] = vector;
+    }
+    return Output;
+}
+
+boost::python::dict GiDBinaryReader_ReadNodalVectorValues(GiDBinaryReader& rDummy, const Variable<Vector>& rVariable, const std::size_t& step_index, const std::size_t& vector_size)
+{
+    std::map<std::size_t, std::vector<double> > Values;
+
+    rDummy.ReadNodalVectorValues(rVariable.Name(), step_index, Values, vector_size);
+
+    boost::python::dict Output;
+    for (auto it = Values.begin(); it != Values.end(); ++it)
+    {
+        boost::python::list vector;
+        for (std::size_t i = 0; i < it->second.size(); ++i)
+            vector.append(it->second[i]);
+        Output[it->first] = vector;
+    }
+    return Output;
+}
+
+/////////////////////////////////////////////////////////////
+
 void  LayerApplication_AddIOToPython()
 {
     using namespace boost::python;
@@ -274,6 +333,15 @@ void  LayerApplication_AddIOToPython()
 
     class_<VtkVTMIOType, VtkVTMIOType::Pointer, bases<VtkIOType>, boost::noncopyable>
     ("VtkVTMIO", init<std::string const&, const VTK_PostMode&>())
+    ;
+
+    class_<GiDBinaryReader, GiDBinaryReader::Pointer, boost::noncopyable>
+    ("GiDBinaryReader", init<std::string const&>())
+    .def("GetMeshesName", &GiDBinaryReader_GetMeshesName)
+    .def("ReadNodalScalarValues", &GiDBinaryReader_ReadNodalScalarValues)
+    .def("ReadNodalArray1DValues", &GiDBinaryReader_ReadNodalArray1DValues)
+    .def("ReadNodalVectorValues", &GiDBinaryReader_ReadNodalVectorValues)
+    .def(self_ns::str(self))
     ;
 }
 

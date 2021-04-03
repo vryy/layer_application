@@ -51,13 +51,14 @@
 #define GZ_WATCH(a) if(a <= 0) return a;
 #define WATCH(a) std::cout << #a << ": " << a << std::endl;
 #define ERROR(a, b) {std::cerr << a << " " << b << std::endl; exit(0);}
+#define ERROR3(a, b, c) {std::cerr << a << " " << b << " " << c << std::endl; exit(0);}
 
 namespace Kratos
 {
 
 /**
-Detail class definition.
-*/
+ * A special reader able to read back GiD post binary data
+ */
 class GiDBinaryReader
 {
 public:
@@ -173,20 +174,64 @@ public:
     }
 
     /// Get the names of all the meshes in the file
-    std::vector<std::string> GetMeshesName() const
+    void GetMeshesName(std::vector<std::string>& mesh_list) const
     {
-        std::vector<std::string> mesh_list;
+        mesh_list.clear();
         for(std::size_t i = 0; i < mPosMesh.size(); ++i)
-        {
             mesh_list.push_back(mPosMesh[i].Name);
+    }
+
+    /// read the nodal results at specific step given by index
+    void ReadNodalScalarValues(const std::string& Name, const std::size_t& step_index, std::map<std::size_t, double>& rValues)
+    {
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<double> > AllValues;
+
+        int error_code = this->ReadNodalScalarValues(Name, step_list, AllValues);
+
+        if (error_code != 0)
+            ERROR3("Result", Name, "can't be read")
+
+        if (step_index >= step_list.size())
+            ERROR("The given step index exceeds the number of stored values", "")
+
+        for (auto it = AllValues.begin(); it != AllValues.end(); ++it)
+            rValues[it->first] = it->second[step_index];
+    }
+
+    /// read the nodal results at specific step given by value
+    void ReadNodalScalarValues(const std::string& Name, const double& step, std::map<std::size_t, double>& rValues)
+    {
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<double> > AllValues;
+
+        int error_code = this->ReadNodalScalarValues(Name, step_list, AllValues);
+
+        if (error_code != 0)
+            ERROR3("Result", Name, "can't be read")
+
+        std::size_t step_index;
+        bool found = false;
+        for (std::size_t i = 0; i < step_list.size(); ++i)
+        {
+            if (step_list[i] == step)
+            {
+                step_index = i;
+                found = true;
+                break;
+            }
         }
-        return mesh_list;
+        if (!found)
+            ERROR("The given step is not found", "")
+
+        for (auto it = AllValues.begin(); it != AllValues.end(); ++it)
+            rValues[it->first] = it->second[step_index];
     }
 
     /// step_list: all the time steps that simulation produces results
     /// output values: map key is node index
     ///                map values is series of scalar results at node at multiple time step
-    void ReadNodalScalarValues(std::string Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<double> >& rValues)
+    int ReadNodalScalarValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<double> >& rValues)
     {
         Reset();
 
@@ -247,18 +292,83 @@ public:
                             rValues[id].push_back(v);
                         }
                     }
+
+                    return 0;
                 }
             }
         }
+
+        return -1;
     }
 
-    /// TODO
-    void ReadNodalVectorValues(std::string Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size)
+    /// read the nodal results at specific step given by index
+    void ReadNodalVectorValues(const std::string& Name, const std::size_t& step_index, std::map<std::size_t, std::vector<double> >& rValues, const std::size_t& vector_size)
+    {
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<std::vector<double> > > AllValues;
+
+        int error_code = this->ReadNodalVectorValues(Name, step_list, AllValues, vector_size);
+
+        if (error_code != 0)
+            ERROR3("Result", Name, "can't be read")
+
+        if (step_index >= step_list.size())
+            ERROR("The given step index exceeds the number of stored values", "")
+
+        for (auto it = AllValues.begin(); it != AllValues.end(); ++it)
+        {
+            auto& it2 = rValues[it->first];
+            it2.resize(vector_size);
+            for (std::size_t i = 0; i < vector_size; ++i)
+                it2[i] = it->second[step_index][i];
+        }
+    }
+
+    /// read the nodal results at specific step given by value
+    void ReadNodalVectorValues(const std::string& Name, const double& step, std::map<std::size_t, std::vector<double> >& rValues, const std::size_t& vector_size)
+    {
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<std::vector<double> > > AllValues;
+
+        int error_code = this->ReadNodalVectorValues(Name, step_list, AllValues, vector_size);
+
+        if (error_code != 0)
+            ERROR3("Result", Name, "can't be read")
+
+        std::size_t step_index;
+        bool found = false;
+        for (std::size_t i = 0; i < step_list.size(); ++i)
+        {
+            if (step_list[i] == step)
+            {
+                step_index = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            ERROR("The given step is not found", "")
+
+        for (auto it = AllValues.begin(); it != AllValues.end(); ++it)
+        {
+            auto& it2 = rValues[it->first];
+            it2.resize(vector_size);
+            for (std::size_t i = 0; i < vector_size; ++i)
+                it2[i] = it->second[step_index][i];
+        }
+    }
+
+    /// step_list: all the time steps that simulation produces results
+    /// output values: map key is node index
+    ///                map values is series of scalar results at node at multiple time step
+    int ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, const std::size_t& vector_size)
     {
         Reset();
 
         step_list.clear();
         rValues.clear();
+
+        gid_value_t t;
 
         for(std::size_t i = 0; i < mPosResult.size(); ++i)
         {
@@ -299,10 +409,10 @@ public:
                             std::vector<double> v(vector_size);
                             for(std::size_t j = 0; j < vector_size; ++j)
                             {
-                                gid_value_t t;
                                 Read(t);
                                 v[j] = t;
                             }
+                            Read(t); // read one more (the norm)
                             if(id > 0)
                                 rValues[id].push_back(v);
                             // REMARKS: for some reason, the last line contains the value pair: [id, v] = [-1, ##]. Probably to terminate the sequence of value. I don't know how to exclude this when I approach the end cursor position, so I make a naive comparison to make sure correct values are filtered out.
@@ -318,20 +428,24 @@ public:
                             std::vector<double> v(vector_size);
                             for(std::size_t j = 0; j < vector_size; ++j)
                             {
-                                gid_value_t t;
                                 Read(t);
                                 v[j] = t;
                             }
+                            Read(t); // read one more (the norm)
                             rValues[id].push_back(v);
                         }
                     }
+
+                    return 0; // found the entry and read values successfully
                 }
             }
         }
+
+        return -1;
     }
 
     /// Read a specific mesh name from the binary
-    void ReadMesh(std::string Name, std::map<int, std::vector<double> >& rCoordinates,
+    void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates,
                   std::map<int, std::vector<int> >& rConnectivities)
     {
         Reset();
@@ -930,5 +1044,5 @@ inline std::ostream& operator << (std::ostream& rOStream, const GiDBinaryReader&
 
 }  // namespace Kratos.
 
-#endif // GID_BINARY_READER_H_INCLUDED  defined 
+#endif // GID_BINARY_READER_H_INCLUDED  defined
 
