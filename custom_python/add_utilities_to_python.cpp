@@ -170,13 +170,24 @@ void LayerApp_AddCustomUtilitiesToPython()
     ;
 
     #ifdef LAYER_APP_USE_HDF5
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_Nodes_double)(const Variable<double>&, const ModelPart::NodesContainerType&) = &HDF5PostUtility::WriteNodalResults<double>;
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_Nodes_array_1d)(const Variable<array_1d<double, 3> >&, const ModelPart::NodesContainerType&) = &HDF5PostUtility::WriteNodalResults<array_1d<double, 3> >;
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_Nodes_vector)(const Variable<Vector>&, const ModelPart::NodesContainerType&) = &HDF5PostUtility::WriteNodalResults<Vector>;
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_ModelPart_double)(const Variable<double>&, ModelPart::Pointer) = &HDF5PostUtility::WriteNodalResults<double>;
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_ModelPart_array_1d)(const Variable<array_1d<double, 3> >&, ModelPart::Pointer) = &HDF5PostUtility::WriteNodalResults<array_1d<double, 3> >;
+    void(HDF5PostUtility::*pointer_to_WriteNodalResults_ModelPart_vector)(const Variable<Vector>&, ModelPart::Pointer) = &HDF5PostUtility::WriteNodalResults<Vector>;
+    void(HDF5PostUtility::*pointer_to_WriteElementalData_ModelPart_bool)(const Variable<bool>&, ModelPart::Pointer) = &HDF5PostUtility::WriteElementalData<bool>;
+
     class_<HDF5PostUtility, HDF5PostUtility::Pointer, boost::noncopyable>("HDF5PostUtility", init<const std::string&>())
     .def(init<const std::string&, const std::string&>())
     .def("WriteNodes", &HDF5PostUtility::WriteNodes)
-    .def("WriteNodalResults", &HDF5PostUtility::WriteNodalResults<double>)
-    .def("WriteNodalResults", &HDF5PostUtility::WriteNodalResults<array_1d<double, 3> >)
-    .def("WriteNodalResults", &HDF5PostUtility::WriteNodalResults<Vector>)
-    .def("WriteElementalData", &HDF5PostUtility::WriteElementalData<bool>)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_Nodes_double)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_Nodes_array_1d)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_Nodes_vector)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_ModelPart_double)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_ModelPart_array_1d)
+    .def("WriteNodalResults", pointer_to_WriteNodalResults_ModelPart_vector)
+    .def("WriteElementalData", pointer_to_WriteElementalData_ModelPart_bool)
     .def("ReadNodalResults", &HDF5PostUtility::ReadNodalResults<double>)
     .def("ReadNodalResults", &HDF5PostUtility::ReadNodalResults<array_1d<double, 3> >)
     .def("ReadNodalResults", &HDF5PostUtility::ReadNodalResults<Vector>)

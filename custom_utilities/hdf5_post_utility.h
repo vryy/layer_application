@@ -193,7 +193,13 @@ public:
     template<class TDataType>
     void WriteNodalResults(const Variable<TDataType>& rThisVariable, ModelPart::Pointer pModelPart)
     {
-        WriteNodalResults_(rThisVariable, pModelPart);
+        WriteNodalResults_(rThisVariable, pModelPart->Nodes());
+    }
+
+    template<class TDataType>
+    void WriteNodalResults(const Variable<TDataType>& rThisVariable, const NodesContainerType& pNodes)
+    {
+        WriteNodalResults_(rThisVariable, pNodes);
     }
 
     template<class TDataType>
@@ -205,7 +211,13 @@ public:
     template<class TDataType>
     void WriteElementalData(const Variable<TDataType>& rThisVariable, ModelPart::Pointer pModelPart)
     {
-        WriteElementalData_(rThisVariable, pModelPart);
+        WriteElementalData_(rThisVariable, pModelPart->Elements());
+    }
+
+    template<class TDataType>
+    void WriteElementalData(const Variable<TDataType>& rThisVariable, const ElementsContainerType& pElements)
+    {
+        WriteElementalData_(rThisVariable, pElements);
     }
 
     template<class TDataType>
@@ -300,12 +312,10 @@ private:
     /*****************************************************
            FUNCTIONS TO WRITE DATA TO NODES
     *****************************************************/
-    void WriteNodalResults_(
-        const Variable<double>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteNodalResults_( const Variable<double>& rThisVariable, const NodesContainerType& pNodes )
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
+        if (pNodes.size() == 0)
+            return;
 
         typedef struct Data_t {
             int    id;
@@ -318,10 +328,10 @@ private:
          * Initialize the data
          */
         int cnt = 0;
-        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
         {
-            data[cnt].id = (*it)->Id();
-            data[cnt].v = (*it)->operator[](rThisVariable);
+            data[cnt].id = it->Id();
+            data[cnt].v = it->operator[](rThisVariable);
             ++cnt;
         }
 
@@ -356,12 +366,10 @@ private:
         delete data;
     }
 
-    void WriteNodalResults_(
-        const Variable<array_1d<double, 3> >& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteNodalResults_( const Variable<array_1d<double, 3> >& rThisVariable, const NodesContainerType& pNodes )
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
+        if (pNodes.size() == 0)
+            return;
 
         typedef struct Data_t {
             int    id;
@@ -376,10 +384,10 @@ private:
          * Initialize the data
          */
         int cnt = 0;
-        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
         {
-            data[cnt].id = (*it)->Id();
-            array_1d<double, 3>& v = (*it)->GetSolutionStepValue(rThisVariable);
+            data[cnt].id = it->Id();
+            array_1d<double, 3>& v = it->GetSolutionStepValue(rThisVariable);
             data[cnt].d1 = v[0];
             data[cnt].d2 = v[1];
             data[cnt].d3 = v[2];
@@ -419,22 +427,21 @@ private:
         delete data;
     }
 
-    void WriteNodalResults_(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteNodalResults_( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
-        int len = (*(pNodes.ptr_begin()))->GetSolutionStepValue(rThisVariable).size();
+        if (pNodes.size() == 0)
+            return;
+
+        int len = (pNodes.begin())->GetSolutionStepValue(rThisVariable).size();
 
         // I have to do this since it is not impossible AFAIK to create a struct with double pointer with HDF5/C++. If yes, is the performance OK?
         if(len == 3)
         {
-            WriteNodalResults_Vector_3(rThisVariable, pModelPart);
+            WriteNodalResults_Vector_3(rThisVariable, pNodes);
         }
         else if(len == 6)
         {
-            WriteNodalResults_Vector_6(rThisVariable, pModelPart);
+            WriteNodalResults_Vector_6(rThisVariable, pNodes);
         }
         else
             std::cout << "Vector length of size " << len
@@ -442,12 +449,10 @@ private:
                       << rThisVariable.Name() << std::endl;
     }
 
-    void WriteNodalResults_Vector_3(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteNodalResults_Vector_3( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
+        if (pNodes.size() == 0)
+            return;
 
         typedef struct Data_t {
             int    id;
@@ -462,10 +467,10 @@ private:
          * Initialize the data
          */
         int cnt = 0;
-        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
         {
-            data[cnt].id = (*it)->Id();
-            Vector& v = (*it)->GetSolutionStepValue(rThisVariable);
+            data[cnt].id = it->Id();
+            Vector& v = it->GetSolutionStepValue(rThisVariable);
             data[cnt].d1 = v[0];
             data[cnt].d2 = v[1];
             data[cnt].d3 = v[2];
@@ -514,12 +519,10 @@ private:
         delete data;
     }
 
-    void WriteNodalResults_Vector_6(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteNodalResults_Vector_6( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
+        if (pNodes.size() == 0)
+            return;
 
         typedef struct Data_t {
             int    id;
@@ -537,10 +540,10 @@ private:
          * Initialize the data
          */
         int cnt = 0;
-        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
         {
-            data[cnt].id = (*it)->Id();
-            Vector& v = (*it)->GetSolutionStepValue(rThisVariable);
+            data[cnt].id = it->Id();
+            Vector& v = it->GetSolutionStepValue(rThisVariable);
             data[cnt].d1 = v[0];
             data[cnt].d2 = v[1];
             data[cnt].d3 = v[2];
@@ -598,12 +601,10 @@ private:
     /*****************************************************
                 FUNCTIONS TO WRITE ELEMENTAL DATA
     *****************************************************/
-    void WriteElementalData_(
-        const Variable<bool>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    void WriteElementalData_( const Variable<bool>& rThisVariable, const ElementsContainerType& pElements )
     {
-        ElementsContainerType& pElements = pModelPart->Elements();
+        if (pElements.size() == 0)
+            return;
 
         typedef struct Data_t {
             int id;
@@ -616,10 +617,10 @@ private:
          * Initialize the data
          */
         int cnt = 0;
-        for(typename ElementsContainerType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        for(typename ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it)
         {
-            data[cnt].id = (*it)->Id();
-            if((*it)->GetValue(rThisVariable) == true)
+            data[cnt].id = it->Id();
+            if(it->GetValue(rThisVariable) == true)
                 data[cnt].v = 1;
             else
                 data[cnt].v = 0;
@@ -657,14 +658,10 @@ private:
         delete data;
     }
 
-
     /*****************************************************
              FUNCTIONS TO READ DATA FROM NODES
     *****************************************************/
-    int ReadNodalResults_(
-        const Variable<double>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    int ReadNodalResults_( const Variable<double>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
     {
         NodesContainerType& pNodes = pModelPart->Nodes();
 
@@ -705,8 +702,9 @@ private:
             hsize_t dims_out[rank];
             int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-            if(dims_out[0] != pNodes.size())
-                KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+            if (!allow_unequal)
+                if(dims_out[0] != pNodes.size())
+                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
 
             /*
              * Output buffer
@@ -751,10 +749,7 @@ private:
        }
     }
 
-    int ReadNodalResults_(
-        const Variable<array_1d<double, 3> >& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    int ReadNodalResults_( const Variable<array_1d<double, 3> >& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
     {
         NodesContainerType& pNodes = pModelPart->Nodes();
 
@@ -797,8 +792,9 @@ private:
             hsize_t dims_out[rank];
             int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-            if(dims_out[0] != pNodes.size())
-                KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+            if (!allow_unequal)
+                if(dims_out[0] != pNodes.size())
+                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
 
             /*
              * Output buffer
@@ -852,10 +848,7 @@ private:
        }
     }
 
-    int ReadNodalResults_(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    int ReadNodalResults_( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart )
     {
         /*
          * Open the dataset
@@ -881,10 +874,7 @@ private:
             KRATOS_THROW_ERROR(std::logic_error, "Vector length of this size is not supported:", len)
     }
 
-    int ReadNodalResults_Vector_3(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    int ReadNodalResults_Vector_3( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
     {
         NodesContainerType& pNodes = pModelPart->Nodes();
 
@@ -927,8 +917,9 @@ private:
             hsize_t dims_out[rank];
             int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-            if(dims_out[0] != pNodes.size())
-                KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+            if (!allow_unequal)
+                if(dims_out[0] != pNodes.size())
+                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
 
             /*
              * Output buffer
@@ -975,10 +966,7 @@ private:
        }
     }
 
-    int ReadNodalResults_Vector_6(
-        const Variable<Vector>& rThisVariable,
-        ModelPart::Pointer pModelPart
-    )
+    int ReadNodalResults_Vector_6( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
     {
         NodesContainerType& pNodes = pModelPart->Nodes();
 
@@ -1024,8 +1012,9 @@ private:
             hsize_t dims_out[rank];
             int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
 
-            if(dims_out[0] != pNodes.size())
-                KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+            if (!allow_unequal)
+                if(dims_out[0] != pNodes.size())
+                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
 
             /*
              * Output buffer
@@ -1078,11 +1067,7 @@ private:
     /*****************************************************
              FUNCTIONS TO READ ELEMENTAL DATA
     *****************************************************/
-    int ReadElementalData_(
-        const Variable<bool>& rThisVariable,
-        ModelPart::Pointer pModelPart,
-        bool allow_unequal = true
-    )
+    int ReadElementalData_( const Variable<bool>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
     {
         ElementsContainerType& pElements = pModelPart->Elements();
 
