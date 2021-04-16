@@ -88,8 +88,7 @@ public:
            GiD_PostMode Mode,
            MultiFileFlag use_multiple_files_flag,
            WriteDeformedMeshFlag write_deformed_flag,
-           WriteConditionsFlag write_conditions_flag
-         )
+           WriteConditionsFlag write_conditions_flag )
     : BaseType(rDatafilename)
     {
         mMode = Mode;
