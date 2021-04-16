@@ -625,6 +625,8 @@ protected:
             }
         }
 
+        std::cout << "Searching keywords completed" << std::endl;
+
         // handle keyword "MESH"
         for(std::size_t i = 0; i < index[0].size(); ++i)
         {
@@ -795,6 +797,8 @@ protected:
             mPosMesh.push_back(mesh);
         }
 
+        std::cout << "Index MESH completed" << std::endl;
+
         // handle keyword "Result"
         for(std::size_t i = 0; i < index[1].size(); ++i)
         {
@@ -871,6 +875,8 @@ protected:
 
             mPosResult.push_back(result);
         }
+
+        std::cout << "Index Result completed" << std::endl;
 
         auto time_end = std::chrono::high_resolution_clock::now();
         auto elapsed = time_end - time_begin;
