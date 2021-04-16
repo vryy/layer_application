@@ -26,6 +26,7 @@
 #include "includes/kratos_application.h"
 #include "custom_utilities/spatial_point.h"
 #include "custom_elements/post_element.h"
+#include "custom_elements/post_ups_element.h"
 
 
 namespace Kratos
@@ -202,6 +203,24 @@ namespace Kratos
         const PostElement mPostElement3D27N;
         const PostElement mPostElement3D6N;
         const PostElement mPostElement3D15N;
+
+        const PostUPSElement mPostUPSElement2D3N;
+        const PostUPSElement mPostUPSElement2D4N;
+        const PostUPSElement mPostUPSElement2D6N;
+        const PostUPSElement mPostUPSElement2D8N;
+        const PostUPSElement mPostUPSElement2D9N;
+        const PostUPSElement mPostUPSFaceElement3D3N;
+        const PostUPSElement mPostUPSFaceElement3D4N;
+        const PostUPSElement mPostUPSFaceElement3D6N;
+        const PostUPSElement mPostUPSFaceElement3D8N;
+        const PostUPSElement mPostUPSFaceElement3D9N;
+        const PostUPSElement mPostUPSElement3D4N;
+        const PostUPSElement mPostUPSElement3D10N;
+        const PostUPSElement mPostUPSElement3D8N;
+        const PostUPSElement mPostUPSElement3D20N;
+        const PostUPSElement mPostUPSElement3D27N;
+        const PostUPSElement mPostUPSElement3D6N;
+        const PostUPSElement mPostUPSElement3D15N;
 
         ///@}
         ///@name Private Operators
