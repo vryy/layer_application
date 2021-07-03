@@ -16,9 +16,6 @@
 #include <set>
 
 // External includes
-#include <boost/foreach.hpp>
-#include <boost/python.hpp>
-#include <boost/python/stl_iterator.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -27,7 +24,7 @@
 #include "custom_utilities/spatial_point.h"
 #include "custom_utilities/entity.h"
 #include "utilities/indexed_object.h"
-#include "layer_application.h"
+#include "layer_application_variables.h"
 
 namespace Kratos
 {
@@ -228,15 +225,12 @@ public:
         mInfoNames.insert(Name);
     }
 
-    void AddTable(std::string table_name, boost::python::list& pyListNodes)
+    void AddTable(std::string table_name, const std::vector<std::size_t>& node_ids )
     {
         std::vector<PointType::Pointer>& table_nodes = mpTables[table_name];
-        typedef boost::python::stl_input_iterator<int> iterator_type;
-        BOOST_FOREACH(const iterator_type::value_type& id,
-                      std::make_pair(iterator_type(pyListNodes), // begin
-                        iterator_type() ) ) // end
+        for (int i = 0; i < node_ids.size(); ++i)
         {
-            table_nodes.push_back(mpNodes(id));
+            table_nodes.push_back(mpNodes(node_ids[i]));
         }
         std::cout << "Table " << table_name << " is added to layer " << mName << std::endl;
     }

@@ -17,8 +17,6 @@
 #include <ctime>
 
 // External includes
-#include <boost/foreach.hpp>
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -100,7 +98,7 @@ public:
     ///@name Input and output
     ///@{
 
-    void WriteMDPA(std::string fn)
+    void WriteMDPA(const std::string& fn) const
     {
         std::ofstream fid;
         std::string new_fn = fn + std::string(".mdpa");
@@ -156,7 +154,7 @@ public:
     {
     }
 
-    void Print()
+    void Print() const
     {
         PrintInfo(std::cout);
         std::cout << std::endl;
@@ -185,58 +183,58 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void MDPA_Header(std::ostream& rOStream)
+    virtual void MDPA_Header(std::ostream& rOStream) const
     {
         std::time_t curTime = std::time(NULL);
         std::tm* timePtr = localtime(&curTime);
-        rOStream << "//KRATOS isogeometric application data file\n";
+        rOStream << "//KRATOS data file\n";
         rOStream << "//(c) " << (timePtr->tm_year + 1900) << " Hoang-Giang Bui, Ruhr-University Bochum\n";
-        rOStream << "//This file is created at " << timePtr->tm_mday << "/" << (timePtr->tm_mon + 1) << "/" << (timePtr->tm_year + 1900) % 100;
+        rOStream << "//This file is created on " << timePtr->tm_mday << "/" << (timePtr->tm_mon + 1) << "/" << (timePtr->tm_year + 1900) % 100;
         rOStream << " " << timePtr->tm_hour << ":" << timePtr->tm_min << ":" << timePtr->tm_sec << "\n\n";
     }
 
-    virtual void MDPA_Data(std::ostream& rOStream)
+    virtual void MDPA_Data(std::ostream& rOStream) const
     {
         Begin(rOStream, "ModelPartData");
         End(rOStream, "ModelPartData");
     }
 
-    virtual void MDPA_Properties(std::ostream& rOStream)
+    virtual void MDPA_Properties(std::ostream& rOStream) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
 
-    virtual void MDPA_Nodes(std::ostream& rOStream)
+    virtual void MDPA_Nodes(std::ostream& rOStream) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
 
-    virtual void MDPA_Elements(std::ostream& rOStream)
+    virtual void MDPA_Elements(std::ostream& rOStream) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
 
-    virtual void MDPA_Conditions(std::ostream& rOStream)
+    virtual void MDPA_Conditions(std::ostream& rOStream) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
     }
 
-    void Begin(std::ostream& rOStream, const std::string& section)
+    void Begin(std::ostream& rOStream, const std::string& section) const
     {
         rOStream << "Begin " << section << std::endl;
     }
 
-    void Begin(std::ostream& rOStream, const std::string& section, int id)
+    void Begin(std::ostream& rOStream, const std::string& section, int id) const
     {
         rOStream << "Begin " << section << " " << id << std::endl;
     }
 
-    void Begin(std::ostream& rOStream, const std::string& section, const std::string& header)
+    void Begin(std::ostream& rOStream, const std::string& section, const std::string& header) const
     {
         rOStream << "Begin " << section << " " << header << std::endl;
     }
 
-    void End(std::ostream& rOStream, const std::string& section)
+    void End(std::ostream& rOStream, const std::string& section) const
     {
         rOStream << "End " << section << std::endl << std::endl;
     }

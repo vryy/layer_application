@@ -32,11 +32,28 @@
 #include "custom_utilities/hdf5_post_utility.h"
 #endif
 
+#ifdef LAYER_APP_USE_MMG
+#include "custom_utilities/mmg_mesher.h"
+#endif
+
 namespace Kratos
 {
 
 namespace Python
 {
+
+void Layer_AddTable(Layer& dummy, std::string table_name, boost::python::list& pyListNodes)
+{
+    std::vector<std::size_t> node_ids;
+    typedef boost::python::stl_input_iterator<int> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& id,
+                  std::make_pair(iterator_type(pyListNodes), // begin
+                    iterator_type() ) ) // end
+    {
+        node_ids.push_back(id);
+    }
+    dummy.AddTable(table_name, node_ids);
+}
 
 Layer::Pointer LayerHandler_getitem(LayerHandler& dummy, std::string name)
 {
@@ -92,6 +109,45 @@ Element::Pointer ModelPartUtilities_CreateElementFromNodes(ModelPartUtilities& r
     return rDummy.CreateEntity<Element>(r_model_part, sample_elem_name, Id, pProperties, node_list);
 }
 
+boost::python::list SpatialGridBinning_GetNeighboursList(SpatialGridBinning& dummy, ModelPart& r_model_part, int id, double r)
+{
+    boost::python::list list;
+    std::set<int> Neighbours = dummy.GetNeighbourNodes(r_model_part, id, r);
+    for(std::set<int>::iterator it = Neighbours.begin(); it != Neighbours.end(); ++it)
+    {
+        list.append(*it);
+    }
+    return list;
+}
+
+#ifdef LAYER_APP_USE_MMG
+template<int TDim>
+void LayerApp_ExportMMGMesher()
+{
+    using namespace boost::python;
+
+    void(MMGMesher<TDim>::*pointer_to_SetValueInt)(const Variable<int>&, const int&) = &MMGMesher<TDim>::SetValue;
+    void(MMGMesher<TDim>::*pointer_to_SetParamInt)(const int&, const int&) = &MMGMesher<TDim>::SetValue;
+    void(MMGMesher<TDim>::*pointer_to_SetValueDouble)(const Variable<double>&, const double&) = &MMGMesher<TDim>::SetValue;
+    void(MMGMesher<TDim>::*pointer_to_SetParamDouble)(const int&, const double&) = &MMGMesher<TDim>::SetValue;
+
+    std::stringstream ss;
+    ss << "MMG" << TDim << "DMesher";
+    class_<MMGMesher<TDim>, typename MMGMesher<TDim>::Pointer, boost::noncopyable>(ss.str().c_str(), init<>())
+    .def(init<const bool&, const bool&>())
+    .def("SetValue", pointer_to_SetValueInt)
+    .def("SetIParam", pointer_to_SetParamInt)
+    .def("SetValue", pointer_to_SetValueDouble)
+    .def("SetDParam", pointer_to_SetParamDouble)
+    .def("Initialize", &MMGMesher<TDim>::Initialize)
+    .def("Export", &MMGMesher<TDim>::Export)
+    .def("SaveMesh", &MMGMesher<TDim>::SaveMesh)
+    .def("SaveLevelSet", &MMGMesher<TDim>::SaveLevelSet)
+    .def("SaveMetric", &MMGMesher<TDim>::SaveMetric)
+    ;
+}
+#endif
+
 void LayerApp_AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
@@ -100,7 +156,7 @@ void LayerApp_AddCustomUtilitiesToPython()
 
     class_<Layer, Layer::Pointer, boost::noncopyable, bases<ParameterListType> >
     ("Layer", init<std::size_t, std::string>())
-    .def("AddTable", &Layer::AddTable)
+    .def("AddTable", &Layer_AddTable)
     .def(self_ns::str(self))
     ;
 
@@ -110,7 +166,7 @@ void LayerApp_AddCustomUtilitiesToPython()
     ;
 
     class_<MDPAModelPartWriter, MDPAModelPartWriter::Pointer, boost::noncopyable, bases<MDPAWriter> >
-    ("MDPAModelPartWriter", init<ModelPart::Pointer>())
+    ("MDPAModelPartWriter", init<const ModelPart&>())
     .def("SetNodeIndexOffset", &MDPAModelPartWriter::SetNodeIndexOffset)
     ;
 
@@ -158,7 +214,7 @@ void LayerApp_AddCustomUtilitiesToPython()
     class_<SpatialGridBinning, SpatialGridBinning::Pointer, boost::noncopyable>
     ("SpatialGridBinning", init<double, double, double, double, double, double, double>())
     .def("AddNodes", &SpatialGridBinning::AddNodes)
-    .def("GetNeighboursList", &SpatialGridBinning::GetNeighboursList)
+    .def("GetNeighboursList", &SpatialGridBinning_GetNeighboursList)
     ;
 
     class_<ModelPartUtilities, ModelPartUtilities::Pointer, boost::noncopyable>
@@ -193,6 +249,78 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("ReadNodalResults", &HDF5PostUtility::ReadNodalResults<Vector>)
     .def("ReadElementalData", &HDF5PostUtility::ReadElementalData<bool>)
     ;
+    #endif
+
+    #ifdef LAYER_APP_USE_MMG
+    enum_<MMG2D_Param>("MMG2D_Param")
+    .value("IPARAM_verbose", MMG2D_IPARAM_verbose)
+    .value("IPARAM_mem", MMG2D_IPARAM_mem)
+    .value("IPARAM_debug", MMG2D_IPARAM_debug)
+    .value("IPARAM_angle", MMG2D_IPARAM_angle)
+    .value("IPARAM_iso", MMG2D_IPARAM_iso)
+    .value("IPARAM_opnbdy", MMG2D_IPARAM_opnbdy)
+    .value("IPARAM_lag", MMG2D_IPARAM_lag)
+    .value("IPARAM_3dMedit", MMG2D_IPARAM_3dMedit)
+    .value("IPARAM_optim", MMG2D_IPARAM_optim)
+    .value("IPARAM_noinsert", MMG2D_IPARAM_noinsert)
+    .value("IPARAM_noswap", MMG2D_IPARAM_noswap)
+    .value("IPARAM_nomove", MMG2D_IPARAM_nomove)
+    .value("IPARAM_nosurf", MMG2D_IPARAM_nosurf)
+    .value("IPARAM_nreg", MMG2D_IPARAM_nreg)
+    .value("IPARAM_numsubdomain", MMG2D_IPARAM_numsubdomain)
+    .value("IPARAM_numberOfLocalParam", MMG2D_IPARAM_numberOfLocalParam)
+    .value("IPARAM_numberOfMat", MMG2D_IPARAM_numberOfMat)
+    .value("IPARAM_anisosize", MMG2D_IPARAM_anisosize)
+    .value("IPARAM_nosizreq", MMG2D_IPARAM_nosizreq)
+    .value("DPARAM_angleDetection", MMG2D_DPARAM_angleDetection)
+    .value("DPARAM_hmin", MMG2D_DPARAM_hmin)
+    .value("DPARAM_hmax", MMG2D_DPARAM_hmax)
+    .value("DPARAM_hsiz", MMG2D_DPARAM_hsiz)
+    .value("DPARAM_hausd", MMG2D_DPARAM_hausd)
+    .value("DPARAM_hgrad", MMG2D_DPARAM_hgrad)
+    .value("DPARAM_hgradreq", MMG2D_DPARAM_hgradreq)
+    .value("DPARAM_ls", MMG2D_DPARAM_ls)
+    .value("DPARAM_rmc", MMG2D_DPARAM_rmc)
+    ;
+
+    enum_<MMG3D_Param>("MMG3D_Param")
+    .value("IPARAM_verbose", MMG3D_IPARAM_verbose)
+    .value("IPARAM_mem", MMG3D_IPARAM_mem)
+    .value("IPARAM_debug", MMG3D_IPARAM_debug)
+    .value("IPARAM_angle", MMG3D_IPARAM_angle)
+    .value("IPARAM_iso", MMG3D_IPARAM_iso)
+    .value("IPARAM_nofem", MMG3D_IPARAM_nofem)
+    .value("IPARAM_opnbdy", MMG3D_IPARAM_opnbdy)
+    .value("IPARAM_lag", MMG3D_IPARAM_lag)
+    .value("IPARAM_optim", MMG3D_IPARAM_optim)
+    .value("IPARAM_optimLES", MMG3D_IPARAM_optimLES)
+    .value("IPARAM_noinsert", MMG3D_IPARAM_noinsert)
+    .value("IPARAM_noswap", MMG3D_IPARAM_noswap)
+    .value("IPARAM_nomove", MMG3D_IPARAM_nomove)
+    .value("IPARAM_nosurf", MMG3D_IPARAM_nosurf)
+    .value("IPARAM_nreg", MMG3D_IPARAM_nreg)
+    .value("IPARAM_numberOfLocalParam", MMG3D_IPARAM_numberOfLocalParam)
+    .value("IPARAM_numberOfLSBaseReferences", MMG3D_IPARAM_numberOfLSBaseReferences)
+    .value("IPARAM_numberOfMat", MMG3D_IPARAM_numberOfMat)
+    .value("IPARAM_numsubdomain", MMG3D_IPARAM_numsubdomain)
+    .value("IPARAM_renum", MMG3D_IPARAM_renum)
+    .value("IPARAM_anisosize", MMG3D_IPARAM_anisosize)
+    .value("IPARAM_octree", MMG3D_IPARAM_octree)
+    .value("IPARAM_nosizreq", MMG3D_IPARAM_nosizreq)
+    .value("DPARAM_angleDetection", MMG3D_DPARAM_angleDetection)
+    .value("DPARAM_hmin", MMG3D_DPARAM_hmin)
+    .value("DPARAM_hmax", MMG3D_DPARAM_hmax)
+    .value("DPARAM_hsiz", MMG3D_DPARAM_hsiz)
+    .value("DPARAM_hausd", MMG3D_DPARAM_hausd)
+    .value("DPARAM_hgrad", MMG3D_DPARAM_hgrad)
+    .value("DPARAM_hgradreq", MMG3D_DPARAM_hgradreq)
+    .value("DPARAM_ls", MMG3D_DPARAM_ls)
+    .value("DPARAM_rmc", MMG3D_DPARAM_rmc)
+    .value("PARAM_size", MMG3D_PARAM_size)
+    ;
+
+    LayerApp_ExportMMGMesher<2>();
+    LayerApp_ExportMMGMesher<3>();
     #endif
 }
 

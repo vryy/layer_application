@@ -156,18 +156,6 @@ public:
         return Neighbours;
     }
 
-    // wrapped python for GetNeighbourNodes
-    boost::python::list GetNeighboursList(ModelPart& r_model_part, int id, double r)
-    {
-        boost::python::list list;
-        std::set<int> Neighbours = GetNeighbourNodes(r_model_part, id, r);
-        for(std::set<int>::iterator it = Neighbours.begin(); it != Neighbours.end(); ++it)
-        {
-            list.append(*it);
-        }
-        return list;
-    }
-
     ///@}
     ///@name Access
     ///@{
