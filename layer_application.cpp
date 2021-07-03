@@ -33,51 +33,63 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "layer_application.h"
+#include "layer_application_variables.h"
 
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+#define LAYER_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
+    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node<3> >( Element::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+#define LAYER_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
+    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node<3> >( Condition::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+#else
+#define LAYER_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
+    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node<3> >( Element::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
+#define LAYER_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
+    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node<3> >( Condition::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
+#endif
 
 namespace Kratos
 {
-    KRATOS_CREATE_VARIABLE(int, LAYER_ENTITY_TYPE)
-    KRATOS_CREATE_VARIABLE(int, LAYER_PROP_ID)
-    KRATOS_CREATE_VARIABLE(std::string, LAYER_ENTITY_NAME)
-    KRATOS_CREATE_VARIABLE(std::string, LAYER_NAME)
 
     KratosLayerApplication::KratosLayerApplication()
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    : KratosApplication("KratosLayerApplication")
+    #else
     : KratosApplication()
-    , mPostElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-    , mPostElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) )
-    , mPostFaceElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-    , mPostFaceElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostFaceElement3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostFaceElement3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostFaceElement3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) )
-    , mPostElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) )
-    , mPostElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) )
-    , mPostElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
-    , mPostElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) )
-    , mPostUPSElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-    , mPostUPSElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostUPSElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostUPSElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostUPSElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) )
-    , mPostUPSFaceElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-    , mPostUPSFaceElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostUPSFaceElement3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostUPSFaceElement3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostUPSFaceElement3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) )
-    , mPostUPSElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-    , mPostUPSElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) )
-    , mPostUPSElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
-    , mPostUPSElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) )
-    , mPostUPSElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
-    , mPostUPSElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
-    , mPostUPSElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) )
+    #endif
+    , LAYER_APP_CREATE_ELEMENT( mPostElement2D3N, Triangle2D3, 3 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement2D4N, Quadrilateral2D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement2D6N, Triangle2D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement2D8N, Quadrilateral2D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement2D9N, Quadrilateral2D9, 9 )
+    , LAYER_APP_CREATE_ELEMENT( mPostFaceElement3D3N, Triangle3D3, 3 )
+    , LAYER_APP_CREATE_ELEMENT( mPostFaceElement3D4N, Quadrilateral3D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostFaceElement3D6N, Triangle3D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostFaceElement3D8N, Quadrilateral3D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostFaceElement3D9N, Quadrilateral3D9, 9 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D4N, Tetrahedra3D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D10N, Tetrahedra3D10, 10 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D8N, Hexahedra3D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D20N, Hexahedra3D20, 20 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D27N, Hexahedra3D27, 27 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D6N, Prism3D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostElement3D15N, Prism3D15, 15 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement2D3N, Triangle2D3, 3 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement2D4N, Quadrilateral2D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement2D6N, Triangle2D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement2D8N, Quadrilateral2D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement2D9N, Quadrilateral2D9, 9 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSFaceElement3D3N, Triangle3D3, 3 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSFaceElement3D4N, Quadrilateral3D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSFaceElement3D6N, Triangle3D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSFaceElement3D8N, Quadrilateral3D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSFaceElement3D9N, Quadrilateral3D9, 9 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D4N, Tetrahedra3D4, 4 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D10N, Tetrahedra3D10, 10 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D8N, Hexahedra3D8, 8 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D20N, Hexahedra3D20, 20 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D27N, Hexahedra3D27, 27 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D6N, Prism3D6, 6 )
+    , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D15N, Prism3D15, 15 )
     {}
 
     void KratosLayerApplication::Register()
@@ -91,6 +103,18 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_NAME)
         KRATOS_REGISTER_VARIABLE(LAYER_NAME)
         KRATOS_REGISTER_VARIABLE(LAYER_PROP_ID)
+        #ifdef LAYER_APP_USE_MMG
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_SCALAR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_VECTOR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_TENSOR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_LEVEL_SET)
+        KRATOS_REGISTER_VARIABLE(MMG_GRADATION)
+        KRATOS_REGISTER_VARIABLE(MMG_HAUSDORFF_DISTANCE)
+        KRATOS_REGISTER_VARIABLE(MMG_MINIMAL_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_MAXIMAL_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_CONSTANT_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_RMC_VOLUME_FRACTION)
+        #endif
 
         // register element to the kernel
         KRATOS_REGISTER_ELEMENT( "PostElement2D3N", mPostElement2D3N )

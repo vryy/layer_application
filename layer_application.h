@@ -35,12 +35,6 @@ namespace Kratos
     ///@name Kratos Globals
     ///@{
 
-    // Variables definition
-    KRATOS_DEFINE_VARIABLE(int, LAYER_ENTITY_TYPE)
-    KRATOS_DEFINE_VARIABLE(int, LAYER_PROP_ID)
-    KRATOS_DEFINE_VARIABLE(std::string, LAYER_ENTITY_NAME)
-    KRATOS_DEFINE_VARIABLE(std::string, LAYER_NAME)
-
     ///@}
     ///@name Type Definitions
     ///@{
