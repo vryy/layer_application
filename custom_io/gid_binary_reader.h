@@ -64,7 +64,8 @@ class GiDBinaryReader
 public:
 
     /// Type Definitions
-    typedef boost::shared_ptr<GiDBinaryReader> Pointer;
+    // typedef boost::shared_ptr<GiDBinaryReader> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(GiDBinaryReader);
 
     typedef int gid_index_t;
     typedef int gid_size_t;

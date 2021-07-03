@@ -32,8 +32,10 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry_data.h"
+#ifndef SD_APP_FORWARD_COMPATIBILITY
 #include "includes/deprecated_variables.h"
-#include "layer_application/layer_application.h"
+#endif
+#include "layer_application_variables.h"
 
 
 namespace Kratos

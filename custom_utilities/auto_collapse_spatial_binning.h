@@ -119,7 +119,7 @@ public:
                 }
             }
             // node does not exist in cell, insert the node into spatial bin
-            mPointList.push_back(boost::shared_ptr<SpatialPointType>(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
+            mPointList.push_back(SpatialPointType::Pointer(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
             mBin[key].push_back(mLastNode);
     //        std::cout << "node does not exist in cell, insert the node into spatial bin, mLastNode = " << mLastNode << ", mBin[key].size() = " << mBin[key].size() << std::endl;
             return mLastNode;
@@ -213,7 +213,7 @@ private:
     double mTol;
 
     std::map<SpatialKey, std::vector<int> > mBin;
-    std::vector<boost::shared_ptr<SpatialPointType> > mPointList;
+    std::vector<SpatialPointType::Pointer> mPointList;
 
     ///@}
     ///@name Member Variables

@@ -16,9 +16,6 @@
 #include <set>
 
 // External includes
-#include <boost/foreach.hpp>
-#include <boost/python.hpp>
-#include <boost/python/stl_iterator.hpp>
 
 // Project includes
 #include "includes/define.h"
