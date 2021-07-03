@@ -10,16 +10,6 @@
 //  Main authors:    Hoang-Giang Bui
 //
 
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_VTK_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_VTK_MESH_CONTAINER_H_INCLUDED
 // System includes
@@ -198,6 +188,7 @@ public:
         VTK_fBeginElementsConnectivity(MeshFile, mode);
         unsigned int nodes_size = MeshElements.begin()->GetGeometry().size();
 
+        bool is_active;
         if (mode == VTK_PostAscii)
         {
             int* nodes_id = new int[nodes_size];
@@ -207,14 +198,24 @@ public:
                 for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                     nodes_id[i] = NodeIdMap[(it)->GetGeometry()[i].Id()];
 
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
                 }
@@ -228,15 +229,24 @@ public:
             for ( typename TElementsContainerType::iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                            data_list.push_back(NodeIdMap[(it)->GetGeometry()[i].Id()]);
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                         data_list.push_back(NodeIdMap[(it)->GetGeometry()[i].Id()]);
@@ -255,15 +265,24 @@ public:
             for ( typename TElementsContainerType::iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        offset += nodes_size;
-                        VTK_fWriteElementOffset ( MeshFile, offset );
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     offset += nodes_size;
                     VTK_fWriteElementOffset ( MeshFile, offset );
@@ -277,15 +296,24 @@ public:
             for ( typename TElementsContainerType::iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        offset += nodes_size;
-                        data_list.push_back(offset);
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     offset += nodes_size;
                     data_list.push_back(offset);
@@ -302,14 +330,24 @@ public:
             for ( typename TElementsContainerType::iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        VTK_fWriteElementType ( MeshFile, mVtkElementType );
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     VTK_fWriteElementType ( MeshFile, mVtkElementType );
                 }
@@ -322,14 +360,24 @@ public:
             for ( typename TElementsContainerType::iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
-                if ( it->Has ( IS_INACTIVE ) )
+                is_active = true;
+                if(it->IsDefined ( ACTIVE ))
                 {
-                    if ( ! it->GetValue ( IS_INACTIVE ) )
-                    {
-                        data_list.push_back(mVtkElementType);
-                    }
+                    is_active = it->Is( ACTIVE );
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                }
+                #else
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                 }
                 else
+                {
+                    if(it->Has ( IS_INACTIVE ))
+                        is_active = !it->GetValue( IS_INACTIVE );
+                }
+                #endif
+
+                if ( is_active )
                 {
                     data_list.push_back(mVtkElementType);
                 }

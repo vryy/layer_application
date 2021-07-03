@@ -1,0 +1,145 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+message("**** configuring KratosLayerApplication ****")
+
+################### PYBIND11
+include(pybind11Tools)
+
+include_directories( ${CMAKE_SOURCE_DIR} )
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/.. )
+
+add_definitions(-DSD_APP_FORWARD_COMPATIBILITY)
+
+
+# zlib, lib64
+
+set( libb64_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cdecode.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cencode.c
+)
+add_library(b64 SHARED ${libb64_src})
+install(TARGETS b64 DESTINATION libs)
+
+add_definitions(-D_USE_ZLIB)
+add_definitions(-D_USE_LIBB64)
+
+# hdf5
+if(DEFINED $ENV{HDF5_ROOT})
+    # SET(HDF5_DIR $ENV{HDF5_ROOT}/share/cmake/hdf5)
+    # FIND_PACKAGE(HDF5 QUIET NAMES hdf5 hdf5_cpp)
+    FIND_PACKAGE(HDF5 REQUIRED COMPONENTS CXX)
+    set(HDF5_PROVIDED TRUE)
+    set(LAYER_APP_USE_HDF5 TRUE)
+elseif(DEFINED HDF5_ROOT)
+    # SET(HDF5_DIR ${HDF5_ROOT}/share/cmake/hdf5)
+    FIND_PACKAGE(HDF5 REQUIRED COMPONENTS CXX)
+    set(HDF5_PROVIDED TRUE)
+    set(LAYER_APP_USE_HDF5 TRUE)
+else()
+    set(HDF5_PROVIDED FALSE)
+    set(LAYER_APP_USE_HDF5 FALSE)
+endif()
+
+set(LAYER_APP_USE_HDF5 FALSE)
+if(${HDF5_PROVIDED} MATCHES TRUE)
+    # message("HDF5_INCLUDE_DIR: " ${HDF5_INCLUDE_DIR})
+    # message("HDF5_LIBRARIES: " ${HDF5_LIBRARIES})
+    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+#    add_definitions( -DBOOST_FILESYSTEM_VERSION=2 )
+    add_definitions(-DLAYER_APP_USE_HDF5)
+    set(LAYER_APP_USE_HDF5 TRUE)
+    message("LayerApplication uses HDF5, includes = " ${HDF5_INCLUDE_DIR} ", libraries = " ${HDF5_LIBRARIES})
+else()
+    message("LayerApplication does not uses HDF5")
+endif()
+
+# mmg
+if((DEFINED $ENV{MMG_DIR}) OR (DEFINED MMG_DIR))
+    FIND_PACKAGE(MMG REQUIRED)
+    INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIRS})
+    add_definitions(-DLAYER_APP_USE_MMG)
+    set(LAYER_APP_USE_MMG TRUE)
+    message("LayerApplication uses MMG, includes = " ${MMG_INCLUDE_DIRS} ", libraries = " ${MMG_LIBRARIES})
+else()
+    set(LAYER_APP_USE_MMG FALSE)
+    message("LayerApplication does not use MMG")
+endif()
+
+set( KRATOS_LAYER_APPLICATION_CORE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/post_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/post_ups_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/model_part_utilities.cpp
+)
+
+if(${LAYER_APP_USE_MMG} MATCHES TRUE)
+    set( KRATOS_LAYER_APPLICATION_CORE
+        ${KRATOS_LAYER_APPLICATION_CORE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_mesher.cpp
+    )
+endif()
+set( KRATOS_LAYER_APPLICATION_CORE
+    ${KRATOS_LAYER_APPLICATION_CORE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/layer_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/layer_application.cpp
+)
+
+## Layer testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_LAYER_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+## Layer python interface sources
+set(KRATOS_LAYER_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_io_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_parameter_list_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/layer_python_application.cpp
+)
+
+add_library(KratosLayerCore SHARED ${KRATOS_LAYER_APPLICATION_CORE} ${KRATOS_LAYER_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosLayerCore PUBLIC KratosCore)
+set_target_properties(KratosLayerCore PROPERTIES COMPILE_DEFINITIONS "LAYER_APPLICATION=EXPORT,API")
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosLayerApplication MODULE THIN_LTO ${KRATOS_LAYER_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosLayerApplication PRIVATE KratosLayerCore)
+set_target_properties(KratosLayerApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd (Windows)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_target_properties(KratosLayerApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+# changing the .dylib suffix to .so (OS X)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set_target_properties(KratosLayerApplication PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# # Cotire
+# if(USE_COTIRE MATCHES ON)
+#     cotire(KratosLayerCore)
+#     cotire(KratosLayerApplication)
+# endif(USE_COTIRE MATCHES ON)
+
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/LayerApplication3.py KratosMultiphysics/LayerApplication/__init__.py )
+
+# Install python files
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts3 KratosMultiphysics/LayerApplication )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3 DESTINATION applications/LayerApplication
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
+install(TARGETS KratosLayerCore DESTINATION libs )
+install(TARGETS KratosLayerApplication DESTINATION libs )

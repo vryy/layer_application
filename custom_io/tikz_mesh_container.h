@@ -81,6 +81,9 @@ public:
     };
 
     KRATOS_CLASS_POINTER_DEFINITION(TikzMeshContainer);
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryType::PointType NodeType;
+    typedef NodeType::PointType PointType;
 
     ///Constructor
     TikzMeshContainer ( GeometryData::KratosGeometryType geometryType, const char* mesh_title )
@@ -199,29 +202,35 @@ public:
                     }
 
                     //printing elements
+                    bool is_active;
                     for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
                     {
-                        if ( it->Has ( IS_INACTIVE ) )
+                        is_active = true;
+                        if(it->IsDefined ( ACTIVE ))
                         {
-                            if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
-                            {
-                                DrawGeometry(rMeshFile, (it)->GetGeometry(), element_style);
-                                if(write_id)
-                                {
-                                    Element::GeometryType::PointType C = it->GetGeometry().Center();
-                                    rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
-                                }
-                            }
+                            is_active = it->Is( ACTIVE );
+                        #ifdef SD_APP_FORWARD_COMPATIBILITY
+                        }
+                        #else
+                            if(it->Has ( IS_INACTIVE ))
+                                is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                         }
                         else
                         {
-                            if ((it)->GetProperties().Id()==current_layer)
+                            if(it->Has ( IS_INACTIVE ))
+                                is_active = !it->GetValue( IS_INACTIVE );
+                        }
+                        #endif
+
+                        if ( is_active )
+                        {
+                            if ( (it)->GetProperties().Id()==current_layer )
                             {
                                 DrawGeometry(rMeshFile, (it)->GetGeometry(), element_style);
                                 if(write_id)
                                 {
-                                    Element::GeometryType::PointType C = it->GetGeometry().Center();
+                                    PointType C = it->GetGeometry().Center();
                                     rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
                                 }
                             }
@@ -280,33 +289,38 @@ public:
                     }
 
                     //printing conditions
+                    bool is_active;
                     for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
                     {
-                        if ( it->Has ( IS_INACTIVE ) )
+                        is_active = true;
+                        if(it->IsDefined ( ACTIVE ))
                         {
-                            if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
-                            {
-                                DrawGeometry(rMeshFile, (it)->GetGeometry(), condition_style);
-                                if(write_id)
-                                {
-                                    Element::GeometryType::PointType C = (it)->GetGeometry().Center();
-                                    rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
-                                }
-                            }
+                            is_active = it->Is( ACTIVE );
+                        #ifdef SD_APP_FORWARD_COMPATIBILITY
+                        }
+                        #else
+                            if(it->Has ( IS_INACTIVE ))
+                                is_active = is_active && (!it->GetValue( IS_INACTIVE ));
                         }
                         else
                         {
-                            if ((it)->GetProperties().Id()==current_layer )
+                            if(it->Has ( IS_INACTIVE ))
+                                is_active = !it->GetValue( IS_INACTIVE );
+                        }
+                        #endif
+
+                        if ( is_active )
+                        {
+                            if ( (it)->GetProperties().Id()==current_layer )
                             {
                                 DrawGeometry(rMeshFile, (it)->GetGeometry(), condition_style);
                                 if(write_id)
                                 {
-                                    Element::GeometryType::PointType C = (it)->GetGeometry().Center();
+                                    PointType C = (it)->GetGeometry().Center();
                                     rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
                                 }
                             }
-
                         }
                     }
                 }

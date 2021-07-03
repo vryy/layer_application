@@ -147,6 +147,7 @@ public:
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Point3D,
                                           VTK_Pixel, "Kratos_Point3D_Mesh" ) );
+        #ifndef SD_APP_FORWARD_COMPATIBILITY
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Tritagon,
                                           VTK_Polygon, "Kratos_Tritagon_Mesh" ) );
@@ -207,6 +208,7 @@ public:
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Icosahedron,
                                           VTK_Polyhedron, "Kratos_Icosahedron_Mesh" ) );
+        #endif
     }//SetUpMeshContainers
 
     /**
