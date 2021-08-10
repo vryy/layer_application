@@ -60,6 +60,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef SpatialPoint<double> SpatialPointType;
+    typedef std::map<SpatialKey, std::vector<IndexType> > BinType;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(AutoCollapseSpatialBinning);
@@ -101,7 +102,7 @@ public:
         // check if the spatial key exist
         SpatialKey key(ix, iy, iz);
     //    std::cout << "ix = " << ix << ", iy = " << iy << ", iz = " << iz << std::endl;
-        std::map<SpatialKey, std::vector<int> >::iterator it = mBin.find(key);
+        BinType::iterator it = mBin.find(key);
         if(it != mBin.end())
         {
             // check if node already exist in the cell
@@ -212,7 +213,7 @@ private:
     IndexType mLastNode;
     double mTol;
 
-    std::map<SpatialKey, std::vector<int> > mBin;
+    BinType mBin;
     std::vector<SpatialPointType::Pointer> mPointList;
 
     ///@}
