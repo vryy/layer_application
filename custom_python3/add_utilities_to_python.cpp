@@ -23,7 +23,9 @@
 // #include "custom_utilities/selective_collapsible_layer_handler.h"
 // #include "custom_utilities/multipatch_layer_handler.h"
 #include "custom_utilities/auto_collapse_spatial_binning.h"
-#include "custom_utilities/spatial_grid_binning.h"
+#include "custom_utilities/mesh_query_tool.h"
+#include "custom_utilities/spatial_grid_elemental_binning.h"
+#include "custom_utilities/spatial_grid_nodal_binning.h"
 #include "custom_utilities/model_part_utilities.h"
 #include "custom_python3/add_utilities_to_python.h"
 
@@ -104,13 +106,20 @@ Element::Pointer ModelPartUtilities_CreateElementFromNodes(ModelPartUtilities& r
     return rDummy.CreateEntity<Element>(r_model_part, sample_elem_name, Id, pProperties, node_list);
 }
 
-pybind11::list SpatialGridBinning_GetNeighboursList(SpatialGridBinning& dummy, ModelPart& r_model_part, int id, double r)
+template<class TEntityType>
+void ModelPartUtilities_CalculateLocalSystem(ModelPartUtilities& rDummy,
+    TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
+{
+    rDummy.CalculateLocalSystem(rEntity, rCurrentProcessInfo, echo_level);
+}
+
+pybind11::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBinning& dummy, ModelPart& r_model_part, int id, double r)
 {
     pybind11::list list;
-    std::set<int> Neighbours = dummy.GetNeighbourNodes(r_model_part, id, r);
-    for(std::set<int>::iterator it = Neighbours.begin(); it != Neighbours.end(); ++it)
+    auto Neighbours = dummy.GetNeighbourNodes(r_model_part, id, r);
+    for(auto it = Neighbours.begin(); it != Neighbours.end(); ++it)
     {
-        list.append(*it);
+        list.append(static_cast<int>(*it));
     }
     return list;
 }
@@ -166,7 +175,7 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     .def("SetNodeIndexOffset", &MDPAModelPartWriter::SetNodeIndexOffset)
     ;
 
-    // class_<LayerHandler, LayerHandler::Pointer, boost::noncopyable, bases<MDPAWriter> >
+    // class_<LayerHandler, LayerHandler::Pointer, MDPAWriter>
     // ("LayerHandler", init<>())
     // .def("__getitem__", &LayerHandler_getitem)
     // .def("Has", &LayerHandler::Has)
@@ -178,13 +187,13 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     // .def(self_ns::str(self))
     // ;
 
-    // class_<CollapsibleLayerHandler, CollapsibleLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
+    // class_<CollapsibleLayerHandler, CollapsibleLayerHandler::Pointer, LayerHandler>
     //  ("CollapsibleLayerHandler", init<>())
     // .def("SetSpacing", &CollapsibleLayerHandler::SetSpacing)
     // .def("Collapse", &CollapsibleLayerHandler::Collapse)
     // ;
 
-    // class_<SelectiveCollapsibleLayerHandler, SelectiveCollapsibleLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
+    // class_<SelectiveCollapsibleLayerHandler, SelectiveCollapsibleLayerHandler::Pointer, LayerHandler>
     //  ("SelectiveCollapsibleLayerHandler", init<>())
     // .def("SetSpacing", &SelectiveCollapsibleLayerHandler::SetSpacing)
     // .def("AddGroup", &SelectiveCollapsibleLayerHandler::AddGroup)
@@ -192,7 +201,7 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     // .def("CollapseGroup", &SelectiveCollapsibleLayerHandler::CollapseGroup)
     // ;
 
-    // class_<MultipatchLayerHandler, MultipatchLayerHandler::Pointer, boost::noncopyable, bases<LayerHandler> >
+    // class_<MultipatchLayerHandler, MultipatchLayerHandler::Pointer, LayerHandler>
     //  ("MultipatchLayerHandler", init<>())
     // .def("AddLayerConnection", &MultipatchLayerHandler::AddLayerConnection)
     // .def("FinalizeLayerConnection", &MultipatchLayerHandler::FinalizeLayerConnection)
@@ -208,11 +217,21 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetZ", &AutoCollapseSpatialBinning::GetZ)
     ;
 
-    class_<SpatialGridBinning, SpatialGridBinning::Pointer>
-    (m, "SpatialGridBinning")
+    class_<SpatialGridNodalBinning, SpatialGridNodalBinning::Pointer>
+    (m, "SpatialGridNodalBinning")
     .def(init<double, double, double, double, double, double, double>())
-    .def("AddNodes", &SpatialGridBinning::AddNodes)
-    .def("GetNeighboursList", &SpatialGridBinning_GetNeighboursList)
+    .def("AddNodes", &SpatialGridNodalBinning::AddNodes)
+    .def("GetNeighboursList", &SpatialGridNodalBinning_GetNeighboursList)
+    ;
+
+    class_<MeshQueryTool<Element>, typename MeshQueryTool<Element>::Pointer>
+    (m, "ElementalQueryTool")
+    .def(init<>())
+    ;
+
+    class_<SpatialGridElementalBinning, SpatialGridElementalBinning::Pointer>
+    (m, "SpatialGridElementalBinning")
+    .def(init<double, double, double, double, double, double, double>())
     ;
 
     class_<ModelPartUtilities, ModelPartUtilities::Pointer>
@@ -222,6 +241,8 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ExportNodesAndEdgesInfomationToGiD", &ModelPartUtilities_ExportNodesAndEdgesInfomationToGiD)
     .def("CreateElementFromCondition", &ModelPartUtilities_CreateElementFromCondition)
     .def("CreateElementFromNodes", &ModelPartUtilities_CreateElementFromNodes)
+    .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Element>)
+    .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Condition>)
     ;
 
     #ifdef LAYER_APP_USE_HDF5

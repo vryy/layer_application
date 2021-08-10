@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_LAYER_APP_SPATIAL_GRID_BINNING_H_INCLUDED )
-#define KRATOS_LAYER_APP_SPATIAL_GRID_BINNING_H_INCLUDED
+#if !defined(KRATOS_LAYER_APP_SPATIAL_GRID_NODAL_BINNING_H_INCLUDED )
+#define KRATOS_LAYER_APP_SPATIAL_GRID_NODAL_BINNING_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -52,30 +52,30 @@ namespace Kratos
 /*** Detail class definition.
  * This utility class supports for spatial binning into a structured grid. This class use Node as point data and will not collapse the conincident node.
  */
-class SpatialGridBinning
+class SpatialGridNodalBinning
 {
 public:
     ///@name Type Definitions
     ///@{
 
     typedef std::size_t IndexType;
-    typedef std::map<SpatialKey, std::set<int> > BinType;
+    typedef std::map<SpatialKey, std::set<IndexType> > BinType;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialGridBinning);
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialGridNodalBinning);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    SpatialGridBinning(double X0, double Y0, double Z0, double Dx, double Dy, double Dz, double tol)
+    SpatialGridNodalBinning(double X0, double Y0, double Z0, double Dx, double Dy, double Dz, double tol)
     : mX0(X0), mY0(Y0), mZ0(Z0), mDx(Dx), mDy(Dy), mDz(Dz), mTol(tol)
     {
     }
 
     /// Destructor.
-    virtual ~SpatialGridBinning()
+    virtual ~SpatialGridNodalBinning()
     {
     }
 
@@ -111,7 +111,7 @@ public:
     /**
      * Get the list of neighbour nodes of node Id within radius r
      */
-    std::set<int> GetNeighbourNodes(ModelPart& r_model_part, int id, double r)
+    std::set<IndexType> GetNeighbourNodes(ModelPart& r_model_part, const IndexType& id, const double& r)
     {
         // find the cell containing point
         double x = r_model_part.Nodes()[id].X();
@@ -127,7 +127,7 @@ public:
         int d_iz = (int) ceil(r / mDz);
 
         // iterate through cell span to find neighbours
-        std::set<int> Neighbours;
+        std::set<IndexType> Neighbours;
         for(int i = ix - d_ix; i <= ix + d_ix; ++i)
         {
             for(int j = iy - d_iy; j <= iy + d_iy; ++j)
@@ -138,8 +138,8 @@ public:
                     BinType::iterator it = mBin.find(key);
                     if(it != mBin.end())
                     {
-                        std::set<int> Nodes = mBin[key];
-                        for(std::set<int>::iterator it2 = Nodes.begin(); it2 != Nodes.end(); ++it2)
+                        std::set<IndexType> Nodes = mBin[key];
+                        for(std::set<IndexType>::iterator it2 = Nodes.begin(); it2 != Nodes.end(); ++it2)
                         {
                             double dx = r_model_part.Nodes()[*it2].X() - x;
                             double dy = r_model_part.Nodes()[*it2].Y() - y;
@@ -172,14 +172,14 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "SpatialGridBinning";
+        buffer << "SpatialGridNodalBinning";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "SpatialGridBinning";
+        rOStream << "SpatialGridNodalBinning";
     }
 
     /// Print object's data.
@@ -225,14 +225,15 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    double mX0, mY0, mZ0, mDx, mDy, mDz;
-    double mTol;
-
-    BinType mBin;
 
     ///@}
     ///@name Member Variables
     ///@{
+
+    double mX0, mY0, mZ0, mDx, mDy, mDz;
+    double mTol;
+
+    BinType mBin;
 
     ///@}
     ///@name Private Operators
@@ -256,19 +257,19 @@ private:
     ///@{
 
     /// Assignment operator.
-    SpatialGridBinning& operator=(SpatialGridBinning const& rOther)
+    SpatialGridNodalBinning& operator=(SpatialGridNodalBinning const& rOther)
     {
         return *this;
     }
 
     /// Copy constructor.
-    SpatialGridBinning(SpatialGridBinning const& rOther)
+    SpatialGridNodalBinning(SpatialGridNodalBinning const& rOther)
     {
     }
 
     ///@}
 
-}; // Class SpatialGridBinning
+}; // Class SpatialGridNodalBinning
 
 ///@}
 
@@ -280,14 +281,14 @@ private:
 ///@{
 
 /// input stream function
-//inline std::istream& operator >>(std::istream& rIStream, SpatialGridBinning& rThis)
+//inline std::istream& operator >>(std::istream& rIStream, SpatialGridNodalBinning& rThis)
 //{
 //    return rIStream;
 //}
 
 ///// output stream function
 //inline std::ostream& operator <<(std::ostream& rOStream,
-//        const SpatialGridBinning& rThis)
+//        const SpatialGridNodalBinning& rThis)
 //{
 //    rThis.PrintInfo(rOStream);
 //    rOStream << std::endl;
@@ -301,5 +302,5 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_LAYER_APP_SPATIAL_GRID_BINNING_H_INCLUDED defined
+#endif // KRATOS_LAYER_APP_SPATIAL_GRID_NODAL_BINNING_H_INCLUDED defined
 

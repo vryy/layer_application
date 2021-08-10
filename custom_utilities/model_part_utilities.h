@@ -213,6 +213,40 @@ public:
         return pNewEntity;
     }
 
+    /// Invoke the CalculateLocalSystem of an Element/Condition. It is useful when debugging them.
+    template<class TEntityType>
+    static void CalculateLocalSystem(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
+    {
+        Matrix LHS;
+        Vector RHS;
+
+        rEntity.CalculateLocalSystem(LHS, RHS, rCurrentProcessInfo);
+
+        if (echo_level > 0)
+        {
+            rEntity.PrintInfo(std::cout);
+            std::cout << ":" << std::endl;
+            KRATOS_WATCH(LHS)
+            KRATOS_WATCH(RHS)
+        }
+    }
+
+    /// Invoke the CalculateLocalSystem of an Element/Condition. It is useful when debugging them.
+    template<class TEntityType>
+    static void CalculateMassMatrix(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
+    {
+        Matrix MassMatrix;
+
+        rEntity.CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+        if (echo_level > 0)
+        {
+            rEntity.PrintInfo(std::cout);
+            std::cout << ":" << std::endl;
+            KRATOS_WATCH(MassMatrix)
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
