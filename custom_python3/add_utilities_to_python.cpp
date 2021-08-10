@@ -27,6 +27,7 @@
 #include "custom_utilities/spatial_grid_elemental_binning.h"
 #include "custom_utilities/spatial_grid_nodal_binning.h"
 #include "custom_utilities/model_part_utilities.h"
+#include "custom_utilities/model_state.h"
 #include "custom_python3/add_utilities_to_python.h"
 
 #ifdef LAYER_APP_USE_HDF5
@@ -122,6 +123,47 @@ pybind11::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBinning
         list.append(static_cast<int>(*it));
     }
     return list;
+}
+
+template<typename TNodalDataState>
+typename TNodalDataState::DataType NodalDataState_getitem(TNodalDataState& dummy, const std::size_t& key)
+{
+    return dummy[key];
+}
+
+template<typename TElementalDataState>
+pybind11::list ElementalDataState_getitem(TElementalDataState& dummy, const std::size_t& key)
+{
+    typedef typename TElementalDataState::DataType DataType;
+    const std::vector<DataType>& data = dummy[key];
+
+    pybind11::list output;
+    for (std::size_t i = 0; i < data.size(); ++i)
+        output.append(data[i]);
+
+    return output;
+}
+
+template<typename TVariableType>
+void KratosLayerApplication_AddNodalDataStateToPython(pybind11::module& m, const std::string& Name)
+{
+    typedef NodalDataState<TVariableType> NodalDataType;
+    class_<NodalDataType, typename NodalDataType::Pointer>
+    (m, Name.c_str())
+    .def(init<const TVariableType&>())
+    .def("__getitem__", &NodalDataState_getitem<NodalDataType>)
+    ;
+}
+
+template<typename TVariableType>
+void KratosLayerApplication_AddElementalDataStateToPython(pybind11::module& m, const std::string& Name)
+{
+    typedef ElementalDataState<TVariableType> ElementalDataType;
+    class_<ElementalDataType, typename ElementalDataType::Pointer>
+    (m, Name.c_str())
+    .def(init<const TVariableType&>())
+    .def("__getitem__", &ElementalDataState_getitem<ElementalDataType>)
+    ;
 }
 
 #ifdef LAYER_APP_USE_MMG
@@ -243,6 +285,61 @@ void LayerApp_AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CreateElementFromNodes", &ModelPartUtilities_CreateElementFromNodes)
     .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Element>)
     .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Condition>)
+    ;
+
+    //    KratosLayerApplication_AddNodalDataStateToPython<Variable<bool> >(m, "BoolNodalDataState");
+    KratosLayerApplication_AddNodalDataStateToPython<Variable<int> >(m, "IntegerNodalDataState");
+    KratosLayerApplication_AddNodalDataStateToPython<Variable<double> >(m, "DoubleNodalDataState");
+    KratosLayerApplication_AddNodalDataStateToPython<Variable<array_1d<double, 3> > >(m, "Array1DNodalDataState");
+    KratosLayerApplication_AddNodalDataStateToPython<Variable<Vector> >(m, "VectorNodalDataState");
+    KratosLayerApplication_AddNodalDataStateToPython<Variable<Matrix> >(m, "MatrixNodalDataState");
+
+//    KratosLayerApplication_AddElementalDataStateToPython<Variable<bool> >(m, "BoolElementalDataState");
+    KratosLayerApplication_AddElementalDataStateToPython<Variable<int> >(m, "IntegerElementalDataState");
+    KratosLayerApplication_AddElementalDataStateToPython<Variable<double> >(m, "DoubleElementalDataState");
+    KratosLayerApplication_AddElementalDataStateToPython<Variable<array_1d<double, 3> > >(m, "Array1DElementalDataState");
+    KratosLayerApplication_AddElementalDataStateToPython<Variable<Vector> >(m, "VectorElementalDataState");
+    KratosLayerApplication_AddElementalDataStateToPython<Variable<Matrix> >(m, "MatrixElementalDataState");
+
+    class_<ModelState, ModelState::Pointer>
+    (m, "ModelState")
+    .def(init<>())
+//    .def( "GetNodalState", &ModelState::GetNodalState<Variable<bool> > )
+    .def( "GetNodalState", &ModelState::GetNodalState<Variable<int> > )
+    .def( "GetNodalState", &ModelState::GetNodalState<Variable<double> > )
+    .def( "GetNodalState", &ModelState::GetNodalState<Variable<array_1d<double, 3> > > )
+    .def( "GetNodalState", &ModelState::GetNodalState<Variable<Vector> > )
+    .def( "GetNodalState", &ModelState::GetNodalState<Variable<Matrix> > )
+//    .def( "GetElementalState", &ModelState::GetElementalState<Variable<bool> > )
+    .def( "GetElementalState", &ModelState::GetElementalState<Variable<int> > )
+    .def( "GetElementalState", &ModelState::GetElementalState<Variable<double> > )
+    .def( "GetElementalState", &ModelState::GetElementalState<Variable<array_1d<double, 3> > > )
+    .def( "GetElementalState", &ModelState::GetElementalState<Variable<Vector> > )
+    .def( "GetElementalState", &ModelState::GetElementalState<Variable<Matrix> > )
+//    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<bool> > )
+    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<int> > )
+    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<double> > )
+    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<array_1d<double, 3> > > )
+    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<Vector> > )
+    .def( "SaveNodalState", &ModelState::SaveNodalState<Variable<Matrix> > )
+//    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<bool> > )
+    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<int> > )
+    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<double> > )
+    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<array_1d<double, 3> > > )
+    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<Vector> > )
+    .def( "SaveElementalState", &ModelState::SaveElementalState<Variable<Matrix> > )
+//    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<bool> > )
+    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<int> > )
+    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<double> > )
+    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<array_1d<double, 3> > > )
+    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<Vector> > )
+    .def( "LoadNodalState", &ModelState::LoadNodalState<Variable<Matrix> > )
+//    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<bool> > )
+    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<int> > )
+    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<double> > )
+    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<array_1d<double, 3> > > )
+    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<Vector> > )
+    .def( "LoadElementalState", &ModelState::LoadElementalState<Variable<Matrix> > )
     ;
 
     #ifdef LAYER_APP_USE_HDF5
