@@ -127,7 +127,8 @@ public:
             if (it == rAllElements.end())
                 continue; // that should not happen but we do it for safety
 
-            if (it->GetGeometry().IsInside(rSourcePoint, local_coords))
+            // if (it->GetGeometry().IsInside(rSourcePoint, local_coords))
+            if (IsInside(it->GetGeometry(), rSourcePoint, local_coords))
             {
                 pMatchedMaster = *(it.base());
                 return true;
@@ -137,6 +138,96 @@ public:
         pMatchedMaster = NULL;
         local_coords.clear();
         return false;
+    }
+
+    /// Compute the local coordinates and check if the point is inside the geometry
+    static bool IsInside(const GeometryType& rGeometry, const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+    {
+        PointLocalCoordinates( rGeometry, rResult, rPoint );
+        return rGeometry.IsInside(rResult);
+    }
+
+    /// Better version of PointLocalCoordinates in the geometry. This version uses stringer tolerance and allows for external
+    /// prediction of local coordinates
+    static CoordinatesArrayType& PointLocalCoordinates( const GeometryType& rGeometry, CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint )
+    {
+        const unsigned int working_dim = rGeometry.WorkingSpaceDimension();
+        const unsigned int local_dim = rGeometry.LocalSpaceDimension();
+
+        if (working_dim != local_dim)
+            KRATOS_THROW_ERROR(std::logic_error, "Attention, the Point Local Coordinates must be specialized for the current geometry", "");
+
+        Matrix J = ZeroMatrix( local_dim, local_dim );
+
+        Vector DeltaXi = ZeroVector( local_dim );
+
+        CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
+
+        //reset the prediction if it is outside the valid domain
+        if (norm_2(rResult) >= working_dim)
+            rResult.clear();
+
+        //Newton iteration:
+        constexpr double tol_xi = 1.0e-8;
+        constexpr double tol_g = 1.0e-20;
+
+        constexpr int maxiter = 1000;
+
+        constexpr double max_norm_xi = 30.0;
+
+        // CoordinatesArrayType PredictResult = rResult;
+
+        int k;
+        double norm_dxi;
+        for ( k = 0; k < maxiter; k++ )
+        {
+            CurrentGlobalCoords.clear();
+            rGeometry.GlobalCoordinates( CurrentGlobalCoords, rResult );
+            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
+
+            if (norm_2(CurrentGlobalCoords) < tol_g)
+                break;
+
+            DeltaXi.clear();
+            rGeometry.InverseOfJacobian( J, rResult );
+            for(unsigned int i = 0; i < local_dim; i++)
+            {
+                for(unsigned int j = 0; j < local_dim; j++)
+                {
+                    DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
+                }
+                rResult[i] += DeltaXi[i];
+            }
+
+            norm_dxi = norm_2(DeltaXi);
+
+            if ( norm_dxi > max_norm_xi )
+            {
+                KRATOS_THROW_ERROR(std::logic_error, "Computation of point local coordinates fails at step", k)
+                break;
+            }
+
+            if ( norm_dxi < tol_xi )
+            {
+                break;
+            }
+        }
+
+        if (k > 100)
+        {
+            // KRATOS_WATCH(PredictResult)
+            KRATOS_WATCH(rResult)
+            KRATOS_WATCH(rPoint)
+            KRATOS_WATCH(CurrentGlobalCoords)
+            KRATOS_WATCH(DeltaXi)
+            KRATOS_WATCH(MathUtils<double>::Norm3( DeltaXi ))
+            KRATOS_WATCH(norm_2( DeltaXi ))
+            std::cout << "PointLocalCoordinates iterations: " << k << std::endl;
+            KRATOS_THROW_ERROR(std::logic_error, "too much iterations", "")
+        }
+
+        return( rResult );
     }
 
     ///@}
