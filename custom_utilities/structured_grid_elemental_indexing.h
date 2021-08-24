@@ -47,6 +47,9 @@ namespace Kratos
 /// Short class definition.
 /*** Detail class definition.
  * This utility class supports for structured mesh indexing.
+ * The structured grid is assumed to be uniform in every dimension.
+ * The element connectivity should be aligned with the axis
+ * Only quadrilateral/hexahedra element is supported
  */
 template<int TDim>
 class StructuredGridElementalIndexing : public MeshQueryTool<Element>
@@ -143,10 +146,12 @@ public:
             ++show_progress;
         }
 
+        std::cout << "Initialize indexing completed";
 #ifdef _OPENMP
         double stop_init = omp_get_wtime();
-        std::cout << "Initialize indexing completed, time = " << (stop_init-start_init) << "s" << std::endl;
+        std::cout << ", time = " << (stop_init-start_init) << "s";
 #endif
+        std::cout << std::endl;
     }
 
     /**
@@ -188,25 +193,6 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "The master element is not yet determined", "")
         pMatchedMaster = *(it.base());
 
-        // std::size_t i1, i2=0, i3=0;
-        // i1 = static_cast<std::size_t>(floor((rSourcePoint.X() - mX0) / mDx));
-        // if (TDim > 1)
-        //     i2 = static_cast<std::size_t>(floor((rSourcePoint.Y() - mY0) / mDy));
-        // if (TDim > 2)
-        //     i3 = static_cast<std::size_t>(floor((rSourcePoint.Z() - mZ0) / mDz));
-
-        // local_coords[0] = 2*(rSourcePoint.X() - i1*mDx)/mDx - 1.0;
-
-        // if (TDim > 1)
-        //     local_coords[1] = 2*(rSourcePoint.Y() - i2*mDy)/mDy - 1.0;
-        // else
-        //     local_coords[1] = 0.0;
-
-        // if (TDim > 2)
-        //     local_coords[2] = 2*(rSourcePoint.Z() - i3*mDz)/mDz - 1.0;
-        // else
-        //     local_coords[2] = 0.0;
-
         const GeometryType& rGeometry = pMatchedMaster->GetGeometry();
         noalias(local_coords) = ZeroVector(3);
 
@@ -244,7 +230,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "StructuredGridElementalIndexing<" << TDim << "D";
+        buffer << "StructuredGridElementalIndexing" << TDim << "D";
         return buffer.str();
     }
 
