@@ -89,6 +89,12 @@ public:
     {
     }
 
+    /// Helper function to create a new instance
+    static ModelState::Pointer Create()
+    {
+        return ModelState::Pointer(new ModelState());
+    }
+
     /// Get the nodal state
     template<typename TVariableType>
     typename NodalDataState<TVariableType>::Pointer GetNodalState(const TVariableType& rVariable)
@@ -146,18 +152,28 @@ public:
     template<typename TVariableType>
     void SaveNodalState(ModelPart& r_model_part, const TVariableType& rVariable, const ProcessInfo& rCurrentProcessInfo)
     {
+        this->StoreNodalState(r_model_part, rVariable, rVariable, rCurrentProcessInfo);
+    }
+
+    /// Store the nodal state from a source variable to a target variable
+    template<typename TVariableType>
+    inline void StoreNodalState(ModelPart& r_model_part, const TVariableType& rSourceVariable, const TVariableType& rTargetVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
         typedef NodalDataState<TVariableType> NodalDataType;
         typename NodalDataType::Pointer pNodalData;
-        pNodalData = typename NodalDataType::Pointer(new NodalDataType(rVariable));
+        pNodalData = typename NodalDataType::Pointer(new NodalDataType(rTargetVariable));
 
         for(ModelPart::NodeIterator it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd() ; ++it)
         {
-            (*pNodalData)[it->Id()] = it->GetSolutionStepValue(rVariable);
+            (*pNodalData)[it->Id()] = it->GetSolutionStepValue(rSourceVariable);
         }
 
-        mNodalData[rVariable.Key()] = pNodalData;
+        mNodalData[rTargetVariable.Key()] = pNodalData;
 
-        std::cout << "Nodal state " << rVariable.Name() << " is saved" << std::endl;
+        if (rSourceVariable == rTargetVariable)
+            std::cout << "Nodal state " << rSourceVariable.Name() << " is saved" << std::endl;
+        else
+            std::cout << "Nodal state " << rSourceVariable.Name() << " is stored to " << rTargetVariable.Name() << std::endl;
     }
 
     /// Save the element state
