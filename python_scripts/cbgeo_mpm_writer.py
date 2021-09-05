@@ -48,12 +48,14 @@ class CbGeoMPMWriter:
 
     def WriteParticlesVolumes(self, model_part, filename):
         ifile = open(filename, "w")
+        cnt = 0
         for elem in model_part.Elements:
             if elem.Is(ACTIVE):
                 jacobians = elem.CalculateOnIntegrationPoints(JACOBIAN_0, model_part.ProcessInfo)
                 weights = elem.CalculateOnIntegrationPoints(INTEGRATION_WEIGHT, model_part.ProcessInfo)
                 for i in range(0, len(jacobians)):
-                    ifile.write(str(jacobians[i][0]*weights[i][0]) + "\n")
+                    ifile.write(str(cnt) + " " + str(jacobians[i][0]*weights[i][0]) + "\n")
+                    cnt = cnt + 1
         ifile.close()
         print("Particles volumes are written to " + filename + " successfully")
 
