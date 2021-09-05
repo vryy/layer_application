@@ -227,8 +227,8 @@ public:
         this->PredictLocalPoint(rSourcePoint, local_coords, rGeometry);
         // CoordinatesArrayType predict_local_coords = local_coords;
 
-        // if (rGeometry.IsInside(rSourcePoint, local_coords))
-        if (IsInside(rGeometry, rSourcePoint, local_coords))
+        if (rGeometry.IsInside(rSourcePoint, local_coords))
+        // if (IsInside(rGeometry, rSourcePoint, local_coords))
         {
             // if (TDim == 2)
             // {
