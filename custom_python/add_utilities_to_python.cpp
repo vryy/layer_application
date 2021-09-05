@@ -29,6 +29,7 @@
 #include "custom_utilities/spatial_grid_elemental_binning.h"
 #include "custom_utilities/structured_grid_elemental_indexing.h"
 #include "custom_utilities/nonuniform_structured_grid_elemental_indexing.h"
+#include "custom_utilities/nonuniform_inclined_structured_grid_elemental_indexing.h"
 #include "custom_utilities/model_part_utilities.h"
 #include "custom_utilities/model_state.h"
 #include "custom_python/add_utilities_to_python.h"
@@ -305,6 +306,21 @@ void LayerApp_AddCustomUtilitiesToPython()
 
     class_<NonuniformStructuredGridElementalIndexing<3>, typename NonuniformStructuredGridElementalIndexing<3>::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
     ("NonuniformStructuredGridElementalIndexing3D", init<const double&>())
+    ;
+
+    class_<NonuniformInclinedStructuredGridElementalIndexing<1>, typename NonuniformInclinedStructuredGridElementalIndexing<1>::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
+    ("NonuniformInclinedStructuredGridElementalIndexing1D", init<const double&>())
+    .def("SetAxis", &NonuniformInclinedStructuredGridElementalIndexing<1>::SetAxis)
+    ;
+
+    class_<NonuniformInclinedStructuredGridElementalIndexing<2>, typename NonuniformInclinedStructuredGridElementalIndexing<2>::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
+    ("NonuniformInclinedStructuredGridElementalIndexing2D", init<const double&>())
+    .def("SetAxis", &NonuniformInclinedStructuredGridElementalIndexing<2>::SetAxis)
+    ;
+
+    class_<NonuniformInclinedStructuredGridElementalIndexing<3>, typename NonuniformInclinedStructuredGridElementalIndexing<3>::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
+    ("NonuniformInclinedStructuredGridElementalIndexing3D", init<const double&>())
+    .def("SetAxis", &NonuniformInclinedStructuredGridElementalIndexing<3>::SetAxis)
     ;
 
     class_<ModelPartUtilities, ModelPartUtilities::Pointer, boost::noncopyable>
