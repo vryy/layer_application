@@ -1,41 +1,3 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
 
 /* *********************************************************
  *
@@ -46,8 +8,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 
-#if !defined(KRATOS_PARAMETER_LIST_H_INCLUDED )
-#define  KRATOS_PARAMETER_LIST_H_INCLUDED
+#if !defined(KRATOS_LAYER_APP_PARAMETER_LIST_H_INCLUDED )
+#define  KRATOS_LAYER_APP_PARAMETER_LIST_H_INCLUDED
 
 // External includes
 #include <boost/variant.hpp>
@@ -59,7 +21,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 namespace Kratos
-
 {
 
 typedef boost::variant<
@@ -80,7 +41,7 @@ typedef boost::variant<
 A ParameterList class offers an alternative to Teuchos::ParameterList
 */
 template<class TKeyType>
-class ParameterList : public Kratos::VectorMap<TKeyType, KratosParameterListAcceptedType>
+class ParameterList
 {
 
     class parameter_list_visitor : public boost::static_visitor<int>
@@ -102,29 +63,29 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ParameterList);
 
-    typedef Kratos::VectorMap<TKeyType, KratosParameterListAcceptedType> BaseType;
+    typedef VectorMap<TKeyType, KratosParameterListAcceptedType> DataContainerType;
 
-    typedef typename BaseType::iterator iterator;
+    typedef typename DataContainerType::iterator iterator;
 
-    typedef typename BaseType::const_iterator const_iterator;
+    typedef typename DataContainerType::const_iterator const_iterator;
 
-    typedef typename BaseType::pair_iterator pair_iterator;
+    typedef typename DataContainerType::pair_iterator pair_iterator;
 
-    typedef typename BaseType::pair_const_iterator pair_const_iterator;
+    typedef typename DataContainerType::pair_const_iterator pair_const_iterator;
 
-    typedef typename BaseType::key_type KeyType; //TKeyType
+    typedef typename DataContainerType::key_type KeyType; //TKeyType
 
-    typedef typename BaseType::data_type DataType; //KratosParameterListAcceptedType
+    typedef typename DataContainerType::data_type DataType; //KratosParameterListAcceptedType
 
-    typedef Kratos::VectorMap<KeyType, Kratos::ParameterList<TKeyType> > SubListType;
+    typedef VectorMap<KeyType, ParameterList<TKeyType> > SubListType;
 
-    inline ParameterList() : BaseType(), mSubList()
+    inline ParameterList() : mData(), mSubList()
     {}
 
-    inline ParameterList(const BaseType& rOther ) : BaseType(rOther), mSubList()
+    inline ParameterList(const DataContainerType& rOther) : mData(rOther), mSubList()
     {}
 
-    inline ParameterList(const ParameterList& rOther) : BaseType(rOther), mSubList(rOther.mSubList)
+    inline ParameterList(const ParameterList& rOther) : mData(rOther.mData), mSubList(rOther.mSubList)
     {}
 
     inline ~ParameterList()
@@ -132,58 +93,58 @@ public:
 
     inline ParameterList& operator=(const ParameterList& rOther)
     {
-        BaseType::operator=(rOther);
+        mData = rOther.mData;
         mSubList = rOther.mSubList;
         return *this;
     }
 
-    inline DataType& operator[] (const TKeyType& rKey)
+    inline DataType& operator[](const TKeyType& rKey)
     {
-        return BaseType::operator[](rKey);
+        return mData[rKey];
     }
 
     template<class TDataType>
     inline void set(const TKeyType& rKey, const TDataType& rData)
     {
-        BaseType::operator[](rKey) = rData;
+        mData[rKey] = rData;
     }
 
     template<class TDataType>
     inline TDataType& get(const TKeyType& rKey)
     {
-        return boost::get<TDataType&>(BaseType::operator[](rKey));
+        return boost::get<TDataType&>(mData[rKey]);
     }
 
     template<class TDataType>
     inline TDataType& get(const TKeyType& rKey, const TDataType& rInitialData)
     {
-        iterator i = BaseType::find(rKey);
+        iterator i = mData.find(rKey);
 
-        if(i == BaseType::end())
+        if(i == mData.end())
             set(rKey, rInitialData);
 
-        return boost::get<TDataType&>(BaseType::operator[](rKey));
+        return boost::get<TDataType&>(mData[rKey]);
     }
 
     inline std::string& get(const TKeyType& rKey, const char* rInitialData)
     {
-        iterator i = BaseType::find(rKey);
+        iterator i = mData.find(rKey);
 
-        if(i == BaseType::end())
+        if(i == mData.end())
             set(rKey, std::string(rInitialData));
 
-        return boost::get<std::string&>(BaseType::operator[](rKey));
+        return boost::get<std::string&>(mData[rKey]);
     }
 
     inline int type(const TKeyType& rKey)
     {
-        return boost::apply_visitor(parameter_list_visitor(), BaseType::operator[](rKey));
+        return boost::apply_visitor(parameter_list_visitor(), mData[rKey]);
     }
 
     inline ParameterList& sublist(const TKeyType& rKey)
     {
-        iterator i = BaseType::find(rKey);
-        if(i != BaseType::end())
+        iterator i = mData.find(rKey);
+        if(i != mData.end())
         {
             KRATOS_THROW_ERROR(std::logic_error, "Existing key has been associated with value", "");
         }
@@ -198,10 +159,23 @@ public:
         return mSubList[rKey];
     }
 
+    iterator begin() { return mData.begin(); }
+    const_iterator begin() const { return mData.begin(); }
+    iterator end() { return mData.end(); }
+    const_iterator end() const { return mData.end(); }
+
+    pair_iterator pair_begin() { return mData.pair_begin(); }
+    pair_const_iterator pair_begin() const { return mData.pair_begin(); }
+    pair_iterator pair_end() { return mData.pair_end(); }
+    pair_const_iterator pair_end() const { return mData.pair_end(); }
+
+    iterator find(const KeyType& rKey) { return mData.find(rKey); }
+    const_iterator find(const KeyType& rKey) const { return mData.find(rKey); }
+
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "parameter list (size = " << BaseType::size() + mSubList.size() << ") : ";
+        buffer << "parameter list (size = " << mData.size() + mSubList.size() << ") : ";
 
         return buffer.str();
     }
@@ -215,7 +189,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        BaseType::PrintData(rOStream);
+        mData.PrintData(rOStream);
         for(typename SubListType::pair_const_iterator i = mSubList.pair_begin() ; i != mSubList.pair_end() ; ++i)
         {
             rOStream << "(" << (i->first) << " , " << (i->second) << ")" << std::endl;
@@ -224,7 +198,7 @@ public:
 
     void Print(std::ostream& rOStream)
     {
-        for(pair_iterator i = BaseType::pair_begin(); i != BaseType::pair_end(); ++i)
+        for(pair_iterator i = mData.pair_begin(); i != mData.pair_end(); ++i)
         {
             rOStream << "(" << (i->first) << ", " << (i->second) << ", type = " << type(i->first) << ")" << std::endl;
         }
@@ -234,32 +208,34 @@ public:
 
 private:
 
+    DataContainerType mData;
     SubListType mSubList;
 
     friend class Serializer;
 
+    // TODO enable serializer when serialization is added to vector map
     virtual void save(Serializer& rSerializer) const
     {
-        rSerializer.save("ParameterList", *this);
+        // rSerializer.save("Data", mData);
+        // rSerializer.save("SubList", mSubList);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        rSerializer.load("ParameterList", *this);
+        // rSerializer.load("Data", mData);
+        // rSerializer.load("SubList", mSubList);
     }
 
 };
 
-
 template<class TKeyType>
-inline std::istream& operator >> (std::istream& is, Kratos::ParameterList<TKeyType>& rThis)
+inline std::istream& operator >> (std::istream& is, ParameterList<TKeyType>& rThis)
 {
     return is;
 }
 
-
 template<class TKeyType>
-inline std::ostream& operator << (std::ostream& os, const Kratos::ParameterList<TKeyType>& rThis)
+inline std::ostream& operator << (std::ostream& os, const ParameterList<TKeyType>& rThis)
 {
     rThis.PrintInfo(os);
     os << std::endl;
@@ -267,7 +243,6 @@ inline std::ostream& operator << (std::ostream& os, const Kratos::ParameterList<
     return os;
 }
 
+} // end namespace Kratos
 
-}
-
-#endif /* KRATOS_PARAMETER_LIST_H_INCLUDED */
+#endif /* KRATOS_LAYER_APP_PARAMETER_LIST_H_INCLUDED */
