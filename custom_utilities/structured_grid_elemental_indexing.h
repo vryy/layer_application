@@ -48,7 +48,7 @@ namespace Kratos
 /*** Detail class definition.
  * This utility class supports for structured mesh indexing.
  * The structured grid is assumed to be uniform in every dimension.
- * The element connectivity should be aligned with the axis
+ * The element edges should be aligned with the axis
  * Only quadrilateral/hexahedra element is supported
  */
 template<int TDim>
@@ -227,7 +227,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StructuredGridElementalIndexing" << TDim << "D";
@@ -235,13 +235,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}

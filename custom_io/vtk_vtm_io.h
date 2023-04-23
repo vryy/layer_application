@@ -72,7 +72,7 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    virtual void Initialize( double name, MeshType& rThisMesh )
+    void Initialize( double name, MeshType& rThisMesh ) override
     {
         mName = name;
 
@@ -118,12 +118,12 @@ public:
      * This has to be called for each solution step to write all the results to file
      * have been written
      */
-    void Finalize()
+    void Finalize() override
     {
         FILE* tmp_file;
 
         std::string base_filename = BaseType::mResultFileName.substr(BaseType::mResultFileName.find_last_of("/\\") + 1);
-        KRATOS_WATCH(base_filename)
+        // KRATOS_WATCH(base_filename)
 
         unsigned int file_index = 0;
         for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
@@ -213,7 +213,6 @@ public:
             }
         }
 
-        // close the result file
         // close the result file
         VTK_fClosePostVTMFile( BaseType::mResultFile );
         BaseType::mResultFileOpen = false;

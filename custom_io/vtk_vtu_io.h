@@ -72,7 +72,7 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    virtual void Initialize( double name, MeshType& rThisMesh )
+    void Initialize( double name, MeshType& rThisMesh ) override
     {
         if ( !BaseType::mResultFileOpen )
         {
@@ -116,7 +116,7 @@ public:
      * This has to be called for each solution step to write all the results to file
      * have been written
      */
-    void Finalize()
+    void Finalize() override
     {
         for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
                     it != BaseType::mVtkMeshContainers.end(); ++it )
