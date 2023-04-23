@@ -17,7 +17,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
+#ifndef SD_APP_FORWARD_COMPATIBILITY
 #include "containers/vector_map.h"
+#else
+#include "custom_utilities/containers/vector_map.h"
+#endif
 
 
 namespace Kratos
