@@ -144,9 +144,9 @@ void MatrixPrintOnGaussPoints( SDGidPostIOType& dummy, const Variable<Matrix>& r
 
 /////////////////////////////////////////////////////////////
 
-void (VtkIOType::*pointer_to_register_nodal_results_double)( Variable<double> const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
-void (VtkIOType::*pointer_to_register_nodal_results_array1d)( Variable<array_1d<double, 3> > const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
-void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> const&, const std::size_t&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+void (VtkIOType::*pointer_to_register_nodal_results_double)( const Variable<double>&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+void (VtkIOType::*pointer_to_register_nodal_results_array1d)( const Variable<array_1d<double, 3> >&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+void (VtkIOType::*pointer_to_register_nodal_results_vector)( const Variable<Vector>&, const std::size_t&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
 
 /////////////////////////////////////////////////////////////
 

@@ -153,6 +153,12 @@ void PrintElementalPartitionIndex( SDGidPostIOType& dummy, const Variable<double
     dummy.PrintElementalPartitionIndex( rVariable, r_model_part, SolutionTag, 0, rank );
 }
 
+void IntegerPrintOnGaussPoints( SDGidPostIOType& dummy, const Variable<int>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+}
+
 void DoublePrintOnGaussPoints( SDGidPostIOType& dummy, const Variable<double>& rVariable,
                                ModelPart& r_model_part, double SolutionTag )
 {
@@ -283,6 +289,7 @@ void  LayerApplication_AddIOToPython()
     .def("WriteLocalAxesOnNodesNonHistorical", local_axes_write_nodal_results_NH)
 
     .def("PrintElementalPartitionIndex", PrintElementalPartitionIndex)
+    .def("PrintOnGaussPoints", IntegerPrintOnGaussPoints)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
