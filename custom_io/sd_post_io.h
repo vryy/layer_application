@@ -116,29 +116,29 @@ public:
      */
     virtual void SetUpMeshContainers()
     {
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Hexahedra3D20, "Kratos_Hexahedra3D20_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Hexahedra3D27, "Kratos_Hexahedra3D27_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Hexahedra3D8, "Kratos_Hexahedra3D8_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Prism3D15, "Kratos_Prism3D15_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Prism3D6, "Kratos_Prism3D6_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral2D4, "Kratos_Quadrilateral2D4_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral2D8, "Kratos_Quadrilateral2D8_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral2D9, "Kratos_Quadrilateral2D9_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral3D4, "Kratos_Quadrilateral3D4_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral3D8, "Kratos_Quadrilateral3D8_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Quadrilateral3D9, "Kratos_Quadrilateral3D9_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Tetrahedra3D10, "Kratos_Tetrahedra3D10_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Tetrahedra3D4, "Kratos_Tetrahedra3D4_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Triangle2D3, "Kratos_Triangle2D3_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Triangle2D6, "Kratos_Triangle2D6_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Triangle3D3, "Kratos_Triangle3D3_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Triangle3D6, "Kratos_Triangle3D6_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Line2D2, "Kratos_Line2D2_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Line3D2, "Kratos_Line3D2_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Line2D3, "Kratos_Line2D3_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Line3D3, "Kratos_Line3D3_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Point3D, "Kratos_Point3D_Mesh" ) );
-        mMeshContainers.push_back( TMeshContainer( GeometryData::Kratos_Point2D, "Kratos_Point2D_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Hexahedra3D20, "Kratos_Hexahedra3D20_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Hexahedra3D27, "Kratos_Hexahedra3D27_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, "Kratos_Hexahedra3D8_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Prism3D15, "Kratos_Prism3D15_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Prism3D6, "Kratos_Prism3D6_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, "Kratos_Quadrilateral2D4_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, "Kratos_Quadrilateral2D8_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9, "Kratos_Quadrilateral2D9_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "Kratos_Quadrilateral3D4_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, "Kratos_Quadrilateral3D8_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, "Kratos_Quadrilateral3D9_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10, "Kratos_Tetrahedra3D10_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, "Kratos_Tetrahedra3D4_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle2D3, "Kratos_Triangle2D3_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle2D6, "Kratos_Triangle2D6_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle3D3, "Kratos_Triangle3D3_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle3D6, "Kratos_Triangle3D6_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line2D2, "Kratos_Line2D2_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line3D2, "Kratos_Line3D2_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line2D3, "Kratos_Line2D3_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line3D3, "Kratos_Line3D3_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Point3D, "Kratos_Point3D_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Point2D, "Kratos_Point2D_Mesh" ) );
     }//SetUpMeshContainers
 
     /**
@@ -148,38 +148,38 @@ public:
     virtual void SetUpGaussPointContainers()
     {
         //case Line
-        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_1_element_gp", GeometryData::Kratos_Linear, GeometryData::GI_GAUSS_1 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_2_element_gp", GeometryData::Kratos_Linear, GeometryData::GI_GAUSS_2 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_3_element_gp", GeometryData::Kratos_Linear, GeometryData::GI_GAUSS_3 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_4_element_gp", GeometryData::Kratos_Linear, GeometryData::GI_GAUSS_4 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_5_element_gp", GeometryData::Kratos_Linear, GeometryData::GI_GAUSS_5 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_1_element_gp", GeometryData::KratosGeometryFamily::Kratos_Linear, GeometryData::IntegrationMethod::GI_GAUSS_1 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_2_element_gp", GeometryData::KratosGeometryFamily::Kratos_Linear, GeometryData::IntegrationMethod::GI_GAUSS_2 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_3_element_gp", GeometryData::KratosGeometryFamily::Kratos_Linear, GeometryData::IntegrationMethod::GI_GAUSS_3 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_4_element_gp", GeometryData::KratosGeometryFamily::Kratos_Linear, GeometryData::IntegrationMethod::GI_GAUSS_4 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "lin_gauss_legendre_5_element_gp", GeometryData::KratosGeometryFamily::Kratos_Linear, GeometryData::IntegrationMethod::GI_GAUSS_5 ) );
 
         //case Triangle
-        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_1_element_gp", GeometryData::Kratos_Triangle, GeometryData::GI_GAUSS_1 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_2_element_gp", GeometryData::Kratos_Triangle, GeometryData::GI_GAUSS_2 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_3_element_gp", GeometryData::Kratos_Triangle, GeometryData::GI_GAUSS_3 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_4_element_gp", GeometryData::Kratos_Triangle, GeometryData::GI_GAUSS_4 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_1_element_gp", GeometryData::KratosGeometryFamily::Kratos_Triangle, GeometryData::IntegrationMethod::GI_GAUSS_1 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_2_element_gp", GeometryData::KratosGeometryFamily::Kratos_Triangle, GeometryData::IntegrationMethod::GI_GAUSS_2 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_3_element_gp", GeometryData::KratosGeometryFamily::Kratos_Triangle, GeometryData::IntegrationMethod::GI_GAUSS_3 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tri_gauss_legendre_4_element_gp", GeometryData::KratosGeometryFamily::Kratos_Triangle, GeometryData::IntegrationMethod::GI_GAUSS_4 ) );
 
         //case Quadrilateral
-        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_1_element_gp", GeometryData::Kratos_Quadrilateral, GeometryData::GI_GAUSS_1 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_2_element_gp", GeometryData::Kratos_Quadrilateral, GeometryData::GI_GAUSS_2 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_3_element_gp", GeometryData::Kratos_Quadrilateral, GeometryData::GI_GAUSS_3 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_4_element_gp", GeometryData::Kratos_Quadrilateral, GeometryData::GI_GAUSS_4 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_5_element_gp", GeometryData::Kratos_Quadrilateral, GeometryData::GI_GAUSS_5 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_1_element_gp", GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GeometryData::IntegrationMethod::GI_GAUSS_1 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_2_element_gp", GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GeometryData::IntegrationMethod::GI_GAUSS_2 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_3_element_gp", GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GeometryData::IntegrationMethod::GI_GAUSS_3 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_4_element_gp", GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GeometryData::IntegrationMethod::GI_GAUSS_4 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "quad_gauss_legendre_5_element_gp", GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, GeometryData::IntegrationMethod::GI_GAUSS_5 ) );
 
         //case Tetrahedra
-        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_1_element_gp", GeometryData::Kratos_Tetrahedra, GeometryData::GI_GAUSS_1 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_2_element_gp", GeometryData::Kratos_Tetrahedra, GeometryData::GI_GAUSS_2 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_3_element_gp", GeometryData::Kratos_Tetrahedra, GeometryData::GI_GAUSS_3 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_4_element_gp", GeometryData::Kratos_Tetrahedra, GeometryData::GI_GAUSS_4 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_5_element_gp", GeometryData::Kratos_Tetrahedra, GeometryData::GI_GAUSS_5 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_1_element_gp", GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GeometryData::IntegrationMethod::GI_GAUSS_1 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_2_element_gp", GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GeometryData::IntegrationMethod::GI_GAUSS_2 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_3_element_gp", GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GeometryData::IntegrationMethod::GI_GAUSS_3 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_4_element_gp", GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GeometryData::IntegrationMethod::GI_GAUSS_4 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "tet_gauss_legendre_5_element_gp", GeometryData::KratosGeometryFamily::Kratos_Tetrahedra, GeometryData::IntegrationMethod::GI_GAUSS_5 ) );
 
         //case Hexahedra
-        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_1_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_1 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_2_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_2 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_3_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_3 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_4_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_4 ) );
-        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_5_element_gp", GeometryData::Kratos_Hexahedra, GeometryData::GI_GAUSS_5 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_1_element_gp", GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GeometryData::IntegrationMethod::GI_GAUSS_1 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_2_element_gp", GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GeometryData::IntegrationMethod::GI_GAUSS_2 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_3_element_gp", GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GeometryData::IntegrationMethod::GI_GAUSS_3 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_4_element_gp", GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GeometryData::IntegrationMethod::GI_GAUSS_4 ) );
+        mGaussPointContainers.push_back( TGaussPointContainer( "hex_gauss_legendre_5_element_gp", GeometryData::KratosGeometryFamily::Kratos_Hexahedra, GeometryData::IntegrationMethod::GI_GAUSS_5 ) );
     }//SetUpGaussPointContainers
 
     ///general SDPostIO related functions

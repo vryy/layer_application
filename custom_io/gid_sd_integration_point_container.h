@@ -66,37 +66,37 @@ public:
     {
         mKratosElementFamily = geometryFamily;
 
-        if(     mKratosElementFamily == GeometryData::Kratos_Hexahedra )
+        if(     mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Hexahedra )
         {
             mGidElementFamily = GiD_Hexahedra;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Tetrahedra )
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra )
         {
             mGidElementFamily = GiD_Tetrahedra;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Prism )
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Prism )
         {
             mGidElementFamily = GiD_Prism;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Quadrilateral)
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral)
         {
             mGidElementFamily = GiD_Quadrilateral;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Triangle)
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Triangle)
         {
             mGidElementFamily = GiD_Triangle;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Linear)
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Linear)
         {
             mGidElementFamily = GiD_Linear;
         }
-        else if(mKratosElementFamily == GeometryData::Kratos_Point)
+        else if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Point)
         {
             mGidElementFamily = GiD_Point;
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry family type", mKratosElementFamily)
+            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry family type", static_cast<int>(mKratosElementFamily))
         }
     }
 
@@ -173,6 +173,51 @@ public:
                     for(unsigned int i=0; i<mSize; i++)
                     {
                         GiD_fWriteScalar( ResultFile, it->Id(), (double) rank );
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
+
+            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+            std::vector<int> ValuesOnIntPoint(mSize);
+            if( mMeshElements.size() != 0 )
+            {
+                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                        it != mMeshElements.end(); ++it )
+                {
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                     r_model_part.GetProcessInfo() );
+                    for(unsigned int i=0; i<mSize; i++)
+                    {
+                        GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[i] );
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 )
+            {
+                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                        it != mMeshConditions.end(); ++it )
+                {
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                     r_model_part.GetProcessInfo() );
+                    for(unsigned int i=0; i<mSize; i++)
+                    {
+                        GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[i] );
                     }
                 }
             }

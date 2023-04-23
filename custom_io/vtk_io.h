@@ -82,131 +82,131 @@ public:
     void SetUpMeshContainers()
     {
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hexahedra3D20,
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,
                                           VTK_Hexahedron, "Kratos_Hexahedra3D20_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hexahedra3D27,
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,
                                           VTK_Hexahedron, "Kratos_Hexahedra3D27_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hexahedra3D8,
+                                          GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,
                                           VTK_Hexahedron, "Kratos_Hexahedra3D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Prism3D15,
+                                          GeometryData::KratosGeometryType::Kratos_Prism3D15,
                                           VTK_Wedge, "Kratos_Prism3D15_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Prism3D6,
+                                          GeometryData::KratosGeometryType::Kratos_Prism3D6,
                                           VTK_Wedge, "Kratos_Prism3D6_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral2D4,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4,
                                           VTK_Quad, "Kratos_Quadrilateral2D4_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral2D8,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8,
                                           VTK_Quad, "Kratos_Quadrilateral2D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral2D9,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9,
                                           VTK_Quad, "Kratos_Quadrilateral2D9_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral3D4,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4,
                                           VTK_Quad, "Kratos_Quadrilateral3D4_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral3D8,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8,
                                           VTK_Quad, "Kratos_Quadrilateral3D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Quadrilateral3D9,
+                                          GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9,
                                           VTK_Quad, "Kratos_Quadrilateral3D9_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Tetrahedra3D10,
+                                          GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,
                                           VTK_Tetra, "Kratos_Tetrahedra3D10_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Tetrahedra3D4,
+                                          GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,
                                           VTK_Tetra, "Kratos_Tetrahedra3D4_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Triangle2D3,
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D3,
                                           VTK_Triangle, "Kratos_Triangle2D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Triangle2D6,
+                                          GeometryData::KratosGeometryType::Kratos_Triangle2D6,
                                           VTK_Triangle, "Kratos_Triangle2D6_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Triangle3D3,
+                                          GeometryData::KratosGeometryType::Kratos_Triangle3D3,
                                           VTK_Triangle, "Kratos_Triangle3D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Triangle3D6,
+                                          GeometryData::KratosGeometryType::Kratos_Triangle3D6,
                                           VTK_Triangle, "Kratos_Triangle3D6_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Line2D2,
+                                          GeometryData::KratosGeometryType::Kratos_Line2D2,
                                           VTK_Line, "Kratos_Line2D2_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Line3D2,
+                                          GeometryData::KratosGeometryType::Kratos_Line3D2,
                                           VTK_Line, "Kratos_Line3D2_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Line2D3,
+                                          GeometryData::KratosGeometryType::Kratos_Line2D3,
                                           VTK_Line, "Kratos_Line2D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Line3D3,
+                                          GeometryData::KratosGeometryType::Kratos_Line3D3,
                                           VTK_Line, "Kratos_Line3D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Point3D,
+                                          GeometryData::KratosGeometryType::Kratos_Point3D,
                                           VTK_Pixel, "Kratos_Point3D_Mesh" ) );
         #ifndef SD_APP_FORWARD_COMPATIBILITY
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Tritagon,
+                                          GeometryData::KratosGeometryType::Kratos_Tritagon,
                                           VTK_Polygon, "Kratos_Tritagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Tetragon,
+                                          GeometryData::KratosGeometryType::Kratos_Tetragon,
                                           VTK_Polygon, "Kratos_Tetragon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Pentagon,
+                                          GeometryData::KratosGeometryType::Kratos_Pentagon,
                                           VTK_Polygon, "Kratos_Pentagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hexagon,
+                                          GeometryData::KratosGeometryType::Kratos_Hexagon,
                                           VTK_Polygon, "Kratos_Hexagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Heptagon,
+                                          GeometryData::KratosGeometryType::Kratos_Heptagon,
                                           VTK_Polygon, "Kratos_Heptagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Octagon,
+                                          GeometryData::KratosGeometryType::Kratos_Octagon,
                                           VTK_Polygon, "Kratos_Octagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Nonagon,
+                                          GeometryData::KratosGeometryType::Kratos_Nonagon,
                                           VTK_Polygon, "Kratos_Nonagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Decagon,
+                                          GeometryData::KratosGeometryType::Kratos_Decagon,
                                           VTK_Polygon, "Kratos_Decagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hendecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Hendecagon,
                                           VTK_Polygon, "Kratos_Hendecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Dodecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Dodecagon,
                                           VTK_Polygon, "Kratos_Dodecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Triskaidecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Triskaidecagon,
                                           VTK_Polygon, "Kratos_Triskaidecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Tetrakaidecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Tetrakaidecagon,
                                           VTK_Polygon, "Kratos_Tetrakaidecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Pentadecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Pentadecagon,
                                           VTK_Polygon, "Kratos_Pentadecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Hexakaidecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Hexakaidecagon,
                                           VTK_Polygon, "Kratos_Hexakaidecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Heptadecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Heptadecagon,
                                           VTK_Polygon, "Kratos_Heptadecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Octakaidecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Octakaidecagon,
                                           VTK_Polygon, "Kratos_Octakaidecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Enneadecagon,
+                                          GeometryData::KratosGeometryType::Kratos_Enneadecagon,
                                           VTK_Polygon, "Kratos_Enneadecagon_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Octahedron,
+                                          GeometryData::KratosGeometryType::Kratos_Octahedron,
                                           VTK_Polyhedron, "Kratos_Octahedron_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Dodecahedron,
+                                          GeometryData::KratosGeometryType::Kratos_Dodecahedron,
                                           VTK_Polyhedron, "Kratos_Dodecahedron_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
-                                          GeometryData::Kratos_Icosahedron,
+                                          GeometryData::KratosGeometryType::Kratos_Icosahedron,
                                           VTK_Polyhedron, "Kratos_Icosahedron_Mesh" ) );
         #endif
     }//SetUpMeshContainers
@@ -279,26 +279,59 @@ public:
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(Variable<double> const& rVariable, const std::size_t& SolutionStepNumber)
+    void RegisterNodalResults(const Variable<double>& rVariable, const std::size_t& SolutionStepNumber)
     {
-        mNodalDoubleVariablesMap[rVariable] = SolutionStepNumber;
+        for (std::size_t i = 0; i < mNodalDoubleVariablesMap.size(); ++i)
+        {
+            if (mNodalDoubleVariablesMap[i].first == rVariable
+             && mNodalDoubleVariablesMap[i].second == SolutionStepNumber)
+            {
+                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                          << " is registerred" << std::endl;
+                return;
+            }
+        }
+
+        mNodalDoubleVariablesMap.push_back(std::make_pair(rVariable, SolutionStepNumber));
     }
 
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(Variable<array_1d<double, 3> > const& rVariable, const std::size_t& SolutionStepNumber)
+    void RegisterNodalResults(const Variable<array_1d<double, 3> >& rVariable, const std::size_t& SolutionStepNumber)
     {
-        mNodalArray1dVariablesMap[rVariable] = SolutionStepNumber;
+        for (std::size_t i = 0; i < mNodalArray1dVariablesMap.size(); ++i)
+        {
+            if (mNodalArray1dVariablesMap[i].first == rVariable
+             && mNodalArray1dVariablesMap[i].second == SolutionStepNumber)
+            {
+                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                          << " is registerred" << std::endl;
+                return;
+            }
+        }
+
+        mNodalArray1dVariablesMap.push_back(std::make_pair(rVariable, SolutionStepNumber));
     }
 
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(Variable<Vector> const& rVariable, const std::size_t& SolutionStepNumber, const std::size_t& vec_size)
+    void RegisterNodalResults(const Variable<Vector>& rVariable, const std::size_t& SolutionStepNumber, const std::size_t& vec_size)
     {
-        mNodalVectorVariablesMap[rVariable] = SolutionStepNumber;
-        mNodalVectorVariablesSizeMap[rVariable] = vec_size;
+        for (std::size_t i = 0; i < mNodalVectorVariablesMap.size(); ++i)
+        {
+            if (mNodalVectorVariablesMap[i].first == rVariable
+             && mNodalVectorVariablesMap[i].second == SolutionStepNumber)
+            {
+                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                          << " is registerred" << std::endl;
+                return;
+            }
+        }
+
+        mNodalVectorVariablesMap.push_back(std::make_pair(rVariable, SolutionStepNumber));
+        mNodalVectorVariablesSizeMap.push_back(std::make_pair(rVariable, vec_size));
     }
 
 protected:
@@ -320,30 +353,27 @@ protected:
     std::vector<TMeshContainer> mVtkMeshContainers; // each mesh container will go into a piece
     bool mResultFileOpen;
 
-    std::map<Variable<double>, std::size_t> mNodalDoubleVariablesMap;
-    std::map<Variable<array_1d<double, 3> >, std::size_t> mNodalArray1dVariablesMap;
-    std::map<Variable<Vector>, std::size_t> mNodalVectorVariablesMap;
-    std::map<Variable<Vector>, std::size_t> mNodalVectorVariablesSizeMap;
+    std::vector< std::pair<Variable<double>, std::size_t> > mNodalDoubleVariablesMap;
+    std::vector< std::pair<Variable<array_1d<double, 3> >, std::size_t> > mNodalArray1dVariablesMap;
+    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesMap;
+    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesSizeMap;
 
     void BeginResultsHeader( FILE* pResultFile ) const
     {
         std::stringstream ScalarVars;
         std::stringstream VectorVars;
 
-        for(std::map<Variable<double>, std::size_t>::const_iterator it = mNodalDoubleVariablesMap.begin();
-                it != mNodalDoubleVariablesMap.end(); ++it)
+        for(auto it = mNodalDoubleVariablesMap.begin(); it != mNodalDoubleVariablesMap.end(); ++it)
         {
             ScalarVars << it->first.Name() << ",";
         }
 
-        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::const_iterator it = mNodalArray1dVariablesMap.begin();
-                it != mNodalArray1dVariablesMap.end(); ++it)
+        for(auto it = mNodalArray1dVariablesMap.begin(); it != mNodalArray1dVariablesMap.end(); ++it)
         {
             VectorVars << it->first.Name() << ",";
         }
 
-        for(std::map<Variable<Vector>, std::size_t>::const_iterator it = mNodalVectorVariablesMap.begin();
-                it != mNodalVectorVariablesMap.end(); ++it)
+        for(auto it = mNodalVectorVariablesMap.begin(); it != mNodalVectorVariablesMap.end(); ++it)
         {
             VectorVars << it->first.Name() << ",";
         }
@@ -361,23 +391,21 @@ protected:
      */
     void WriteNodalResults( FILE* pResultFile, NodesContainerType& rNodes ) const
     {
-        for(std::map<Variable<double>, std::size_t>::const_iterator it = mNodalDoubleVariablesMap.begin();
-                it != mNodalDoubleVariablesMap.end(); ++it)
+        for(auto it = mNodalDoubleVariablesMap.begin(); it != mNodalDoubleVariablesMap.end(); ++it)
         {
             WriteNodalResults( pResultFile, it->first, rNodes, it->second );
         }
 
-        for(std::map<Variable<array_1d<double, 3> >, std::size_t>::const_iterator it = mNodalArray1dVariablesMap.begin();
-                it != mNodalArray1dVariablesMap.end(); ++it)
+        for(auto it = mNodalArray1dVariablesMap.begin(); it != mNodalArray1dVariablesMap.end(); ++it)
         {
             WriteNodalResults( pResultFile, it->first, rNodes, it->second );
         }
 
-        for(std::map<Variable<Vector>, std::size_t>::const_iterator it = mNodalVectorVariablesMap.begin();
-                it != mNodalVectorVariablesMap.end(); ++it)
+        std::size_t cnt = 0;
+        for(auto it = mNodalVectorVariablesMap.begin(); it != mNodalVectorVariablesMap.end(); ++it, ++cnt)
         {
-            auto it_size = mNodalVectorVariablesSizeMap.find(it->first);
-            WriteNodalResults( pResultFile, it->first, rNodes, it->second, it_size->second );
+            std::size_t size = mNodalVectorVariablesSizeMap[cnt].second;
+            WriteNodalResults( pResultFile, it->first, rNodes, it->second, size );
         }
     }
 

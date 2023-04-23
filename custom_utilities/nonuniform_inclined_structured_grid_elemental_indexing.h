@@ -77,6 +77,7 @@ public:
     {
         this->SetTolerance(Tolerance);
 
+        // default axis is Cartesian axis
         mAxes.resize(3);
         mAxes[0][0] = 1.0; mAxes[0][1] = 0.0; mAxes[0][2] = 0.0;
         mAxes[0][0] = 0.0; mAxes[0][1] = 1.0; mAxes[0][2] = 0.0;
@@ -173,16 +174,16 @@ public:
 
             // find the index number of the element
             const double ctx = this->ComputeCoordinates(0, C[0], C[1], C[2]);
-            i1 = static_cast<std::size_t>(FindSpan(ctx, mAxesPoints[0]));
+            i1 = static_cast<std::size_t>(FindSpan(ctx, mAxesPoints[0], TOL));
             if (TDim > 1)
             {
                 const double cty = this->ComputeCoordinates(1, C[0], C[1], C[2]);
-                i2 = static_cast<std::size_t>(FindSpan(cty, mAxesPoints[1]));
+                i2 = static_cast<std::size_t>(FindSpan(cty, mAxesPoints[1], TOL));
             }
             if (TDim > 2)
             {
                 const double ctz = this->ComputeCoordinates(2, C[0], C[1], C[2]);
-                i3 = static_cast<std::size_t>(FindSpan(ctz, mAxesPoints[2]));
+                i3 = static_cast<std::size_t>(FindSpan(ctz, mAxesPoints[2], TOL));
             }
             I = (i3*Ny + i2)*Nx + i1;
 
@@ -208,16 +209,16 @@ public:
         const double& TOL = this->Tolerance();
         std::size_t i1, i2=0, i3=0;
         const double xt = this->ComputeCoordinates(0, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
-        i1 = static_cast<std::size_t>(FindSpan(xt, mAxesPoints[0]));
+        i1 = static_cast<std::size_t>(FindSpan(xt, mAxesPoints[0], TOL));
         if (TDim > 1)
         {
             const double yt = this->ComputeCoordinates(1, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
-            i2 = static_cast<std::size_t>(FindSpan(yt, mAxesPoints[1]));
+            i2 = static_cast<std::size_t>(FindSpan(yt, mAxesPoints[1], TOL));
         }
         if (TDim > 2)
         {
             const double zt = this->ComputeCoordinates(2, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
-            i3 = static_cast<std::size_t>(FindSpan(zt, mAxesPoints[2]));
+            i3 = static_cast<std::size_t>(FindSpan(zt, mAxesPoints[2], TOL));
         }
 
         IndexType Nx=0, Ny=0;
@@ -229,11 +230,13 @@ public:
         auto it = mElemenIndexing.find(I);
         if (it == mElemenIndexing.end())
         {
-            KRATOS_WATCH(i1)
-            KRATOS_WATCH(i2)
-            KRATOS_WATCH(i3)
-            KRATOS_WATCH(rSourcePoint)
-            KRATOS_THROW_ERROR(std::logic_error, "The point does not locate in the mesh region", "")
+            // KRATOS_WATCH(i1)
+            // KRATOS_WATCH(i2)
+            // KRATOS_WATCH(i3)
+            // KRATOS_WATCH(rSourcePoint)
+            // KRATOS_THROW_ERROR(std::logic_error, "The point does not locate in the mesh region", "")
+            master_elements.resize(0);
+            return;
         }
 
         master_elements.resize(1);
@@ -291,7 +294,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NonuniformInclinedStructuredGridElementalIndexing" << TDim << "D";
@@ -299,13 +302,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -371,9 +374,9 @@ private:
     }
 
     /// Find the span of the value in an array
-    int FindSpan(const double& v, const std::vector<double>& values) const
+    int FindSpan(const double& v, const std::vector<double>& values, const double& TOL) const
     {
-        if (v < values[0])
+        if (v < (values[0] - TOL))
         {
             return -1;
         }
@@ -381,7 +384,7 @@ private:
         {
             for (std::size_t i = 1; i < values.size(); ++i)
             {
-                if (v < values[i])
+                if (v < (values[i] + TOL))
                     return i-1;
             }
             return values.size();
@@ -426,7 +429,7 @@ private:
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<1>::GetCorners(std::vector<PointType>& Corners, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Linear)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
     {
         if (Corners.size() != 2)
             Corners.resize(2);
@@ -434,9 +437,9 @@ void NonuniformInclinedStructuredGridElementalIndexing<1>::GetCorners(std::vecto
         for (unsigned int i = 0; i < 2; ++i)
             noalias(Corners[i]) = rGeometry[i];
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_NURBS)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_NURBS)
     {
-        if (rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier1D)
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier1D)
         {
             CoordinatesArrayType p;
             noalias(p) = ZeroVector(3);
@@ -451,13 +454,13 @@ void NonuniformInclinedStructuredGridElementalIndexing<1>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", rGeometry.GetGeometryFamily())
+        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
 }
 
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<2>::GetCorners(std::vector<PointType>& Corners, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Triangle)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle)
     {
         if (Corners.size() != 3)
             Corners.resize(3);
@@ -465,7 +468,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::GetCorners(std::vecto
         for (unsigned int i = 0; i < 3; ++i)
             noalias(Corners[i]) = rGeometry[i];
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Quadrilateral)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral)
     {
         if (Corners.size() != 4)
             Corners.resize(4);
@@ -473,10 +476,10 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::GetCorners(std::vecto
         for (unsigned int i = 0; i < 4; ++i)
             noalias(Corners[i]) = rGeometry[i];
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_NURBS)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_NURBS)
     {
-        if (rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier2D
-         || rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier2D3)
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier2D
+         || rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier2D3)
         {
             CoordinatesArrayType p;
             noalias(p) = ZeroVector(3);
@@ -495,13 +498,13 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", rGeometry.GetGeometryFamily())
+        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
 }
 
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<3>::GetCorners(std::vector<PointType>& Corners, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Tetrahedra)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra)
     {
         if (Corners.size() != 4)
             Corners.resize(4);
@@ -509,7 +512,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::GetCorners(std::vecto
         for (unsigned int i = 0; i < 4; ++i)
             noalias(Corners[i]) = rGeometry[i];
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Hexahedra)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Hexahedra)
     {
         if (Corners.size() != 8)
             Corners.resize(8);
@@ -517,9 +520,9 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::GetCorners(std::vecto
         for (unsigned int i = 0; i < 8; ++i)
             noalias(Corners[i]) = rGeometry[i];
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_NURBS)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_NURBS)
     {
-        if (rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier3D)
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier3D)
         {
             CoordinatesArrayType p;
             noalias(p) = ZeroVector(3);
@@ -547,13 +550,13 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", rGeometry.GetGeometryFamily())
+        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
 }
 
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<1>::PredictLocalPoint(const CoordinatesArrayType& rSourcePoint, CoordinatesArrayType& local_coords, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Linear)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
     {
         std::vector<PointType> corners;
         this->GetCorners(corners, rGeometry);
@@ -574,7 +577,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<1>::PredictLocalPoint(con
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<2>::PredictLocalPoint(const CoordinatesArrayType& rSourcePoint, CoordinatesArrayType& local_coords, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Quadrilateral)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral)
     {
         std::vector<PointType> corners;
         this->GetCorners(corners, rGeometry);
@@ -590,10 +593,10 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::PredictLocalPoint(con
         double eta = inner_prod(rSourcePoint - corners[0], corners[3] - corners[0]) / pow(D2, 2);
         local_coords[1] = 2.0*eta - 1.0;
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_NURBS)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_NURBS)
     {
-        if (rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier2D
-         || rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier2D3)
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier2D
+         || rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier2D3)
         {
             std::vector<PointType> corners;
             this->GetCorners(corners, rGeometry);
@@ -615,7 +618,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::PredictLocalPoint(con
 template<>
 void NonuniformInclinedStructuredGridElementalIndexing<3>::PredictLocalPoint(const CoordinatesArrayType& rSourcePoint, CoordinatesArrayType& local_coords, const GeometryType& rGeometry) const
 {
-    if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_Hexahedra)
+    if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Hexahedra)
     {
         std::vector<PointType> corners;
         this->GetCorners(corners, rGeometry);
@@ -633,9 +636,9 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::PredictLocalPoint(con
         double zeta = inner_prod(rSourcePoint - corners[0], corners[4] - corners[0]) / pow(D3, 2);
         local_coords[2] = 2.0*zeta - 1.0;
     }
-    else if (rGeometry.GetGeometryFamily() == GeometryData::Kratos_NURBS)
+    else if (rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_NURBS)
     {
-        if (rGeometry.GetGeometryType() == GeometryData::Kratos_Bezier3D)
+        if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Bezier3D)
         {
             std::vector<PointType> corners;
             this->GetCorners(corners, rGeometry);

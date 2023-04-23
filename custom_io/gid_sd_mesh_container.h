@@ -66,60 +66,60 @@ public:
     {
         mGeometryType = geometryType;
 
-        if(     mGeometryType == GeometryData::Kratos_Hexahedra3D8
-            ||  mGeometryType == GeometryData::Kratos_Hexahedra3D20
-            ||  mGeometryType == GeometryData::Kratos_Hexahedra3D27
+        if(     mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27
         )
         {
             mGidElementType = GiD_Hexahedra;
         }
-        else if(mGeometryType == GeometryData::Kratos_Tetrahedra3D4
-            ||  mGeometryType == GeometryData::Kratos_Tetrahedra3D10
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10
         )
         {
             mGidElementType = GiD_Tetrahedra;
         }
-        else if(mGeometryType == GeometryData::Kratos_Prism3D6
-            ||  mGeometryType == GeometryData::Kratos_Prism3D15
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Prism3D6
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Prism3D15
         )
         {
             mGidElementType = GiD_Prism;
         }
-        else if(mGeometryType == GeometryData::Kratos_Quadrilateral3D4
-            ||  mGeometryType == GeometryData::Kratos_Quadrilateral3D8
-            ||  mGeometryType == GeometryData::Kratos_Quadrilateral3D9
-            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D4
-            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D8
-            ||  mGeometryType == GeometryData::Kratos_Quadrilateral2D9
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9
         )
         {
             mGidElementType = GiD_Quadrilateral;
         }
-        else if(mGeometryType == GeometryData::Kratos_Triangle3D3
-            ||  mGeometryType == GeometryData::Kratos_Triangle3D6
-            ||  mGeometryType == GeometryData::Kratos_Triangle2D3
-            ||  mGeometryType == GeometryData::Kratos_Triangle2D6
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle3D3
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle3D6
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle2D3
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle2D6
         )
         {
             mGidElementType = GiD_Triangle;
         }
-        else if(mGeometryType == GeometryData::Kratos_Line3D3
-            ||  mGeometryType == GeometryData::Kratos_Line3D2
-            ||  mGeometryType == GeometryData::Kratos_Line2D3
-            ||  mGeometryType == GeometryData::Kratos_Line2D2
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D2
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D2
         )
         {
             mGidElementType = GiD_Linear;
         }
-        else if(mGeometryType == GeometryData::Kratos_Point3D
-            ||  mGeometryType == GeometryData::Kratos_Point2D
+        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Point3D
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Point2D
         )
         {
             mGidElementType = GiD_Point;
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry type", mGeometryType)
+            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry type", static_cast<int>(mGeometryType))
         }
     }
 
@@ -271,6 +271,9 @@ public:
                             else
                                 GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
                                                        (it)->Y0(), (it)->Z0() );
+                            /// DEBUGGING
+                            // std::cout << "node " << (it)->Id() << " is written to GiD" << std::endl;
+                            /// END DEBUGGING
                         }
                         GiD_fEndCoordinates(MeshFile);
 
@@ -284,14 +287,14 @@ public:
                             it != mMeshElements.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry() [i].Id();
+                            nodes_id[i] = (it)->GetGeometry()[i].Id();
 
-                        if ( mGeometryType == GeometryData::Kratos_Line2D3
-                                || mGeometryType == GeometryData::Kratos_Line3D3 )
+                        if ( mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
+                                || mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3 )
                         {
-                            nodes_id[0] = (it)->GetGeometry() [0].Id();
-                            nodes_id[1] = (it)->GetGeometry() [2].Id();
-                            nodes_id[2] = (it)->GetGeometry() [1].Id();
+                            nodes_id[0] = (it)->GetGeometry()[0].Id();
+                            nodes_id[1] = (it)->GetGeometry()[2].Id();
+                            nodes_id[2] = (it)->GetGeometry()[1].Id();
                         }
                         // nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
                         nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id();
@@ -302,7 +305,12 @@ public:
                         if ( element_is_active )
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
+                            {
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id );
+                                /// DEBUGGING
+                                // std::cout << "element " << (it)->Id() << " is written to GiD" << std::endl;
+                                /// END DEBUGGING
+                            }
                         }
                     }
 
@@ -395,9 +403,9 @@ public:
                             it != mMeshConditions.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry() [i].Id();
+                            nodes_id[i] = (it)->GetGeometry()[i].Id();
                         // nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                        nodes_id[ (it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
                         bool condition_is_active = true;
                         if( it->IsDefined( ACTIVE ) )
@@ -405,7 +413,7 @@ public:
                         if ( condition_is_active )
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id );
                         }
                     }
 

@@ -32,7 +32,7 @@
 
 namespace Kratos
 {
-///@addtogroup IsogeometricApplication
+///@addtogroup LayerApplication
 
 ///@{
 ///@name Kratos Globals

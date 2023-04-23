@@ -351,10 +351,10 @@ private:
         for (typename ModelPart::ElementsContainerType::ptr_iterator it = rpElements.ptr_begin();
                 it != rpElements.ptr_end(); ++it)
         {
-            if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D3
-              || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D6
-              || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle3D3
-              || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle3D6 )
+            if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3
+              || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D6
+              || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3
+              || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D6 )
             {
                 for (unsigned int i = 0; i < 3; ++i)
                 {
@@ -370,12 +370,12 @@ private:
                     edges.insert(e);
                 }
             }
-            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D8
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D9
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral3D8
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral3D9 )
+            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9 )
             {
                 for (unsigned int i = 0; i < 4; ++i)
                 {
@@ -391,8 +391,8 @@ private:
                     edges.insert(e);
                 }
             }
-            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D10 )
+            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 )
             {
                 for (unsigned int i = 0; i < 6; ++i)
                 {
@@ -408,9 +408,9 @@ private:
                     edges.insert(e);
                 }
             }
-            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D8
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D20
-                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D27 )
+            else if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20
+                   || (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27 )
             {
                 for (unsigned int i = 0; i < 12; ++i)
                 {
@@ -427,7 +427,7 @@ private:
                 }
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "Invalid geometry", (*it)->GetGeometry().GetGeometryType())
+                KRATOS_THROW_ERROR(std::logic_error, "Invalid geometry", static_cast<int>((*it)->GetGeometry().GetGeometryType()))
         }
     }
 

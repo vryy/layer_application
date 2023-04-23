@@ -354,7 +354,7 @@ protected:
 private:
     void AddLines(std::set<Line>& rlines, std::size_t* nodes, GeometryData::KratosGeometryType GeometryType)
     {
-        if(GeometryType == GeometryData::Kratos_Hexahedra3D8)
+        if(GeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8)
         {
             rlines.insert(Line(nodes[0], nodes[1]));
             rlines.insert(Line(nodes[1], nodes[2]));
@@ -369,7 +369,7 @@ private:
             rlines.insert(Line(nodes[2], nodes[6]));
             rlines.insert(Line(nodes[3], nodes[7]));
         }
-        else if(GeometryType == GeometryData::Kratos_Quadrilateral3D4)
+        else if(GeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
         {
             rlines.insert(Line(nodes[0], nodes[1]));
             rlines.insert(Line(nodes[1], nodes[2]));
@@ -382,18 +382,18 @@ private:
     {
         rOStream << "\\draw[" << style << "]";
 
-        if(     rGeometry.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4
-            ||  rGeometry.GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4
-            ||  rGeometry.GetGeometryType() == GeometryData::Kratos_Triangle2D3
-            ||  rGeometry.GetGeometryType() == GeometryData::Kratos_Triangle3D3
+        if(     rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4
+            ||  rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4
+            ||  rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3
+            ||  rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3
         )
         {
             rOStream << " (P" << rGeometry[0].Id() << ")";
             for(unsigned int i = 1; i < rGeometry.size(); ++i)
                 rOStream << " -- (P" << rGeometry[i].Id() << ")";
         }
-        else if(rGeometry.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D8
-            ||  rGeometry.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D9)
+        else if(rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8
+            ||  rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9)
         {
             rOStream << " (P" << rGeometry[0].Id() << ")";
             rOStream << " -- (P" << rGeometry[4].Id() << ")";
