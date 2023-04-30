@@ -540,7 +540,7 @@ protected:
     ///@}
 
 private:
-    class CompareKey : public std::binary_function<value_type, value_type, bool>
+    class CompareKey
     {
     public:
         bool operator()(value_type a, value_type b) const
@@ -556,7 +556,7 @@ private:
             return TCompareType()(a, b.first);
         }
     };
-    class CompareValue : public std::binary_function<value_type, value_type, bool>
+    class CompareValue
     {
     public:
         bool operator()(value_type a, value_type b) const
@@ -564,7 +564,7 @@ private:
             return TCompareType()(a.first, b.first);
         }
     };
-    class EqualKeyTo : public std::binary_function<value_type, value_type, bool>
+    class EqualKeyTo
     {
         key_type mKey;
     public:

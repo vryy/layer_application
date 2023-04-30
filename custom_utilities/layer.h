@@ -23,7 +23,11 @@
 #include "custom_utilities/parameter_list.h"
 #include "custom_utilities/spatial_point.h"
 #include "custom_utilities/entity.h"
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+#include "includes/indexed_object.h"
+#else
 #include "utilities/indexed_object.h"
+#endif
 #include "layer_application_variables.h"
 
 namespace Kratos

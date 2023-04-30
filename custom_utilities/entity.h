@@ -20,7 +20,11 @@
 
 // Project includes
 #include "includes/define.h"
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+#include "includes/indexed_object.h"
+#else
 #include "utilities/indexed_object.h"
+#endif
 
 namespace Kratos
 {
