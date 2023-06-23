@@ -195,7 +195,7 @@ public:
      * or undeformed state
      * @param Mode either GiD_PostAscii (default) or GiD_PostBinary
      */
-    void WriteNodeMesh( MeshType& rThisMesh )
+    void WriteNodeMesh( const MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -204,7 +204,7 @@ public:
         GiD_fBeginMesh(mMeshFile, "Kratos Mesh", GiD_3D, GiD_Point, 1);
 
         GiD_fBeginCoordinates(mMeshFile);
-        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+        for ( MeshType::NodeConstantIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
@@ -221,7 +221,7 @@ public:
         int nodes_id[1];
 
         GiD_fBeginElements(mMeshFile);
-        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+        for ( MeshType::NodeConstantIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
@@ -246,7 +246,7 @@ public:
      * @param deformed_flag states whether the mesh should be written in deformed configuration
      * @param conditions_flag states whether conditions should also be written
      */
-    void WriteMesh( MeshType& rThisMesh )
+    void WriteMesh( const MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -254,7 +254,7 @@ public:
 
         if ( mWriteConditions != WriteConditionsOnly )
         {
-            for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+            for ( MeshType::ElementConstantIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                 for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
                         it != BaseType::mMeshContainers.end(); ++it )
@@ -263,7 +263,7 @@ public:
         }
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
         {
-            for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
+            for ( MeshType::ConditionConstantIterator conditions_iterator =
                         rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
                 for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
@@ -277,9 +277,9 @@ public:
         {
             it->FinalizeMeshCreation();
             if ( mWriteDeformed == WriteDeformed )
-                it->WriteMesh(mMeshFile,true);
+                it->WriteMesh(mMeshFile, true);
             else if ( mWriteDeformed == WriteUndeformed )
-                it->WriteMesh(mMeshFile,false);
+                it->WriteMesh(mMeshFile, false);
             else
                 KRATOS_THROW_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
         }

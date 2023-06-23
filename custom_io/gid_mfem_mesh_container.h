@@ -10,198 +10,49 @@
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Hoang-Giang Bui $
-//   Date:                $Date: 14 Jun 2016 $
+//   Date:                $Date: 23 Jun 2023 $
 //   Revision:            $Revision: 1.0 $
 //
 //
 
 
-#if !defined(KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED)
-#define  KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED
+#if !defined(KRATOS_GID_MFEM_MESH_CONTAINER_H_INCLUDED)
+#define  KRATOS_GID_MFEM_MESH_CONTAINER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
-#include "gidpost/source/gidpost.h"
 
 // Project includes
-#include "includes/define.h"
-#include "geometries/geometry_data.h"
-#ifndef SD_APP_FORWARD_COMPATIBILITY
-#include "includes/deprecated_variables.h"
-#endif
-#include "layer_application_variables.h"
+#include "custom_io/gid_sd_mesh_container.h"
 
 
 namespace Kratos
 {
 
 /**
- * Type definitions
- */
-typedef ModelPart::ElementsContainerType ElementsArrayType;
-typedef ModelPart::NodesContainerType NodesArrayType;
-typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-typedef GeometryData::IntegrationMethod IntegrationMethodType;
-typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
-
-/**
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
  */
-class GidSDMeshContainer
+class GidMfemMeshContainer : public GidSDMeshContainer
 {
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(GidSDMeshContainer);
+    KRATOS_CLASS_POINTER_DEFINITION(GidMfemMeshContainer);
+
+    typedef GidSDMeshContainer BaseType;
 
     ///Constructor
-    GidSDMeshContainer ( GeometryData::KratosGeometryType geometryType, std::string mesh_title )
-    : mMeshTitle(mesh_title)
+    GidMfemMeshContainer ( GeometryData::KratosGeometryType geometryType, std::string mesh_title )
+    : BaseType(geometryType, mesh_title)
     {
-        mGeometryType = geometryType;
-
-        if(     mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27
-        )
-        {
-            mGidElementType = GiD_Hexahedra;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10
-        )
-        {
-            mGidElementType = GiD_Tetrahedra;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Prism3D6
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Prism3D15
-        )
-        {
-            mGidElementType = GiD_Prism;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9
-        )
-        {
-            mGidElementType = GiD_Quadrilateral;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle3D3
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle3D6
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle2D3
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Triangle2D6
-        )
-        {
-            mGidElementType = GiD_Triangle;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D2
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D2
-        )
-        {
-            mGidElementType = GiD_Linear;
-        }
-        else if(mGeometryType == GeometryData::KratosGeometryType::Kratos_Point3D
-            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Point2D
-        )
-        {
-            mGidElementType = GiD_Point;
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry type", static_cast<int>(mGeometryType))
-        }
     }
 
-    bool AddElement ( const ModelPart::ElementsContainerType::const_iterator pElemIt )
+    void WriteMesh ( GiD_FILE MeshFile, bool deformed ) override
     {
         KRATOS_TRY
 
-        bool element_is_active;
-        if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
-        {
-            element_is_active = true;
-            if( pElemIt->IsDefined( ACTIVE ) )
-                element_is_active = pElemIt->Is(ACTIVE);
-
-            if (element_is_active)
-            {
-    //            std::cout << "element " << pElemIt->Id() << " of geometryType "
-    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
-                mMeshElements.push_back ( * (pElemIt.base() ) );
-                Geometry<Node<3> >&geom = pElemIt->GetGeometry();
-                for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
-                {
-                    mMeshNodes.push_back ( * (it.base() ) );
-                }
-                return true;
-            }
-            else
-                return false;
-        }
-        else
-            return false;
-
-        KRATOS_CATCH ("")
-    }
-
-    bool AddCondition ( const ModelPart::ConditionsContainerType::const_iterator pCondIt )
-    {
-        KRATOS_TRY
-
-        bool condition_is_active;
-        if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
-        {
-            condition_is_active = true;
-            if( pCondIt->IsDefined( ACTIVE ) )
-                condition_is_active = pCondIt->Is(ACTIVE);
-
-            if (condition_is_active)
-            {
-    //            std::cout << "condition " << pCondIt->Id() << " of geometryType "
-    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
-                mMeshConditions.push_back ( * (pCondIt.base() ) );
-                Geometry<Node<3> >&geom = pCondIt->GetGeometry();
-                for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
-                {
-                    mMeshNodes.push_back ( * (it.base() ) );
-                }
-                return true;
-            }
-            else
-                return false;
-        }
-        else
-            return false;
-
-        KRATOS_CATCH ("")
-    }
-
-    void FinalizeMeshCreation()
-    {
-        if ( mMeshElements.size() != 0 )
-        {
-            mMeshNodes.Unique();
-        }
-        if ( mMeshConditions.size() != 0 )
-        {
-            mMeshNodes.Unique();
-        }
-    }
-
-    virtual void WriteMesh ( GiD_FILE MeshFile, bool deformed )
-    {
-        KRATOS_TRY
+        std::vector<int> ns = GetNodalSequence(mGeometryType);
 
         bool nodes_written = false;
         if ( mMeshElements.size() != 0 )
@@ -287,7 +138,7 @@ public:
                             it != mMeshElements.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry()[i].Id();
+                            nodes_id[i] = (it)->GetGeometry()[ns[i]].Id();
 
                         if ( mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
                                 || mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3 )
@@ -403,7 +254,7 @@ public:
                             it != mMeshConditions.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry()[i].Id();
+                            nodes_id[i] = (it)->GetGeometry()[ns[i]].Id();
                         // nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
                         nodes_id[ (it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
@@ -428,29 +279,44 @@ public:
         KRATOS_CATCH ("")
     }
 
-    void Reset()
+private:
+
+    std::vector<int> GetNodalSequence(const GeometryData::KratosGeometryType& geometryType) const
     {
-        mMeshNodes.clear();
-        mMeshElements.clear();
-        mMeshConditions.clear();
+        switch (geometryType)
+        {
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                return std::vector<int>{0, 1, 2};
+            case GeometryData::KratosGeometryType::Kratos_Triangle2D6:
+                return std::vector<int>{0, 1, 2, 3, 4, 5};
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
+                return std::vector<int>{0, 1, 2, 3};
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
+            case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                return std::vector<int>{0, 1, 2, 3};
+            case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+            case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
+            case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                    12, 13, 14, 15, 16, 17, 18, 19};
+            // mfem nodal sequence for Hex27 can be found in constructor of RefinedTriLinear3DFiniteElement, fe_fixed_order.cpp
+            case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27:
+                return std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                    16, 17, 18, 19,
+                    12, 13, 14, 15,
+                    20, 21, 22, 23, 24, 25, 26};
+            default:
+                return std::vector<int>{};
+        }
     }
 
-    const ModelPart::NodesContainerType& GetMeshNodes() const
-    {
-        return mMeshNodes;
-    }
-
-protected:
-    ///member variables
-    GeometryData::KratosGeometryType mGeometryType;
-    GiD_ElementType mGidElementType;
-    ModelPart::NodesContainerType mMeshNodes;
-    ModelPart::ElementsContainerType mMeshElements;
-    ModelPart::ConditionsContainerType mMeshConditions;
-    std::string mMeshTitle;
-};//class GidSDMeshContainer
+};//class GidMfemMeshContainer
 
 }// namespace Kratos.
 
-#endif // KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED defined
-
+#endif // KRATOS_GID_MFEM_MESH_CONTAINER_H_INCLUDED defined
