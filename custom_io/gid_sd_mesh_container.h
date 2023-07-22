@@ -42,15 +42,6 @@ namespace Kratos
 {
 
 /**
- * Type definitions
- */
-typedef ModelPart::ElementsContainerType ElementsArrayType;
-typedef ModelPart::NodesContainerType NodesArrayType;
-typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-typedef GeometryData::IntegrationMethod IntegrationMethodType;
-typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
-
-/**
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
  */
@@ -58,6 +49,8 @@ class GidSDMeshContainer
 {
 public:
 
+    /// Type definitions
+    typedef Element::GeometryType GeometryType;
     KRATOS_CLASS_POINTER_DEFINITION(GidSDMeshContainer);
 
     ///Constructor
@@ -139,7 +132,7 @@ public:
     //            std::cout << "element " << pElemIt->Id() << " of geometryType "
     //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
                 mMeshElements.push_back ( * (pElemIt.base() ) );
-                Geometry<Node<3> >&geom = pElemIt->GetGeometry();
+                GeometryType& geom = pElemIt->GetGeometry();
                 for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
                 {
                     mMeshNodes.push_back ( * (it.base() ) );
@@ -171,7 +164,7 @@ public:
     //            std::cout << "condition " << pCondIt->Id() << " of geometryType "
     //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
                 mMeshConditions.push_back ( * (pCondIt.base() ) );
-                Geometry<Node<3> >&geom = pCondIt->GetGeometry();
+                GeometryType& geom = pCondIt->GetGeometry();
                 for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
                 {
                     mMeshNodes.push_back ( * (it.base() ) );

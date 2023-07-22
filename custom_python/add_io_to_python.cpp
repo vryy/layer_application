@@ -178,40 +178,40 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
 
     void (TGidPostIOType::*pointer_to_flag_write_nodal_results2)( const char* FlagName, Flags const& rFlag,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &TGidPostIOType::WriteNodalResults;
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_bool_write_nodal_results2)( Variable<bool> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_double_write_nodal_results2)( Variable<double> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_array1d_write_nodal_results2)( Variable<array_1d<double, 3> > const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_vector_write_nodal_results2)( Variable<Vector> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_matrix_write_nodal_results2)( Variable<Matrix> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
 
     /////////////////////////////////////////////////////////////
     /// NON-HISTORICAL DATABASE                               ///
     /////////////////////////////////////////////////////////////
     void (TGidPostIOType::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
         = &TGidPostIOType::WriteNodalResultsNonHistorical;
     void (TGidPostIOType::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
         = &TGidPostIOType::WriteNodalResultsNonHistorical;
     void (TGidPostIOType::*pointer_to_array1d_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
         = &TGidPostIOType::WriteNodalResultsNonHistorical;
     void (TGidPostIOType::*pointer_to_matrix_write_nodal_results_NH)( Variable<Matrix > const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
         = &TGidPostIOType::WriteNodalResultsNonHistorical;
     void (TGidPostIOType::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-            typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
         = &TGidPostIOType::WriteLocalAxesOnNodesNonHistorical;
 
     class_<TGidPostIOType, typename TGidPostIOType::Pointer, boost::noncopyable>

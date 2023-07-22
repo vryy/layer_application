@@ -1,11 +1,11 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
 //   Project Name:        Kratos
@@ -57,23 +57,15 @@ public:
 
     typedef SDPostIO<TGaussPointContainer, TMeshContainer> BaseType;
 
-    typedef Node<3> NodeType;
+    typedef typename BaseType::MeshType MeshType;
 
-    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
+    typedef typename BaseType::NodesContainerType NodesContainerType;
 
-    typedef MeshType::NodesContainerType NodesContainerType;
+    typedef typename BaseType::PropertiesContainerType PropertiesContainerType;
 
-    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    typedef MeshType::ElementsContainerType ElementsContainerType;
-
-    typedef MeshType::ConditionsContainerType ConditionsContainerType;
-
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::NodesContainerType NodesArrayType;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef GeometryData::IntegrationMethod IntegrationMethodType;
-    typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
+    typedef typename BaseType::ConditionsContainerType ConditionsContainerType;
 
 
     ///Constructor
@@ -209,7 +201,7 @@ public:
 
         if ( mWriteConditions != WriteConditionsOnly )
         {
-            for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+            for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
                         it != BaseType::mMeshContainers.end(); it++ )
@@ -217,15 +209,15 @@ public:
                         break;
         }
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
-		{
-            for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
+        {
+            for ( typename MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
                         it != BaseType::mMeshContainers.end(); it++ )
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
-		}
+        }
 
         for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mMeshContainers.begin();
                 it != BaseType::mMeshContainers.end(); ++it )
@@ -336,5 +328,5 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_SD_TIKZ_POST_IO_H_INCLUDED  defined 
+#endif // KRATOS_SD_TIKZ_POST_IO_H_INCLUDED  defined
 

@@ -18,6 +18,7 @@
 
 #if !defined(KRATOS_TIKZ_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_TIKZ_MESH_CONTAINER_H_INCLUDED
+
 // System includes
 #include <string>
 #include <iostream>
@@ -33,15 +34,6 @@
 
 namespace Kratos
 {
-
-/**
- * Type definitions
- */
-typedef ModelPart::ElementsContainerType ElementsArrayType;
-typedef ModelPart::NodesContainerType NodesArrayType;
-typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-typedef GeometryData::IntegrationMethod IntegrationMethodType;
-typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
 /**
  * Auxiliary class to store meshes of different element types and to
@@ -80,10 +72,11 @@ public:
             std::size_t mN1, mN2;
     };
 
-    KRATOS_CLASS_POINTER_DEFINITION(TikzMeshContainer);
+    /// Type definitions
     typedef Element::GeometryType GeometryType;
     typedef GeometryType::PointType NodeType;
     typedef NodeType::PointType PointType;
+    KRATOS_CLASS_POINTER_DEFINITION(TikzMeshContainer);
 
     ///Constructor
     TikzMeshContainer ( GeometryData::KratosGeometryType geometryType, const char* mesh_title )
@@ -101,8 +94,8 @@ public:
 //            std::cout << "element " << pElemIt->Id() << " of geometryType "
 //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
             mMeshElements.push_back ( * (pElemIt.base() ) );
-            Geometry<Node<3> >&geom = pElemIt->GetGeometry();
-            for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+            GeometryType& geom = pElemIt->GetGeometry();
+            for ( GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
             }
@@ -123,8 +116,8 @@ public:
 //            std::cout << "condition " << pCondIt->Id() << " of geometryType "
 //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
             mMeshConditions.push_back ( * (pCondIt.base() ) );
-            Geometry<Node<3> >&geom = pCondIt->GetGeometry();
-            for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+            GeometryType& geom = pCondIt->GetGeometry();
+            for ( GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
             }
@@ -338,7 +331,7 @@ public:
         mMeshConditions.clear();
     }
 
-    ModelPart::NodesContainerType GetMeshNodes()
+    const ModelPart::NodesContainerType& GetMeshNodes() const
     {
         return mMeshNodes;
     }

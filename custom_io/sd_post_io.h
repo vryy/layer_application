@@ -73,9 +73,7 @@ public:
     /// Type definitions
     KRATOS_CLASS_POINTER_DEFINITION(SDPostIO);
 
-    typedef Node<3> NodeType;
-
-    typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
+    typedef ModelPart::MeshType MeshType;
 
     typedef MeshType::NodesContainerType NodesContainerType;
 

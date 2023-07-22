@@ -76,40 +76,40 @@ void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results1)( Variable<Matrix
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 
 void (SDGidPostIOType::*pointer_to_flag_write_nodal_results2)( const char* FlagName, Flags const& rFlag,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &SDGidPostIOType::WriteNodalResults;
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &SDGidPostIOType::WriteNodalResults;
 void (SDGidPostIOType::*pointer_to_bool_write_nodal_results2)( Variable<bool> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 void (SDGidPostIOType::*pointer_to_double_write_nodal_results2)( Variable<double> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results2)( Variable<array_1d<double, 3> > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 void (SDGidPostIOType::*pointer_to_vector_write_nodal_results2)( Variable<Vector> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results2)( Variable<Matrix> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
         std::size_t SolutionStepNumber ) = &SDGidPostIOType::WriteNodalResults;
 
 /////////////////////////////////////////////////////////////
 /// NON-HISTORICAL DATABASE                               ///
 /////////////////////////////////////////////////////////////
 void (SDGidPostIOType::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_array1d_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*pointer_to_matrix_write_nodal_results_NH)( Variable<Matrix > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteNodalResultsNonHistorical;
 void (SDGidPostIOType::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable,
-        SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
+        const SDGidPostIOType::NodesContainerType& rNodes, double SolutionTag)
     = &SDGidPostIOType::WriteLocalAxesOnNodesNonHistorical;
 
 void PrintElementalPartitionIndex( SDGidPostIOType& dummy, const Variable<double>& rVariable,
