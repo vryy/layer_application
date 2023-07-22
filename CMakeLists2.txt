@@ -1,7 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosLayerApplication ****")
-
 ######### add include directory here
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications )
@@ -118,4 +116,3 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 ## Add to the KratosMultiphysics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LayerApplication.py" DESTINATION KratosMultiphysics )
 #######################################################################
-

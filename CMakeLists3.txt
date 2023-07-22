@@ -1,7 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosLayerApplication ****")
-
 ################### PYBIND11
 include(pybind11Tools)
 
