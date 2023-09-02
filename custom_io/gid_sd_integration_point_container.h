@@ -383,6 +383,7 @@ public:
             if( rVariable.Name() == std::string("INSITU_STRESS")
              || rVariable.Name() == std::string("PRESTRESS")
              || rVariable.Name() == std::string("STRESSES")
+             || rVariable.Name() == std::string("STRAIN")
              || rVariable.Name() == std::string("PLASTIC_STRAIN_VECTOR") )
             {
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
@@ -416,6 +417,7 @@ public:
                         if( rVariable.Name() == std::string("INSITU_STRESS")
                          || rVariable.Name() == std::string("PRESTRESS")
                          || rVariable.Name() == std::string("STRESSES")
+                         || rVariable.Name() == std::string("STRAIN")
                          || rVariable.Name() == std::string("PLASTIC_STRAIN_VECTOR") )
                         {
                             if(ValuesOnIntPoint[i].size() ==6 )
@@ -469,6 +471,7 @@ public:
                         if( rVariable.Name() == std::string("INSITU_STRESS")
                          || rVariable.Name() == std::string("PRESTRESS")
                          || rVariable.Name() == std::string("STRESSES")
+                         || rVariable.Name() == std::string("STRAIN")
                          || rVariable.Name() == std::string("PLASTIC_STRAIN_VECTOR") )
                         {
                             if(ValuesOnIntPoint[i].size() ==6 )
