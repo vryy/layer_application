@@ -43,6 +43,14 @@ struct MMG2DAdapter
                         MMG5_ARG_end );
     }
 
+    static inline int Free_mesh(mesh_t& p_mesh)
+    {
+        /** Free the MMG2D5 structures */
+        return MMG2D_Free_all( MMG5_ARG_start,
+                        MMG5_ARG_ppMesh, &p_mesh,
+                        MMG5_ARG_end );
+    }
+
     static inline int Init_mesh_ls(mesh_t& p_mesh, ls_t& p_ls)
     {
         /** ------------------------------------------------------------------ */
