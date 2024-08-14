@@ -1,6 +1,5 @@
 import datetime
 import pprint
-import gmshparser # only for python3
 
 POINT = 1
 EDGE = 2
@@ -85,9 +84,10 @@ def Permutation(eltype):
 
 class GmshMDPAWriter:
     """Class to write mdpa file from gmsh"""
-    def __init__(self, dim, gmsh_filename):
-        print("Parsing " + gmsh_filename)
-        self.mesh = gmshparser.parse(gmsh_filename)
+    def __init__(self, dim, mesh):
+        # save the gmsh mesh. mesh should be from gmshparse, e.g.
+        # mesh = gmshparser.parse(gmsh_filename)
+        self.mesh = mesh
 
         self.dim = dim
         self.element_tag_dict = {}
