@@ -306,9 +306,12 @@ void LayerApplication_AddIOToPython()
     .value("VTK_PostVTM", VTK_PostVTM)
     ;
 
-    void (VtkIOType::*pointer_to_register_nodal_results_double)( Variable<double> const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
-    void (VtkIOType::*pointer_to_register_nodal_results_array1d)( Variable<array_1d<double, 3> > const&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
-    void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> const&, const std::size_t&, const std::size_t& ) = &VtkIOType::RegisterNodalResults;
+    void (VtkIOType::*pointer_to_register_nodal_results_double)( Variable<double> const&, const std::size_t ) = &VtkIOType::RegisterNodalResults;
+    void (VtkIOType::*pointer_to_register_nodal_results_array1d)( Variable<array_1d<double, 3> > const&, const std::size_t ) = &VtkIOType::RegisterNodalResults;
+    void (VtkIOType::*pointer_to_register_nodal_results_vector)( Variable<Vector> const&, const std::size_t, const std::size_t ) = &VtkIOType::RegisterNodalResults;
+    void (VtkIOType::*pointer_to_register_cell_results_integer)( Variable<int> const&, const std::size_t ) = &VtkIOType::RegisterCellResults;
+    void (VtkIOType::*pointer_to_register_cell_results_double)( Variable<double> const&, const std::size_t ) = &VtkIOType::RegisterCellResults;
+    void (VtkIOType::*pointer_to_register_cell_properties)( ) = &VtkIOType::RegisterCellProperties;
 
     class_<VtkIOType, VtkIOType::Pointer, boost::noncopyable>
     ("VtkIO", init<std::string const&, const VTK_PostMode&>())
@@ -317,6 +320,9 @@ void LayerApplication_AddIOToPython()
     .def("RegisterNodalResults", pointer_to_register_nodal_results_double)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_array1d)
     .def("RegisterNodalResults", pointer_to_register_nodal_results_vector)
+    .def("RegisterCellResults", pointer_to_register_cell_results_integer)
+    .def("RegisterCellResults", pointer_to_register_cell_results_double)
+    .def("RegisterCellProperties", pointer_to_register_cell_properties)
     ;
 
     class_<VtkVTUIOType, VtkVTUIOType::Pointer, bases<VtkIOType>, boost::noncopyable>

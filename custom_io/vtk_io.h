@@ -62,6 +62,7 @@ public:
         mMode = rMode;
         mResultFileOpen = false;
         mResultFileName = rDatafilename;
+        mResultCellProperties = false;
         InitializeResultFile(mResultFileName);
         SetUpMeshContainers();
     }
@@ -279,14 +280,14 @@ public:
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(const Variable<double>& rVariable, const std::size_t& SolutionStepNumber)
+    void RegisterNodalResults(const Variable<double>& rVariable, const std::size_t SolutionStepNumber)
     {
         for (std::size_t i = 0; i < mNodalDoubleVariablesMap.size(); ++i)
         {
             if (mNodalDoubleVariablesMap[i].first == rVariable
              && mNodalDoubleVariablesMap[i].second == SolutionStepNumber)
             {
-                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                std::cout << "Info: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
                           << " is registerred" << std::endl;
                 return;
             }
@@ -298,14 +299,14 @@ public:
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(const Variable<array_1d<double, 3> >& rVariable, const std::size_t& SolutionStepNumber)
+    void RegisterNodalResults(const Variable<array_1d<double, 3> >& rVariable, const std::size_t SolutionStepNumber)
     {
         for (std::size_t i = 0; i < mNodalArray1dVariablesMap.size(); ++i)
         {
             if (mNodalArray1dVariablesMap[i].first == rVariable
              && mNodalArray1dVariablesMap[i].second == SolutionStepNumber)
             {
-                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                std::cout << "Info: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
                           << " is registerred" << std::endl;
                 return;
             }
@@ -317,14 +318,14 @@ public:
     /**
      * Register the nodal results (to be written later in Finalize)
      */
-    void RegisterNodalResults(const Variable<Vector>& rVariable, const std::size_t& SolutionStepNumber, const std::size_t& vec_size)
+    void RegisterNodalResults(const Variable<Vector>& rVariable, const std::size_t SolutionStepNumber, const std::size_t vec_size)
     {
         for (std::size_t i = 0; i < mNodalVectorVariablesMap.size(); ++i)
         {
             if (mNodalVectorVariablesMap[i].first == rVariable
              && mNodalVectorVariablesMap[i].second == SolutionStepNumber)
             {
-                std::cout << "Warning: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                std::cout << "Info: Nodal result " << rVariable.Name() << " at solution step " << SolutionStepNumber
                           << " is registerred" << std::endl;
                 return;
             }
@@ -334,31 +335,62 @@ public:
         mNodalVectorVariablesSizeMap.push_back(std::make_pair(rVariable, vec_size));
     }
 
+    /**
+     * Register the cell results (to be written later in Finalize)
+     */
+    void RegisterCellResults(const Variable<int>& rVariable, const std::size_t SolutionStepNumber)
+    {
+        for (std::size_t i = 0; i < mCellIntegerVariablesMap.size(); ++i)
+        {
+            if (mCellIntegerVariablesMap[i].first == rVariable
+             && mCellIntegerVariablesMap[i].second == SolutionStepNumber)
+            {
+                std::cout << "Info: Cell result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                          << " is registerred" << std::endl;
+                return;
+            }
+        }
+
+        mCellIntegerVariablesMap.push_back(std::make_pair(rVariable, SolutionStepNumber));
+    }
+
+    /**
+     * Register the cell results (to be written later in Finalize)
+     */
+    void RegisterCellResults(const Variable<double>& rVariable, const std::size_t SolutionStepNumber)
+    {
+        for (std::size_t i = 0; i < mCellDoubleVariablesMap.size(); ++i)
+        {
+            if (mCellDoubleVariablesMap[i].first == rVariable
+             && mCellDoubleVariablesMap[i].second == SolutionStepNumber)
+            {
+                std::cout << "Info: Cell result " << rVariable.Name() << " at solution step " << SolutionStepNumber
+                          << " is registerred" << std::endl;
+                return;
+            }
+        }
+
+        mCellDoubleVariablesMap.push_back(std::make_pair(rVariable, SolutionStepNumber));
+    }
+
+    /**
+     * Register to write the cell Properties (to be written later in Finalize)
+     */
+    void RegisterCellProperties()
+    {
+        mResultCellProperties = true;
+    }
+
 protected:
-    /**
-     * File names
-     */
-    std::string mResultFileName;
 
-    FILE* mResultFile;
-
-    /**
-     * Flags
-     */
-    VTK_PostMode mMode;
-
-    /**
-     * member variables
-     */
-    std::vector<TMeshContainer> mVtkMeshContainers; // each mesh container will go into a piece
     bool mResultFileOpen;
+    std::string mResultFileName; // result file name
+    FILE* mResultFile; // pointer to file writer
+    VTK_PostMode mMode; // write flag
 
-    std::vector< std::pair<Variable<double>, std::size_t> > mNodalDoubleVariablesMap;
-    std::vector< std::pair<Variable<array_1d<double, 3> >, std::size_t> > mNodalArray1dVariablesMap;
-    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesMap;
-    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesSizeMap;
+    std::vector<TMeshContainer>& MeshContainers() {return mVtkMeshContainers;}
 
-    void BeginResultsHeader( FILE* pResultFile ) const
+    void BeginNodalResultsHeader( FILE* pResultFile ) const
     {
         std::stringstream ScalarVars;
         std::stringstream VectorVars;
@@ -381,41 +413,106 @@ protected:
         fprintf( pResultFile, "      <PointData Scalars=\"%s\" Vectors=\"%s\">\n", ScalarVars.str().c_str(), VectorVars.str().c_str() );
     }
 
-    void EndResultsHeader( FILE* pResultFile ) const
+    void EndNodalResultsHeader( FILE* pResultFile ) const
     {
         fprintf( pResultFile, "      </PointData>\n" );
+    }
+
+    void BeginCellResultsHeader( FILE* pResultFile ) const
+    {
+        std::stringstream ScalarVars;
+        std::stringstream VectorVars;
+
+        for(auto it = mCellIntegerVariablesMap.begin(); it != mCellIntegerVariablesMap.end(); ++it)
+        {
+            ScalarVars << it->first.Name() << ",";
+        }
+
+        for(auto it = mCellDoubleVariablesMap.begin(); it != mCellDoubleVariablesMap.end(); ++it)
+        {
+            ScalarVars << it->first.Name() << ",";
+        }
+
+        fprintf( pResultFile, "      <CellData Scalars=\"%s\" Vectors=\"%s\">\n", ScalarVars.str().c_str(), VectorVars.str().c_str() );
+    }
+
+    void EndCellResultsHeader( FILE* pResultFile ) const
+    {
+        fprintf( pResultFile, "      </CellData>\n" );
     }
 
     /**
      * writes nodal results for all variables at once
      */
-    void WriteNodalResults( FILE* pResultFile, NodesContainerType& rNodes ) const
+    void WriteNodalResults( FILE* pResultFile, const NodesContainerType& rNodes ) const
     {
         for(auto it = mNodalDoubleVariablesMap.begin(); it != mNodalDoubleVariablesMap.end(); ++it)
         {
-            WriteNodalResults( pResultFile, it->first, rNodes, it->second );
+            WriteNodalResult( pResultFile, it->first, rNodes, it->second );
         }
 
         for(auto it = mNodalArray1dVariablesMap.begin(); it != mNodalArray1dVariablesMap.end(); ++it)
         {
-            WriteNodalResults( pResultFile, it->first, rNodes, it->second );
+            WriteNodalResult( pResultFile, it->first, rNodes, it->second );
         }
 
         std::size_t cnt = 0;
         for(auto it = mNodalVectorVariablesMap.begin(); it != mNodalVectorVariablesMap.end(); ++it, ++cnt)
         {
             std::size_t size = mNodalVectorVariablesSizeMap[cnt].second;
-            WriteNodalResults( pResultFile, it->first, rNodes, it->second, size );
+            WriteNodalResult( pResultFile, it->first, rNodes, it->second, size );
         }
     }
 
     /**
-     * writes nodal results for variables of type double
+     * writes nodal results for all variables at once
      */
-    void WriteNodalResults( FILE* pResultFile,
-                            Variable<double> const& rVariable,
-                            NodesContainerType& rNodes,
-                            const std::size_t& SolutionStepNumber ) const
+    template<typename EntitiesContainerType>
+    void WriteCellResults( FILE* pResultFile, const EntitiesContainerType& rElements ) const
+    {
+        for(auto it = mCellIntegerVariablesMap.begin(); it != mCellIntegerVariablesMap.end(); ++it)
+        {
+            WriteCellResult<int>( pResultFile, it->first, rElements, it->second );
+        }
+
+        for(auto it = mCellDoubleVariablesMap.begin(); it != mCellDoubleVariablesMap.end(); ++it)
+        {
+            WriteCellResult<double>( pResultFile, it->first, rElements, it->second );
+        }
+
+        if (mResultCellProperties)
+            WriteCellProperties( pResultFile, rElements, 0 );
+    }
+
+private:
+
+    /**
+     * member variables
+     */
+    std::vector<TMeshContainer> mVtkMeshContainers; // each mesh container will go into a piece
+
+    std::vector< std::pair<Variable<double>, std::size_t> > mNodalDoubleVariablesMap;
+    std::vector< std::pair<Variable<array_1d<double, 3> >, std::size_t> > mNodalArray1dVariablesMap;
+    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesMap;
+    std::vector< std::pair<Variable<Vector>, std::size_t> > mNodalVectorVariablesSizeMap;
+
+    std::vector< std::pair<Variable<int>, std::size_t> > mCellIntegerVariablesMap;
+    std::vector< std::pair<Variable<double>, std::size_t> > mCellDoubleVariablesMap;
+
+    bool mResultCellProperties; // special flag to write the cell properties
+
+    /**
+     * assignment operator
+     */
+    VtkIO& operator=(VtkIO const& rOther);
+
+    /**
+     * writes single nodal result for variable of type double
+     */
+    void WriteNodalResult( FILE* pResultFile,
+                           Variable<double> const& rVariable,
+                           const NodesContainerType& rNodes,
+                           const std::size_t SolutionStepNumber ) const
     {
         Timer::Start("Writing Results");
 
@@ -423,14 +520,14 @@ protected:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
                 VTK_fWriteScalar( pResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
         }
         else if (mMode == VTK_PostBinary)
         {
             std::vector<float> data_list;
             data_list.reserve(rNodes.end() - rNodes.begin());
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
                 data_list.push_back(i_node->GetSolutionStepValue(rVariable, SolutionStepNumber));
             float* tmp = (float*)(&data_list[0]);
             vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
@@ -442,12 +539,12 @@ protected:
     }
 
     /**
-     * writes nodal results for variables of type array_1d
+     * writes single nodal result for variable of type array_1d<double, 3>
      */
-    void WriteNodalResults( FILE* pResultFile,
-                            Variable<array_1d<double, 3> > const& rVariable,
-                            NodesContainerType& rNodes,
-                            const std::size_t& SolutionStepNumber ) const
+    void WriteNodalResult( FILE* pResultFile,
+                           Variable<array_1d<double, 3> > const& rVariable,
+                           const NodesContainerType& rNodes,
+                           const std::size_t SolutionStepNumber ) const
     {
         Timer::Start("Writing Results");
 
@@ -455,7 +552,7 @@ protected:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
             {
                 array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 VTK_fWriteVector3( pResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
@@ -465,7 +562,7 @@ protected:
         {
             std::vector<float> data_list;
             data_list.reserve(3*(rNodes.end() - rNodes.begin()));
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
             {
                 array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 data_list.push_back(temp[0]);
@@ -482,13 +579,13 @@ protected:
     }
 
     /**
-     * writes nodal results for variables of type Vector
+     * writes single nodal result for variable of type Vector
      */
-    void WriteNodalResults( FILE* pResultFile,
-                            Variable<Vector> const& rVariable,
-                            NodesContainerType& rNodes,
-                            const std::size_t& SolutionStepNumber,
-                            const std::size_t& NumberOfComponents ) const
+    void WriteNodalResult( FILE* pResultFile,
+                           Variable<Vector> const& rVariable,
+                           const NodesContainerType& rNodes,
+                           const std::size_t SolutionStepNumber,
+                           const std::size_t NumberOfComponents ) const
     {
         Timer::Start("Writing Results");
 
@@ -497,7 +594,7 @@ protected:
         if (mMode == VTK_PostAscii)
         {
             double* temp = new double[NumberOfComponents];
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
             {
                 const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 for ( unsigned int i = 0; i < NumberOfComponents; ++i )
@@ -510,7 +607,7 @@ protected:
         {
             std::vector<float> data_list;
             data_list.reserve(NumberOfComponents*(rNodes.end() - rNodes.begin()));
-            for ( NodesContainerType::iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
             {
                 const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 for ( unsigned int i = 0; i < NumberOfComponents; ++i )
@@ -525,11 +622,71 @@ protected:
         Timer::Stop("Writing Results");
     }
 
-private:
     /**
-     * assignment operator
+     * writes single cell result for variable of type scalar (bool|int|double)
      */
-    VtkIO& operator=(VtkIO const& rOther);
+    template<typename TScalarType, typename EntitiesContainerType>
+    void WriteCellResult( FILE* pResultFile,
+                           Variable<TScalarType> const& rVariable,
+                           const EntitiesContainerType& rElements,
+                           const std::size_t SolutionStepNumber ) const
+    {
+        Timer::Start("Writing Results");
+
+        VTK_fBeginResult( pResultFile, (char*)(rVariable.Name().c_str()), 1, mMode );
+
+        if (mMode == VTK_PostAscii)
+        {
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+                VTK_fWriteScalar( pResultFile, i_elem->Id(), i_elem->GetValue(rVariable) );
+        }
+        else if (mMode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(rElements.end() - rElements.begin());
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+                data_list.push_back(i_elem->GetValue(rVariable));
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+        }
+
+        VTK_fEndResult( pResultFile );
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes cell Properties
+     */
+    template<typename EntitiesContainerType>
+    void WriteCellProperties( FILE* pResultFile,
+                              const EntitiesContainerType& rElements,
+                              const std::size_t SolutionStepNumber ) const
+    {
+        Timer::Start("Writing Results");
+
+        const std::string var_name = "Properties";
+        VTK_fBeginResult( pResultFile, (char*)(var_name.c_str()), 1, mMode );
+
+        if (mMode == VTK_PostAscii)
+        {
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+                VTK_fWriteScalar( pResultFile, i_elem->Id(), i_elem->GetProperties().Id() );
+        }
+        else if (mMode == VTK_PostBinary)
+        {
+            std::vector<float> data_list;
+            data_list.reserve(rElements.end() - rElements.begin());
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+                data_list.push_back(i_elem->GetProperties().Id());
+            float* tmp = (float*)(&data_list[0]);
+            vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
+        }
+
+        VTK_fEndResult( pResultFile );
+
+        Timer::Stop("Writing Results");
+    }
 
     /**
      * Copy constructor
@@ -541,4 +698,3 @@ private:
 }// namespace Kratos.
 
 #endif // KRATOS_VTK_IO_H_INCLUDED  defined
-

@@ -82,8 +82,8 @@ public:
             BaseType::mResultFileOpen = true;
         }
 
-        for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
-                        it != BaseType::mVtkMeshContainers.end(); it++ )
+        for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
+                        it != BaseType::MeshContainers().end(); it++ )
         {
             it->Reset();
         }
@@ -92,20 +92,20 @@ public:
         {
             for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
-                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
-                        it != BaseType::mVtkMeshContainers.end(); it++ )
+                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
+                        it != BaseType::MeshContainers().end(); it++ )
                     if ( it->AddElement( element_iterator ) )
                         break;
 
             for ( typename MeshType::ConditionsContainerType::iterator conditions_iterator = rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
-                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
-                        it != BaseType::mVtkMeshContainers.end(); it++ )
+                for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
+                        it != BaseType::MeshContainers().end(); it++ )
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
 
-            for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
-                    it != BaseType::mVtkMeshContainers.end(); ++it )
+            for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
+                    it != BaseType::MeshContainers().end(); ++it )
             {
                 it->FinalizeMeshCreation();
             }
@@ -118,8 +118,8 @@ public:
      */
     void Finalize() override
     {
-        for ( typename std::vector<TMeshContainer>::iterator it = BaseType::mVtkMeshContainers.begin();
-                    it != BaseType::mVtkMeshContainers.end(); ++it )
+        for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
+                    it != BaseType::MeshContainers().end(); ++it )
         {
             // iterate through element mesh in the mesh container
             for ( typename TMeshContainer::MeshElementsContainerType::iterator it2 = it->GetMeshElements().begin();
@@ -136,11 +136,18 @@ public:
                 it->WriteMesh( BaseType::mResultFile, MeshNodes, MeshElements, false, BaseType::mMode );
 
                 // write the nodal results
-                BaseType::BeginResultsHeader( BaseType::mResultFile );
+                BaseType::BeginNodalResultsHeader( BaseType::mResultFile );
 
                 BaseType::WriteNodalResults( BaseType::mResultFile, MeshNodes );
 
-                BaseType::EndResultsHeader( BaseType::mResultFile );
+                BaseType::EndNodalResultsHeader( BaseType::mResultFile );
+
+                // write the cell results
+                BaseType::BeginCellResultsHeader( BaseType::mResultFile );
+
+                BaseType::WriteCellResults( BaseType::mResultFile, MeshElements );
+
+                BaseType::EndCellResultsHeader( BaseType::mResultFile );
 
                 // end writing the piece
                 VTK_fEndMesh ( BaseType::mResultFile );
@@ -161,11 +168,18 @@ public:
                 it->WriteMesh( BaseType::mResultFile, MeshNodes, MeshConditions, false, BaseType::mMode );
 
                 // write the nodal results
-                BaseType::BeginResultsHeader( BaseType::mResultFile );
+                BaseType::BeginNodalResultsHeader( BaseType::mResultFile );
 
                 BaseType::WriteNodalResults( BaseType::mResultFile, MeshNodes );
 
-                BaseType::EndResultsHeader( BaseType::mResultFile );
+                BaseType::EndNodalResultsHeader( BaseType::mResultFile );
+
+                // write the cell results
+                BaseType::BeginCellResultsHeader( BaseType::mResultFile );
+
+                BaseType::WriteCellResults( BaseType::mResultFile, MeshConditions );
+
+                BaseType::EndCellResultsHeader( BaseType::mResultFile );
 
                 // end writing the piece
                 VTK_fEndMesh ( BaseType::mResultFile );
