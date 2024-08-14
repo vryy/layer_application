@@ -127,8 +127,8 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void AddLayer(std::string layer_name, boost::python::dict& pyDictNodalSet,
-            boost::python::dict& pyDictEntitySet, boost::python::dict& pyDictEntityInfoSet)
+    virtual void AddLayer(std::string layer_name, const boost::python::dict& pyDictNodalSet,
+            const boost::python::dict& pyDictEntitySet, const boost::python::dict& pyDictEntityInfoSet)
     {
         Layer::Pointer pLayer = Layer::Pointer(new Layer(++mLastLayer, layer_name));
 
