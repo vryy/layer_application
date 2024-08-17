@@ -80,10 +80,17 @@ void Array1DPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<array_1d<d
 }
 
 template<typename TGidPostIOType>
-void VectorPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<Vector>& rVariable,
+void VectorPrintOnGaussPoints1( TGidPostIOType& dummy, const Variable<Vector>& rVariable,
                                ModelPart& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+}
+
+template<typename TGidPostIOType>
+void VectorPrintOnGaussPoints2( TGidPostIOType& dummy, const Variable<Vector>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag, int value_index )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag, value_index );
 }
 
 template<typename TGidPostIOType>
@@ -252,7 +259,8 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     .def("PrintOnGaussPoints", IntegerPrintOnGaussPoints<TGidPostIOType>)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints<TGidPostIOType>)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints<TGidPostIOType>)
-    .def("PrintOnGaussPoints", VectorPrintOnGaussPoints<TGidPostIOType>)
+    .def("PrintOnGaussPoints", VectorPrintOnGaussPoints1<TGidPostIOType>)
+    .def("PrintOnGaussPoints", VectorPrintOnGaussPoints2<TGidPostIOType>)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints<TGidPostIOType>)
 
     .def("Flush", &TGidPostIOType::Flush)
