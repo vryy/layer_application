@@ -478,10 +478,6 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            const bool is_stress_strain = rVariable.Name().find("STRESS") != std::string::npos
-                                       || rVariable.Name().find("STRAIN") != std::string::npos
-                                       || rVariable.Name().find("STRETCH") != std::string::npos;
-
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
                              SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
@@ -494,8 +490,7 @@ public:
                                                      r_model_part.GetProcessInfo() );
                     for( unsigned int i = 0; i < mSize; ++i )
                     {
-                        if (is_stress_strain)
-                            PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
                     }
                 }
             }
@@ -508,8 +503,7 @@ public:
                                                      r_model_part.GetProcessInfo() );
                     for( unsigned int i = 0; i < mSize; ++i )
                     {
-                        if (is_stress_strain)
-                            PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
                     }
                 }
             }
