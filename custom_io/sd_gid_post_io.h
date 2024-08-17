@@ -924,7 +924,7 @@ public:
     ///functions for printing results on gauss points
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints element partition index on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
@@ -999,7 +999,7 @@ public:
     }
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints variables of type array_1d on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
@@ -1022,7 +1022,7 @@ public:
     }
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints variables of type Vector on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
@@ -1030,6 +1030,7 @@ public:
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
+
         Timer::Start("Writing Results");
 
         for ( typename GaussPointContainerVectorType::iterator it =
@@ -1045,7 +1046,7 @@ public:
     }
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints variables of type Matrix on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
@@ -1053,7 +1054,9 @@ public:
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
+
         Timer::Start("Writing Results");
+
         for ( typename GaussPointContainerVectorType::iterator it =
                     BaseType::mGaussPointContainers.begin();
                 it != BaseType::mGaussPointContainers.end(); it++ )

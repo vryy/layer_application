@@ -40,13 +40,10 @@
 
 namespace Kratos
 {
+
 /**
  * Type definitions
  */
-typedef ModelPart::ElementsContainerType ElementsArrayType;
-typedef ModelPart::NodesContainerType NodesArrayType;
-typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-typedef GeometryData::IntegrationMethod IntegrationMethodType;
 typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
 /**
@@ -96,13 +93,14 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry family type", static_cast<int>(mKratosElementFamily))
+            KRATOS_ERROR << "Unknown geometry family type " << static_cast<int>(mKratosElementFamily);
         }
     }
 
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
         KRATOS_TRY
+
         if( pElemIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
                 && pElemIt->GetIntegrationMethod() == mIntegrationMethod )
         {
@@ -117,12 +115,14 @@ public:
             }
         }
         else return false;
+
         KRATOS_CATCH("")
     }
 
     bool AddCondition( const ModelPart::ConditionsContainerType::iterator pCondIt )
     {
         KRATOS_TRY
+
         if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
                 && pCondIt->GetIntegrationMethod() == mIntegrationMethod )
         {
@@ -137,6 +137,7 @@ public:
             }
         }
         else return false;
+
         KRATOS_CATCH("")
     }
 
@@ -154,6 +155,7 @@ public:
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -165,6 +167,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -176,6 +179,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -194,7 +198,9 @@ public:
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             std::vector<int> ValuesOnIntPoint(mSize);
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -208,6 +214,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -221,6 +228,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -239,7 +247,9 @@ public:
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             std::vector<double> ValuesOnIntPoint(mSize);
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -253,6 +263,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -266,6 +277,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -284,7 +296,9 @@ public:
 
             GiD_fBeginResult( ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -299,6 +313,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -313,6 +328,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -330,7 +346,9 @@ public:
 
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), ( char*)("Kratos"),
                              SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -347,6 +365,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -363,6 +382,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -433,6 +453,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -463,6 +484,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -480,7 +502,9 @@ public:
 
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
                              SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
             std::vector<Matrix> ValuesOnIntPoint(mSize);
+
             if( mMeshElements.size() != 0 )
             {
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -494,6 +518,7 @@ public:
                     }
                 }
             }
+
             if( mMeshConditions.size() != 0 )
             {
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -507,6 +532,7 @@ public:
                     }
                 }
             }
+
             GiD_fEndResult(ResultFile);
         }
     }
@@ -575,7 +601,7 @@ private:
     }
 
     template<typename TMatrixType>
-    void PrintStressTensor(GiD_FILE ResultFile, int id, const TMatrixType& rValue) const
+    void PrintStressTensor(GiD_FILE ResultFile, const int id, const TMatrixType& rValue) const
     {
         if(rValue.size1() == 3 && rValue.size2() == 3) // 3D
         {
@@ -663,7 +689,7 @@ protected:
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
 };//class GidSDIntegrationPointsContainer
+
 }// namespace Kratos.
 
 #endif // KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED defined
-
