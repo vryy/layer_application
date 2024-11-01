@@ -259,13 +259,13 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("FinalizeLayerConnection", &MultipatchLayerHandler::FinalizeLayerConnection)
     ;
 
-    class_<AutoCollapseSpatialBinning, AutoCollapseSpatialBinning::Pointer, boost::noncopyable>
+    class_<AutoCollapseSpatialBinning<>, typename AutoCollapseSpatialBinning<>::Pointer, boost::noncopyable>
     ("AutoCollapseSpatialBinning", init<double, double, double, double, double, double, double>())
-    .def("AddNode", &AutoCollapseSpatialBinning::AddNode)
-    .def("NumberOfNodes", &AutoCollapseSpatialBinning::NumberOfNodes)
-    .def("GetX", &AutoCollapseSpatialBinning::GetX)
-    .def("GetY", &AutoCollapseSpatialBinning::GetY)
-    .def("GetZ", &AutoCollapseSpatialBinning::GetZ)
+    .def("AddNode", &AutoCollapseSpatialBinning<>::AddNode)
+    .def("NumberOfNodes", &AutoCollapseSpatialBinning<>::NumberOfNodes)
+    .def("GetX", &AutoCollapseSpatialBinning<>::GetX)
+    .def("GetY", &AutoCollapseSpatialBinning<>::GetY)
+    .def("GetZ", &AutoCollapseSpatialBinning<>::GetZ)
     ;
 
     class_<SpatialGridNodalBinning, SpatialGridNodalBinning::Pointer, boost::noncopyable>

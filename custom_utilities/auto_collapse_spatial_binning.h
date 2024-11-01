@@ -52,15 +52,15 @@ namespace Kratos
 /*** Detail class definition.
  * This utility class supports for spatial binning with auto collapsing functionality. This class used SpatialPoint as point data and will collapse the conincident point.
  */
+template<typename TIndexType = std::size_t, typename TDataType = double>
 class AutoCollapseSpatialBinning
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t IndexType;
-    typedef SpatialPoint<double> SpatialPointType;
-    typedef std::map<SpatialKey, std::vector<IndexType> > BinType;
+    typedef SpatialPoint<TDataType> SpatialPointType;
+    typedef std::map<SpatialKey, std::vector<TIndexType> > BinType;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(AutoCollapseSpatialBinning);
@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// Default constructor.
-    AutoCollapseSpatialBinning(double X0, double Y0, double Z0, double Dx, double Dy, double Dz, double tol)
+    AutoCollapseSpatialBinning(TDataType X0, TDataType Y0, TDataType Z0, TDataType Dx, TDataType Dy, TDataType Dz, TDataType tol)
     : mX0(X0), mY0(Y0), mZ0(Z0), mDx(Dx), mDy(Dy), mDz(Dz), mTol(tol)
     {
         mLastNode = 0;
@@ -90,9 +90,9 @@ public:
     ///@{
 
     /**
-     * This function add node to the spatial binning and return the id of this node in the bin
+     * Add node to the spatial binning and return the id of this node in the bin
      */
-    IndexType AddNode(double X, double Y, double Z)
+    TIndexType AddNode(const TDataType X, const TDataType Y, const TDataType Z)
     {
         // find the cell containing point
         int ix = (int) floor((X - mX0) / mDx);
@@ -101,44 +101,102 @@ public:
 
         // check if the spatial key exist
         SpatialKey key(ix, iy, iz);
-    //    std::cout << "ix = " << ix << ", iy = " << iy << ", iz = " << iz << std::endl;
-        BinType::iterator it = mBin.find(key);
+
+        typename BinType::iterator it = mBin.find(key);
         if(it != mBin.end())
         {
             // check if node already exist in the cell
-    //        std::cout << "check if node already exist in the cell" << std::endl;
             for(std::size_t i = 0; i < it->second.size(); ++i)
             {
-                double xi = mPointList[it->second[i] - 1]->X();
-                double yi = mPointList[it->second[i] - 1]->Y();
-                double zi = mPointList[it->second[i] - 1]->Z();
-                double d = sqrt(pow(X - xi, 2) + pow(Y - yi, 2) + pow(Z - zi, 2));
+                const auto p = mPointList[it->second[i] - 1];
+                TDataType xi = p->X();
+                TDataType yi = p->Y();
+                TDataType zi = p->Z();
+                TDataType d = sqrt(pow(X - xi, 2) + pow(Y - yi, 2) + pow(Z - zi, 2));
                 if(d < mTol)
                 {
-    //                std::cout << "node exist in cell, return its id" << std::endl;
-                    return mPointList[it->second[i] - 1]->Id();
+                    // node exist in cell, return its id
+                    return p->Id();
                 }
             }
             // node does not exist in cell, insert the node into spatial bin
-            mPointList.push_back(SpatialPointType::Pointer(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
+            mPointList.push_back(typename SpatialPointType::Pointer(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
             mBin[key].push_back(mLastNode);
-    //        std::cout << "node does not exist in cell, insert the node into spatial bin, mLastNode = " << mLastNode << ", mBin[key].size() = " << mBin[key].size() << std::endl;
             return mLastNode;
         }
         else
         {
             // insert the node into spatial bin
-            mPointList.push_back(SpatialPointType::Pointer(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
+            mPointList.push_back(typename SpatialPointType::Pointer(new SpatialPointType(++mLastNode, 0, 0, X, Y, Z)));
             mBin[key].push_back(mLastNode);
-    //        std::cout << "insert the node into spatial bin, mLastNode = " << mLastNode << ", mBin[key].size() = " << mBin[key].size() << std::endl;
             return mLastNode;
         }
     }
 
+    /**
+     * Check if a node exists in bin
+     */
+    bool HasNode(const TDataType X, const TDataType Y, const TDataType Z) const
+    {
+        TIndexType dummy;
+        return HasNode(X, Y, Z, dummy);
+    }
+
+    /**
+     * Check if a node exists in bin. If existed, then return its index
+     */
+    bool HasNode(const TDataType X, const TDataType Y, const TDataType Z, TIndexType& node_index) const
+    {
+        // find the cell containing point
+        int ix = (int) floor((X - mX0) / mDx);
+        int iy = (int) floor((Y - mY0) / mDy);
+        int iz = (int) floor((Z - mZ0) / mDz);
+
+        // check if the spatial key exist
+        SpatialKey key(ix, iy, iz);
+
+        typename BinType::const_iterator it = mBin.find(key);
+        if(it != mBin.end())
+        {
+            // check if node already exist in the cell
+            for(std::size_t i = 0; i < it->second.size(); ++i)
+            {
+                const auto p = mPointList[it->second[i] - 1];
+                TDataType xi = p->X();
+                TDataType yi = p->Y();
+                TDataType zi = p->Z();
+                TDataType d = sqrt(pow(X - xi, 2) + pow(Y - yi, 2) + pow(Z - zi, 2));
+                if(d < mTol)
+                {
+                    node_index = p->Id();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Return the id of this node in the bin and throw error if that node does not exist
+     */
+    TIndexType GetNode(const TDataType X, const TDataType Y, const TDataType Z) const
+    {
+        TIndexType node_index;
+
+        if (this->HasNode(X, Y, Z, node_index))
+        {
+            return node_index;
+        }
+
+        KRATOS_ERROR << "Node " << X << "," << Y << "," << Z << " does not exist";
+        return -1; // silence the compiler
+    }
+
     std::size_t NumberOfNodes() const {return mPointList.size();}
-    double GetX(std::size_t id) const {return mPointList[id - 1]->X();}
-    double GetY(std::size_t id) const {return mPointList[id - 1]->Y();}
-    double GetZ(std::size_t id) const {return mPointList[id - 1]->Z();}
+    TDataType GetX(std::size_t id) const {return mPointList[id - 1]->X();}
+    TDataType GetY(std::size_t id) const {return mPointList[id - 1]->Y();}
+    TDataType GetZ(std::size_t id) const {return mPointList[id - 1]->Z();}
 
     ///@}
     ///@name Access
@@ -209,12 +267,12 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    double mX0, mY0, mZ0, mDx, mDy, mDz;
-    IndexType mLastNode;
-    double mTol;
+    TDataType mX0, mY0, mZ0, mDx, mDy, mDz;
+    TIndexType mLastNode;
+    TDataType mTol;
 
     BinType mBin;
-    std::vector<SpatialPointType::Pointer> mPointList;
+    std::vector<typename SpatialPointType::Pointer> mPointList;
 
     ///@}
     ///@name Member Variables
@@ -265,21 +323,22 @@ private:
 ///@{
 
 /// input stream function
-//inline std::istream& operator >>(std::istream& rIStream, AutoCollapseSpatialBinning& rThis)
-//{
-//    return rIStream;
-//}
+template<typename TIndexType, typename TDataType>
+inline std::istream& operator >>(std::istream& rIStream, AutoCollapseSpatialBinning<TIndexType, TDataType>& rThis)
+{
+   return rIStream;
+}
 
-///// output stream function
-//inline std::ostream& operator <<(std::ostream& rOStream,
-//        const AutoCollapseSpatialBinning& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
+/// output stream function
+template<typename TIndexType, typename TDataType>
+inline std::ostream& operator <<(std::ostream& rOStream, const AutoCollapseSpatialBinning<TIndexType, TDataType>& rThis)
+{
+   rThis.PrintInfo(rOStream);
+   rOStream << std::endl;
+   rThis.PrintData(rOStream);
 
-//    return rOStream;
-//}
+   return rOStream;
+}
 ///@}
 
 ///@} addtogroup block
