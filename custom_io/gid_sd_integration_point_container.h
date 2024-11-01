@@ -237,6 +237,8 @@ public:
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
+        const ProcessInfo& process_info = r_model_part.GetProcessInfo();
+
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
             std::stringstream ss;
@@ -255,8 +257,7 @@ public:
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); ++it )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
                     for( unsigned int i = 0; i < mSize; ++i )
                     {
                         GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );
@@ -269,8 +270,7 @@ public:
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); ++it )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                     r_model_part.GetProcessInfo() );
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
                     for( unsigned int i = 0; i < mSize; ++i )
                     {
                         GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );

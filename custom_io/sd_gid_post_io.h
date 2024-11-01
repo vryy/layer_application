@@ -317,24 +317,9 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
-        return "sd post io";
-    }
-
-    /**
-     * Print information about this object.
-     */
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /**
-     * Print object's data.
-     */
-    virtual void PrintData(std::ostream& rOStream) const
-    {
+        return "SD-GiD-post-io";
     }
 
     ///result functions
@@ -1102,58 +1087,6 @@ private:
     SDGidPostIO(SDGidPostIO const& rOther);
 }; // Class SDGidPostIO
 
-
-///**
-// * Input and output
-// */
-//SDGidPostIO& operator >> (SDGidPostIO& rInput, IO::NodeType& rNode)
-//{
-//    rInput.ReadNode(rNode);
-//    return rInput;
-//}
-
-//SDGidPostIO& operator >> (SDGidPostIO& rInput, IO::NodesContainerType& rNodes)
-//{
-//    rInput.ReadNodes(rNodes);
-//    return rInput;
-//}
-
-//SDGidPostIO& operator >> (SDGidPostIO& rInput, IO::PropertiesContainerType& rProperties)
-//{
-//    rInput.ReadProperties(rProperties);
-//    return rInput;
-//}
-
-//SDGidPostIO& operator >> (SDGidPostIO& rInput, IO::MeshType& rMesh)
-//{
-//    rInput.ReadMesh(rMesh);
-//    return rInput;
-//}
-
-//SDGidPostIO& operator << (SDGidPostIO& rOutput, IO::NodesContainerType& rNodes)
-//{
-//    rOutput.WriteNodes(rNodes);
-//    return rOutput;
-//}
-
-//SDGidPostIO& operator << (SDGidPostIO& rOutput, IO::ElementsContainerType& rElements)
-//{
-//    rOutput.WriteElements(rElements);
-//    return rOutput;
-//}
-
-///**
-// * output stream function
-// */
-//inline std::ostream& operator << (std::ostream& rOStream, const SDGidPostIO<>& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
-//    return rOStream;
-//}
-
 }// namespace Kratos.
 
 #endif // KRATOS_SD_GID_POST_IO_H_INCLUDED  defined
-

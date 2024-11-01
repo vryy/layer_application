@@ -44,8 +44,8 @@
 namespace Kratos
 {
 
-
 /**
+ * TODO
  */
 template<class TGaussPointContainer, class TMeshContainer>
 class SDTikzPostIO : public SDPostIO<TGaussPointContainer, TMeshContainer>
@@ -238,6 +238,13 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Turn back information as a string.
+     */
+    std::string Info() const override
+    {
+        return "SD-Tikz-post-io";
+    }
 
 protected:
 
@@ -274,57 +281,6 @@ private:
      */
     SDTikzPostIO(SDTikzPostIO const& rOther);
 }; // Class SDTikzPostIO
-
-
-///**
-// * Input and output
-// */
-//SDTikzPostIO& operator >> (SDTikzPostIO& rInput, IO::NodeType& rNode)
-//{
-//    rInput.ReadNode(rNode);
-//    return rInput;
-//}
-
-//SDTikzPostIO& operator >> (SDTikzPostIO& rInput, IO::NodesContainerType& rNodes)
-//{
-//    rInput.ReadNodes(rNodes);
-//    return rInput;
-//}
-
-//SDTikzPostIO& operator >> (SDTikzPostIO& rInput, IO::PropertiesContainerType& rProperties)
-//{
-//    rInput.ReadProperties(rProperties);
-//    return rInput;
-//}
-
-//SDTikzPostIO& operator >> (SDTikzPostIO& rInput, IO::MeshType& rMesh)
-//{
-//    rInput.ReadMesh(rMesh);
-//    return rInput;
-//}
-
-//SDTikzPostIO& operator << (SDTikzPostIO& rOutput, IO::NodesContainerType& rNodes)
-//{
-//    rOutput.WriteNodes(rNodes);
-//    return rOutput;
-//}
-
-//SDTikzPostIO& operator << (SDTikzPostIO& rOutput, IO::ElementsContainerType& rElements)
-//{
-//    rOutput.WriteElements(rElements);
-//    return rOutput;
-//}
-
-///**
-// * output stream function
-// */
-//inline std::ostream& operator << (std::ostream& rOStream, const SDTikzPostIO<>& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
-//    return rOStream;
-//}
 
 }// namespace Kratos.
 

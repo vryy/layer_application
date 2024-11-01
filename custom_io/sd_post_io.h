@@ -210,6 +210,29 @@ public:
         }
     }
 
+    /**
+     * Turn back information as a string.
+     */
+    virtual std::string Info() const
+    {
+        return "SD-post-io";
+    }
+
+    /**
+     * Print information about this object.
+     */
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /**
+     * Print object's data.
+     */
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
 protected:
     /**
      * File names
@@ -275,18 +298,18 @@ private:
 //    return rOutput;
 //}
 
-///**
-// * output stream function
-// */
-//inline std::ostream& operator << (std::ostream& rOStream, const SDPostIO<>& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
-//    return rOStream;
-//}
+/**
+ * output stream function
+ */
+template<class TGaussPointContainer, class TMeshContainer>
+inline std::ostream& operator << (std::ostream& rOStream, const SDPostIO<TGaussPointContainer, TMeshContainer>& rThis)
+{
+   rThis.PrintInfo(rOStream);
+   rOStream << std::endl;
+   rThis.PrintData(rOStream);
+   return rOStream;
+}
 
 }// namespace Kratos.
 
 #endif // KRATOS_SD_POST_IO_H_INCLUDED  defined
-
