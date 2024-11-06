@@ -266,6 +266,8 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("GetX", &AutoCollapseSpatialBinning<>::GetX)
     .def("GetY", &AutoCollapseSpatialBinning<>::GetY)
     .def("GetZ", &AutoCollapseSpatialBinning<>::GetZ)
+    .def("SetDistance", &AutoCollapseSpatialBinning<>::SetDistance)
+    .def("SetTolerance", &AutoCollapseSpatialBinning<>::SetTolerance)
     ;
 
     class_<SpatialGridNodalBinning, SpatialGridNodalBinning::Pointer, boost::noncopyable>

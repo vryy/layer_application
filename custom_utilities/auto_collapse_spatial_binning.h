@@ -89,6 +89,20 @@ public:
     ///@name Operations
     ///@{
 
+    /// Set the binning distance
+    void SetDistance(double dx, double dy, double dz)
+    {
+        mDx = dx;
+        mDy = dy;
+        mDz = dz;
+    }
+
+    /// Set the binning tolerance
+    void SetTolerance(double tol)
+    {
+        mTol = tol;
+    }
+
     /**
      * Add node to the spatial binning and return the id of this node in the bin
      */
