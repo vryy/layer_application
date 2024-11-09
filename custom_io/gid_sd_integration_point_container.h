@@ -118,8 +118,11 @@ public:
                 mMeshElements.push_back( *(pElemIt.base() ) );
                 return true;
             }
+            else
+                return false;
         }
-        else return false;
+        else
+            return false;
 
         KRATOS_CATCH("")
     }
@@ -140,8 +143,11 @@ public:
                 mMeshConditions.push_back( *(pCondIt.base() ) );
                 return true;
             }
+            else
+                return false;
         }
-        else return false;
+        else
+            return false;
 
         KRATOS_CATCH("")
     }
