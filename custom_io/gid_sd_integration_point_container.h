@@ -97,7 +97,7 @@ public:
         }
     }
 
-    bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement( const ModelPart::ElementsContainerType::const_iterator pElemIt )
     {
         KRATOS_TRY
 
@@ -119,7 +119,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    bool AddCondition( const ModelPart::ConditionsContainerType::iterator pCondIt )
+    bool AddCondition( const ModelPart::ConditionsContainerType::const_iterator pCondIt )
     {
         KRATOS_TRY
 

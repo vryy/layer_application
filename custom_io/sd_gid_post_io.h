@@ -324,7 +324,7 @@ public:
      * @param SolutionTag the current solution step (i.e. time)
      * @param conditions_flag states whether results should also be written on conditions
      */
-    virtual void InitializeResults( double name, MeshType& rThisMesh )
+    virtual void InitializeResults( double name, const MeshType& rThisMesh )
     {
         if ( mMode == GiD_PostAscii && ! mResultFileOpen )
         {
@@ -332,13 +332,12 @@ public:
             file_name << BaseType::mResultFileName << std::setprecision(12) << "_" << name << ".post.res";
             mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
-
         }
 
         // initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
         {
-            for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+            for ( typename MeshType::ElementConstantIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {
                 for ( typename GaussPointContainerVectorType::iterator it = BaseType::mGaussPointContainers.begin();
@@ -352,9 +351,8 @@ public:
 
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
         {
-            for ( typename MeshType::ConditionsContainerType::iterator conditions_iterator =
-                        rThisMesh.ConditionsBegin(); conditions_iterator
-                    != rThisMesh.ConditionsEnd(); conditions_iterator++ )
+            for ( typename MeshType::ConditionConstantIterator conditions_iterator = rThisMesh.ConditionsBegin();
+                    conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
             {
                 for ( typename GaussPointContainerVectorType::iterator it = BaseType::mGaussPointContainers.begin();
                         it != BaseType::mGaussPointContainers.end(); ++it )
