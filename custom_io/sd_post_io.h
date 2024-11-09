@@ -66,7 +66,7 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
  * In particular, it can be used to interface with GiDPost, in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer, class TMeshContainer>
-class SDPostIO// : public IO
+class SDPostIO // : public IO
 {
 public:
 

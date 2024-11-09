@@ -97,7 +97,7 @@ public:
     /// Initialize the elements binning
     void Initialize( const ElementsContainerType& pElements ) final
     {
-        std::cout << "Initialize the spatial binning" << std::endl;
+        std::cout << "Initialize the spatial binning, number of elements = " << pElements.size() << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();

@@ -141,7 +141,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
     void PrintPartitionIndex( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& r_model_part,
                               double SolutionTag, unsigned int value_index, int rank )
     {
@@ -183,7 +182,6 @@ public:
             GiD_fEndResult(ResultFile);
         }
     }
-
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )
@@ -233,7 +231,6 @@ public:
         }
     }
 
-
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
@@ -281,7 +278,6 @@ public:
             GiD_fEndResult(ResultFile);
         }
     }
-
 
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part,
                                double SolutionTag, unsigned int value_index )

@@ -93,7 +93,7 @@ public:
     /// Initialize the elements binning
     void Initialize( const ElementsContainerType& pElements ) final
     {
-        std::cout << "Initialize the structured grid indexing" << std::endl;
+        std::cout << "Initialize the structured grid indexing, number of elements = " << pElements.size() << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();
@@ -206,23 +206,23 @@ public:
             KRATOS_WATCH(I)
             KRATOS_WATCH(Nx)
             KRATOS_WATCH(Ny)
-            KRATOS_WATCH(rSourcePoint)
-            std::cout << "mAxesPoints[0]:" << std::endl;
-            for (int i = 0; i < mAxesPoints[0].size(); ++i)
-                std::cout << " " << mAxesPoints[0][i];
+            std::vector<double> vmin(TDim), vmax(TDim);
+            for (int d = 0; d < TDim; ++d)
+            {
+                std::cout << "mAxesPoints[" << d << "]:" << std::endl;
+                for (int i = 0; i < mAxesPoints[d].size(); ++i)
+                    std::cout << " " << mAxesPoints[d][i];
+                std::cout << std::endl;
+                this->FindMinMax(d, vmin[d], vmax[d]);
+            }
+            // std::cout << "mElemenIndexing:" << std::endl;
+            // for (auto it = mElemenIndexing.begin(); it != mElemenIndexing.end(); ++it)
+            //     std::cout << it->first << " " << it->second << std::endl;
+            std::cout << "Mesh region:";
+            for (int d = 0; d < TDim; ++d)
+                std::cout << " [" << vmin[d] << ", " << vmax[d] << "]";
             std::cout << std::endl;
-            std::cout << "mAxesPoints[1]:" << std::endl;
-            for (int i = 0; i < mAxesPoints[1].size(); ++i)
-                std::cout << " " << mAxesPoints[1][i];
-            std::cout << std::endl;
-            // std::cout << "mAxesPoints[2]:" << std::endl;
-            // for (int i = 0; i < mAxesPoints[2].size(); ++i)
-            //     std::cout << " " << mAxesPoints[2][i];
-            // std::cout << std::endl;
-            std::cout << "mElemenIndexing:" << std::endl;
-            for (auto it = mElemenIndexing.begin(); it != mElemenIndexing.end(); ++it)
-                std::cout << it->first << " " << it->second << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "The point does not locate in the mesh region", "")
+            KRATOS_ERROR << "Point " << rSourcePoint << " does not locate in the mesh region";
             master_elements.resize(0);
             return;
         }
@@ -238,7 +238,7 @@ public:
     {
         auto it = rAllElements.find(master_elements[0]);
         if (it == rAllElements.end())
-            KRATOS_THROW_ERROR(std::logic_error, "The master element is not yet determined", "")
+            KRATOS_ERROR << "The master element is not yet determined";
         pMatchedMaster = *(it.base());
 
         const GeometryType& rGeometry = pMatchedMaster->GetGeometry();
@@ -372,6 +372,20 @@ private:
         }
     }
 
+    /// Find the minimum and maximum value on the axis
+    void FindMinMax(const int dim, double& vmin, double& vmax) const
+    {
+        vmin = 1e99;
+        vmax = -1e99;
+        for (std::size_t i = 0; i < mAxesPoints[dim].size(); ++i)
+        {
+            if (mAxesPoints[dim][i] > vmax)
+                vmax = mAxesPoints[dim][i];
+            if (mAxesPoints[dim][i] < vmin)
+                vmin = mAxesPoints[dim][i];
+        }
+    }
+
     /// Get corners of a geometry
     void GetCorners(std::vector<PointType>& Corners, const GeometryType& rGeometry) const;
 
@@ -435,7 +449,7 @@ void NonuniformStructuredGridElementalIndexing<1>::GetCorners(std::vector<PointT
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << static_cast<int>(rGeometry.GetGeometryFamily());
 }
 
 template<>
@@ -479,7 +493,7 @@ void NonuniformStructuredGridElementalIndexing<2>::GetCorners(std::vector<PointT
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << static_cast<int>(rGeometry.GetGeometryFamily());
 }
 
 template<>
@@ -531,7 +545,7 @@ void NonuniformStructuredGridElementalIndexing<3>::GetCorners(std::vector<PointT
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << static_cast<int>(rGeometry.GetGeometryFamily());
 }
 
 template<>

@@ -16,11 +16,6 @@
 //
 
 
-
-
-
-
-
 #if !defined(KRATOS_SD_GID_POST_IO_H_INCLUDED)
 #define  KRATOS_SD_GID_POST_IO_H_INCLUDED
 
@@ -346,14 +341,12 @@ public:
             for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {
-                for ( typename GaussPointContainerVectorType::iterator it =
-                            BaseType::mGaussPointContainers.begin();
-                        it != BaseType::mGaussPointContainers.end(); it++ )
+                for ( typename GaussPointContainerVectorType::iterator it = BaseType::mGaussPointContainers.begin();
+                        it != BaseType::mGaussPointContainers.end(); ++it )
                 {
                     if ( it->AddElement( element_iterator ) )
                         break;
                 }
-
             }
         }
 
@@ -363,11 +356,9 @@ public:
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
             {
-                for ( typename GaussPointContainerVectorType::iterator it =
-                            BaseType::mGaussPointContainers.begin();
-                        it != BaseType::mGaussPointContainers.end(); it++ )
+                for ( typename GaussPointContainerVectorType::iterator it = BaseType::mGaussPointContainers.begin();
+                        it != BaseType::mGaussPointContainers.end(); ++it )
                 {
-
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
                 }
