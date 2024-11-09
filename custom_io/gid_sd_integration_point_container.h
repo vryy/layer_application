@@ -63,7 +63,7 @@ public:
     {
         mKratosElementFamily = geometryFamily;
 
-        if(     mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Hexahedra )
+        if(mKratosElementFamily == GeometryData::KratosGeometryFamily::Kratos_Hexahedra )
         {
             mGidElementFamily = GiD_Hexahedra;
         }
@@ -95,6 +95,11 @@ public:
         {
             KRATOS_ERROR << "Unknown geometry family type " << static_cast<int>(mKratosElementFamily);
         }
+    }
+
+    std::string GPTitle() const
+    {
+        return mGPTitle;
     }
 
     bool AddElement( const ModelPart::ElementsContainerType::const_iterator pElemIt )
