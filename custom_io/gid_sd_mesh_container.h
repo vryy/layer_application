@@ -112,7 +112,7 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::runtime_error, "Unknown geometry type", static_cast<int>(mGeometryType))
+            KRATOS_ERROR << "Unknown geometry type " << static_cast<int>(mGeometryType);
         }
     }
 
@@ -249,7 +249,7 @@ public:
                         GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
                     }
                     else
-                        KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
+                        KRATOS_ERROR << "check working space dimension of model";
 
                     //printing nodes
                     if(nodes_written == false)
@@ -369,7 +369,7 @@ public:
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else
-                        KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
+                        KRATOS_ERROR << "check working space dimension of model";
 
                     //printing nodes
                     if(nodes_written == false)
