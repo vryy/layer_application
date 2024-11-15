@@ -12,11 +12,10 @@
 
 // External includes
 #if defined(KRATOS_PYTHON)
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "layer_application.h"
 #include "layer_application_variables.h"
 #include "custom_python/add_utilities_to_python.h"
@@ -29,10 +28,10 @@ namespace Kratos
 namespace Python
 {
 
-    using namespace boost::python;
-
     BOOST_PYTHON_MODULE(KratosLayerApplication)
     {
+        using namespace boost::python;
+
         class_<KratosLayerApplication, KratosLayerApplication::Pointer,
                bases<KratosApplication>, boost::noncopyable>
                ("KratosLayerApplication");
@@ -62,4 +61,3 @@ namespace Python
 } // namespace Kratos.
 
 #endif // KRATOS_PYTHON
-

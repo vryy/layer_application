@@ -17,11 +17,11 @@
 #include <map>
 
 // External includes
-#include "boost/progress.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/progress.h"
 #include "custom_utilities/spatial_key.h"
 #include "custom_utilities/mesh_query_tool.h"
 
@@ -103,7 +103,7 @@ public:
         double start_init = omp_get_wtime();
 #endif
 
-        boost::progress_display show_progress( pElements.size() );
+        Kratos::progress_display show_progress( pElements.size() );
         std::vector<double> vmin(3);
         std::vector<double> vmax(3);
         for ( ElementsContainerType::ptr_const_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )

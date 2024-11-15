@@ -12,11 +12,11 @@
 // System includes
 
 // External includes
-#include "boost/progress.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/progress.h"
 #include "custom_utilities/mesh_query_tool.h"
 
 
@@ -118,7 +118,7 @@ public:
         double start_init = omp_get_wtime();
 #endif
 
-        boost::progress_display show_progress( pElements.size() );
+        Kratos::progress_display show_progress( pElements.size() );
 
         PointType C;
         const double& TOL = this->Tolerance();

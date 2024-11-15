@@ -12,11 +12,11 @@
 // System includes
 
 // External includes
-#include "boost/progress.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/progress.h"
 #include "custom_utilities/mesh_query_tool.h"
 
 
@@ -159,7 +159,7 @@ public:
         if (TDim > 1)
             Ny = mAxesPoints[1].size();
 
-        boost::progress_display show_progress( pElements.size() );
+        Kratos::progress_display show_progress( pElements.size() );
 
         PointType C;
         std::size_t i1, i2=0, i3=0, I;
