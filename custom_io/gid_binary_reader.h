@@ -982,7 +982,7 @@ private:
         return gzread(m_file, &v, sizeof(TDataType));
     }
 
-    int ReadWord(std::string& word)
+    void ReadWord(std::string& word)
     {
         char c;
         Read(c);

@@ -12,8 +12,7 @@ set( libb64_src
     ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cdecode.c
     ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/libb64/cencode.c
 )
-add_library(b64 SHARED ${libb64_src})
-install(TARGETS b64 DESTINATION libs)
+add_library(b64 STATIC ${libb64_src})
 
 add_definitions(-D_USE_ZLIB)
 add_definitions(-D_USE_LIBB64)
@@ -84,6 +83,9 @@ set( KRATOS_LAYER_APPLICATION_SOURCES
 
 ## define library Kratos which defines the basic python interface
 add_library(KratosLayerApplication SHARED ${KRATOS_LAYER_APPLICATION_SOURCES})
+if(MSVC)
+    target_compile_options(KratosLayerApplication PRIVATE $<$<CONFIG:Debug>:/bigobj>)
+endif()
 target_link_libraries(KratosLayerApplication KratosCore)
 target_link_libraries(KratosLayerApplication zlibstatic)
 target_link_libraries(KratosLayerApplication b64)
@@ -93,6 +95,7 @@ endif()
 if(${LAYER_APP_USE_MMG} MATCHES TRUE)
     target_link_libraries(KratosLayerApplication ${MMG_LIBRARIES})
 endif()
+set_target_properties(KratosLayerApplication PROPERTIES COMPILE_DEFINITIONS "LAYER_APPLICATION=EXPORT,API")
 set_target_properties(KratosLayerApplication PROPERTIES PREFIX "")
 install(TARGETS KratosLayerApplication DESTINATION libs )
 #######################################################################
