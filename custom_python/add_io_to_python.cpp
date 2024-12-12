@@ -171,6 +171,9 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     void (TGidPostIOType::*pointer_to_bool_write_nodal_results1)( Variable<bool> const& rVariable,
             double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_int_write_nodal_results1)( Variable<int> const& rVariable,
+            double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_double_write_nodal_results1)( Variable<double> const& rVariable,
             double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
@@ -187,6 +190,9 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     void (TGidPostIOType::*pointer_to_flag_write_nodal_results2)( const char* FlagName, Flags const& rFlag,
             const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_bool_write_nodal_results2)( Variable<bool> const& rVariable,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_int_write_nodal_results2)( Variable<int> const& rVariable,
             const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_double_write_nodal_results2)( Variable<double> const& rVariable,
@@ -235,6 +241,7 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
 
     .def("WriteNodalResults", pointer_to_flag_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_bool_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_int_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_double_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_array1d_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_vector_write_nodal_results1)
@@ -242,6 +249,7 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
 
     .def("WriteNodalResults", pointer_to_flag_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_bool_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_int_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_double_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_array1d_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_vector_write_nodal_results2)

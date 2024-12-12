@@ -420,9 +420,10 @@ public:
     }
 
     /**
-     * writes nodal results for variables of type bool using nodes from mesh container
+     * writes nodal results for variables of type scalar (bool|int|double) using nodes from mesh container
      */
-    void WriteNodalResults( Variable<bool> const& rVariable,
+    template<typename TDataType>
+    void WriteScalarNodalResults( Variable<TDataType> const& rVariable,
                             double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
@@ -442,6 +443,38 @@ public:
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes nodal results for variables of type scalar (bool|int|double)
+     */
+    template<typename TDataType>
+    void WriteScalarNodalResults( Variable<TDataType> const& rVariable,
+                            const NodesContainerType& rNodes, double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node )
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                             SolutionStepNumber) );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes nodal results for variables of type bool using nodes from mesh container
+     */
+    void WriteNodalResults( Variable<bool> const& rVariable,
+                            double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        WriteScalarNodalResults(rVariable, SolutionTag, SolutionStepNumber);
     }
 
     /**
@@ -451,18 +484,27 @@ public:
                             const NodesContainerType& rNodes, double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
-        Timer::Start("Writing Results");
+        WriteScalarNodalResults(rVariable, rNodes, SolutionTag, SolutionStepNumber);
+    }
 
-        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
-                         SolutionTag, GiD_Scalar,
-                         GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node )
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
-                             SolutionStepNumber) );
-        GiD_fEndResult(mResultFile);
+    /**
+     * writes nodal results for variables of type int using nodes from mesh container
+     */
+    void WriteNodalResults( Variable<int> const& rVariable,
+                            double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        WriteScalarNodalResults(rVariable, SolutionTag, SolutionStepNumber);
+    }
 
-        Timer::Stop("Writing Results");
+    /**
+     * writes nodal results for variables of type int
+     */
+    void WriteNodalResults( Variable<int> const& rVariable,
+                            const NodesContainerType& rNodes, double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        WriteScalarNodalResults(rVariable, rNodes, SolutionTag, SolutionStepNumber);
     }
 
     /**
@@ -472,22 +514,7 @@ public:
                             double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
-        Timer::Start("Writing Results");
-
-        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
-                         SolutionTag, GiD_Scalar,
-                         GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
-                        it != BaseType::mMeshContainers.end(); ++it )
-        {
-            for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
-                    i_node != it->GetMeshNodes().end() ; ++i_node )
-                GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
-                                 SolutionStepNumber) );
-        }
-        GiD_fEndResult(mResultFile);
-
-        Timer::Stop("Writing Results");
+        WriteScalarNodalResults(rVariable, SolutionTag, SolutionStepNumber);
     }
 
     /**
@@ -497,18 +524,7 @@ public:
                             const NodesContainerType& rNodes, double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
-        Timer::Start("Writing Results");
-
-        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
-                         SolutionTag, GiD_Scalar,
-                         GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node )
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
-                             SolutionStepNumber) );
-        GiD_fEndResult(mResultFile);
-
-        Timer::Stop("Writing Results");
+        WriteScalarNodalResults(rVariable, rNodes, SolutionTag, SolutionStepNumber);
     }
 
     /**
