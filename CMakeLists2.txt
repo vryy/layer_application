@@ -95,7 +95,7 @@ endif()
 if(${LAYER_APP_USE_MMG} MATCHES TRUE)
     target_link_libraries(KratosLayerApplication ${MMG_LIBRARIES})
 endif()
-set_target_properties(KratosLayerApplication PROPERTIES COMPILE_DEFINITIONS "LAYER_APPLICATION=EXPORT,API")
+set_target_properties(KratosLayerApplication PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;LAYER_APPLICATION=EXPORT")
 set_target_properties(KratosLayerApplication PROPERTIES PREFIX "")
 install(TARGETS KratosLayerApplication DESTINATION libs )
 #######################################################################
