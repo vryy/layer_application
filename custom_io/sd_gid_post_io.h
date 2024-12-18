@@ -88,7 +88,7 @@ public:
     }
 
     ///Destructor.
-    virtual ~SDGidPostIO()
+    ~SDGidPostIO() override
     {
         Timer::PrintTimingInformation();
 
