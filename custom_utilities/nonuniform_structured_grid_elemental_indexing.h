@@ -79,7 +79,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NonuniformStructuredGridElementalIndexing()
+    ~NonuniformStructuredGridElementalIndexing() override
     {}
 
     ///@}
@@ -99,7 +99,7 @@ public:
         double start_init = omp_get_wtime();
 #endif
 
-        const double& TOL = this->Tolerance();
+        const double TOL = this->Tolerance();
 
         // obtain all the coordinates
         mAxesPoints.clear();
@@ -140,31 +140,29 @@ public:
 
         IndexType Nx=0, Ny=0;
         Nx = mAxesPoints[0].size();
-        if (TDim > 1)
+        if constexpr (TDim > 1)
             Ny = mAxesPoints[1].size();
 
         Kratos::progress_display show_progress( pElements.size() );
 
-        PointType C;
         std::size_t i1, i2=0, i3=0, I;
         for ( ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it )
         {
-            // compute center of the element
-            noalias(C) = ZeroVector(3);
+            // get the corners of the element
             this->GetCorners(corners, it->GetGeometry());
             for (std::size_t i = 0; i < corners.size(); ++i)
-                noalias(C) += corners[i];
-            C /= corners.size();
+            {
+                // find the index number of the corner
+                i1 = static_cast<std::size_t>(FindSpan(corners[i][0], mAxesPoints[0], TOL));
+                if constexpr (TDim > 1)
+                    i2 = static_cast<std::size_t>(FindSpan(corners[i][1], mAxesPoints[1], TOL));
+                if constexpr (TDim > 2)
+                    i3 = static_cast<std::size_t>(FindSpan(corners[i][2], mAxesPoints[2], TOL));
+                I = (i3*Ny + i2)*Nx + i1;
 
-            // find the index number of the element
-            i1 = static_cast<std::size_t>(FindSpan(C[0], mAxesPoints[0], TOL));
-            if (TDim > 1)
-                i2 = static_cast<std::size_t>(FindSpan(C[1], mAxesPoints[1], TOL));
-            if (TDim > 2)
-                i3 = static_cast<std::size_t>(FindSpan(C[2], mAxesPoints[2], TOL));
-            I = (i3*Ny + i2)*Nx + i1;
-
-            mElemenIndexing[I] = it->Id();
+                // assign the element index to the corner index; allow overlapping
+                mElemenIndexing[I] = it->Id();
+            }
 
             ++show_progress;
         }
@@ -183,17 +181,17 @@ public:
     void FindPotentialPartners( const PointType& rSourcePoint, std::vector<IndexType>& master_elements ) const final
     {
         // get the containing elements from the bin
-        const double& TOL = this->Tolerance();
+        const double TOL = this->Tolerance();
         std::size_t i1, i2=0, i3=0;
         i1 = static_cast<std::size_t>(FindSpan(rSourcePoint.X(), mAxesPoints[0], TOL));
-        if (TDim > 1)
+        if constexpr (TDim > 1)
             i2 = static_cast<std::size_t>(FindSpan(rSourcePoint.Y(), mAxesPoints[1], TOL));
-        if (TDim > 2)
+        if constexpr (TDim > 2)
             i3 = static_cast<std::size_t>(FindSpan(rSourcePoint.Z(), mAxesPoints[2], TOL));
 
         IndexType Nx=0, Ny=0;
         Nx = mAxesPoints[0].size();
-        if (TDim > 1)
+        if constexpr (TDim > 1)
             Ny = mAxesPoints[1].size();
 
         const std::size_t I = (i3*Ny + i2)*Nx + i1;
@@ -250,7 +248,7 @@ public:
         if (rGeometry.IsInside(rSourcePoint, local_coords))
         // if (IsInside(rGeometry, rSourcePoint, local_coords))
         {
-            // if (TDim == 2)
+            // if constexpr (TDim == 2)
             // {
             //     if (abs(local_coords[2]) > 1.0e-7)
             //     {
@@ -355,7 +353,7 @@ private:
     ///@{
 
     /// Find the span of the value in an array
-    int FindSpan(const double& v, const std::vector<double>& values, const double& TOL) const
+    int FindSpan(const double v, const std::vector<double>& values, const double TOL) const
     {
         if (v < (values[0] - TOL))
         {
