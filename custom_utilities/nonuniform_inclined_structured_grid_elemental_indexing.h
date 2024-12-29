@@ -80,8 +80,8 @@ public:
         // default axis is Cartesian axis
         mAxes.resize(3);
         mAxes[0][0] = 1.0; mAxes[0][1] = 0.0; mAxes[0][2] = 0.0;
-        mAxes[0][0] = 0.0; mAxes[0][1] = 1.0; mAxes[0][2] = 0.0;
-        mAxes[0][0] = 0.0; mAxes[0][1] = 0.0; mAxes[0][2] = 1.0;
+        mAxes[1][0] = 0.0; mAxes[1][1] = 1.0; mAxes[1][2] = 0.0;
+        mAxes[2][0] = 0.0; mAxes[2][1] = 0.0; mAxes[2][2] = 1.0;
     }
 
     /// Destructor.
@@ -230,11 +230,29 @@ public:
         auto it = mElemenIndexing.find(I);
         if (it == mElemenIndexing.end())
         {
-            // KRATOS_WATCH(i1)
-            // KRATOS_WATCH(i2)
-            // KRATOS_WATCH(i3)
-            // KRATOS_WATCH(rSourcePoint)
-            // KRATOS_THROW_ERROR(std::logic_error, "The point does not locate in the mesh region", "")
+            KRATOS_WATCH(i1)
+            KRATOS_WATCH(i2)
+            KRATOS_WATCH(i3)
+            KRATOS_WATCH(I)
+            KRATOS_WATCH(Nx)
+            KRATOS_WATCH(Ny)
+            std::vector<double> vmin(TDim), vmax(TDim);
+            for (int d = 0; d < TDim; ++d)
+            {
+                std::cout << "mAxesPoints[" << d << "]:" << std::endl;
+                for (int i = 0; i < mAxesPoints[d].size(); ++i)
+                    std::cout << " " << mAxesPoints[d][i];
+                std::cout << std::endl;
+                this->FindMinMax(d, vmin[d], vmax[d]);
+            }
+            // std::cout << "mElemenIndexing:" << std::endl;
+            // for (auto it = mElemenIndexing.begin(); it != mElemenIndexing.end(); ++it)
+            //     std::cout << it->first << " " << it->second << std::endl;
+            std::cout << "Mesh region:";
+            for (int d = 0; d < TDim; ++d)
+                std::cout << " [" << vmin[d] << ", " << vmax[d] << "]";
+            std::cout << std::endl;
+            KRATOS_ERROR << "Point " << rSourcePoint << " does not locate in the mesh region";
             master_elements.resize(0);
             return;
         }
@@ -388,6 +406,20 @@ private:
                     return i-1;
             }
             return values.size();
+        }
+    }
+
+    /// Find the minimum and maximum value on the axis
+    void FindMinMax(const int dim, double& vmin, double& vmax) const
+    {
+        vmin = 1e99;
+        vmax = -1e99;
+        for (std::size_t i = 0; i < mAxesPoints[dim].size(); ++i)
+        {
+            if (mAxesPoints[dim][i] > vmax)
+                vmax = mAxesPoints[dim][i];
+            if (mAxesPoints[dim][i] < vmin)
+                vmin = mAxesPoints[dim][i];
         }
     }
 
