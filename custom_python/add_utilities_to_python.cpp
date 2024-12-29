@@ -27,6 +27,7 @@
 #include "custom_utilities/spatial_grid_nodal_binning.h"
 #include "custom_utilities/mesh_query_tool.h"
 #include "custom_utilities/spatial_grid_elemental_binning.h"
+#include "custom_utilities/structured_grid_elemental_binning.h"
 #include "custom_utilities/structured_grid_elemental_indexing.h"
 #include "custom_utilities/nonuniform_inclined_structured_grid_elemental_indexing.h"
 #include "custom_utilities/model_part_utilities.h"
@@ -279,10 +280,15 @@ void LayerApp_AddCustomUtilitiesToPython()
     ("ElementalQueryTool", init<>())
     .def("SetTolerance", &MeshQueryTool<Element>::SetTolerance)
     .def("Initialize", &MeshQueryTool<Element>::Initialize)
+    .def(self_ns::str(self))
     ;
 
     class_<SpatialGridElementalBinning, SpatialGridElementalBinning::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
     ("SpatialGridElementalBinning", init<double, double, double, double, double, double, double>())
+    ;
+
+    class_<StructuredGridElementalBinning, StructuredGridElementalBinning::Pointer, bases<SpatialGridElementalBinning>, boost::noncopyable>
+    ("StructuredGridElementalBinning", init<double, double, double, double>())
     ;
 
     class_<StructuredGridElementalIndexing<1>, typename StructuredGridElementalIndexing<1>::Pointer, bases<MeshQueryTool<Element> >, boost::noncopyable>
