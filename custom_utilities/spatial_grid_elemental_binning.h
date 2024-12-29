@@ -90,7 +90,7 @@ public:
     ///@{
 
     /// Initialize the elements binning
-    void Initialize( const ElementsContainerType& pElements ) final
+    void Initialize( const ElementsContainerType& pElements ) override
     {
         std::cout << "Initialize the spatial binning, number of elements = " << pElements.size() << std::endl;
 
@@ -106,9 +106,9 @@ public:
             mAllElements.insert((*it)->Id());
             this->FindBoundingBox(vmin, vmax, (*it)->GetGeometry());
 
-            int i_min = (int) floor((vmin[0] - mX0) / mDx), i_max = (int) floor((vmax[0] - mX0) / mDx);
-            int j_min = (int) floor((vmin[1] - mY0) / mDy), j_max = (int) floor((vmax[1] - mY0) / mDy);
-            int k_min = (int) floor((vmin[2] - mZ0) / mDz), k_max = (int) floor((vmax[2] - mZ0) / mDz);
+            int i_min = (int) std::floor((vmin[0] - mX0) / mDx), i_max = (int) std::floor((vmax[0] - mX0) / mDx);
+            int j_min = (int) std::floor((vmin[1] - mY0) / mDy), j_max = (int) std::floor((vmax[1] - mY0) / mDy);
+            int k_min = (int) std::floor((vmin[2] - mZ0) / mDz), k_max = (int) std::floor((vmax[2] - mZ0) / mDz);
 
             for (int i = i_min; i <= i_max; ++i)
             {
@@ -139,9 +139,9 @@ public:
     void FindPotentialPartners( const PointType& rSourcePoint, std::vector<IndexType>& master_elements ) const final
     {
         // get the containing elements from the bin
-        int ix = (int) floor((rSourcePoint.X() - mX0) / mDx);
-        int iy = (int) floor((rSourcePoint.Y() - mY0) / mDy);
-        int iz = (int) floor((rSourcePoint.Z() - mZ0) / mDz);
+        int ix = (int) std::floor((rSourcePoint.X() - mX0) / mDx);
+        int iy = (int) std::floor((rSourcePoint.Y() - mY0) / mDy);
+        int iz = (int) std::floor((rSourcePoint.Z() - mZ0) / mDz);
 
         SpatialKey key(ix, iy, iz);
         auto it_bin_elements = mBinElements.find(key);
@@ -155,6 +155,18 @@ public:
                     master_elements.push_back(*it_elem);
             }
         }
+
+        #ifdef ENABLE_ERROR_CHECK
+        if (master_elements.size() == 0)
+        {
+            if (it_bin_elements == mBinElements.end())
+                std::cout << "Binning does not contain point " << rSourcePoint << std::endl;
+            KRATOS_WATCH(ix)
+            KRATOS_WATCH(iy)
+            KRATOS_WATCH(iz)
+            KRATOS_ERROR << "Point " << rSourcePoint << " does not locate in the mesh region";
+        }
+        #endif
     }
 
     ///@}
@@ -201,6 +213,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    double mDx, mDy, mDz;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -231,8 +245,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mX0, mY0, mZ0, mDx, mDy, mDz;
-    double mTol;
+    double mX0, mY0, mZ0;
 
     SetType mAllElements;
     BinType mBinElements;
@@ -275,11 +288,21 @@ private:
     /// Assignment operator.
     SpatialGridElementalBinning& operator=(SpatialGridElementalBinning const& rOther)
     {
+        mX0 = rOther.mX0;
+        mY0 = rOther.mY0;
+        mZ0 = rOther.mZ0;
+        mDx = rOther.mDx;
+        mDy = rOther.mDy;
+        mDz = rOther.mDz;
+        BaseType::operator=(rOther);
         return *this;
     }
 
     /// Copy constructor.
     SpatialGridElementalBinning(SpatialGridElementalBinning const& rOther)
+    : mX0(rOther.mX0), mY0(rOther.mY0), mZ0(rOther.mZ0)
+    , mDx(rOther.mDx), mDy(rOther.mDy), mDz(rOther.mDz)
+    , BaseType(rOther)
     {
     }
 
@@ -302,5 +325,6 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LAYER_APP_SPATIAL_GRID_ELEMENTAL_BINNING_H_INCLUDED defined
+#undef ENABLE_ERROR_CHECK
 
+#endif // KRATOS_LAYER_APP_SPATIAL_GRID_ELEMENTAL_BINNING_H_INCLUDED defined
