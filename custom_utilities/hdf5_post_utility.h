@@ -23,13 +23,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 
-
-//#define DEBUG_LEVEL1
-//#define DEBUG_LEVEL2
-//#define DEBUG_MULTISOLVE
-//#define DEBUG_GENERATE_MESH
-#define ENABLE_PROFILING
-
 namespace Kratos
 {
 ///@addtogroup LayerApplication
@@ -108,7 +101,7 @@ public:
             mode = H5F_ACC_RDWR;
         }
         else
-            KRATOS_THROW_ERROR(std::logic_error, "This access mode is not supported:", AccessMode)
+            KRATOS_ERROR << "The access mode " << AccessMode << " is not supported";
 
         mpFile = boost::shared_ptr<H5::H5File>(new H5::H5File(h5_filename, mode));
     }
@@ -299,6 +292,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     boost::shared_ptr<H5::H5File> mpFile;
 
     ///@}
@@ -451,6 +445,7 @@ private:
 
     void WriteNodalResults_Vector_3( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
     {
+        std::cout << __FUNCTION__ << " is invoked with pNodes.size() = " << pNodes.size() << std::endl;
         if (pNodes.size() == 0)
             return;
 
@@ -521,6 +516,7 @@ private:
 
     void WriteNodalResults_Vector_6( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
     {
+        std::cout << __FUNCTION__ << " is invoked with pNodes.size() = " << pNodes.size() << std::endl;
         if (pNodes.size() == 0)
             return;
 
@@ -704,7 +700,7 @@ private:
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
-                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+                    KRATOS_ERROR << "The dimension " << dims_out[0] << " of provided data is not compatible";
 
             /*
              * Output buffer
@@ -794,7 +790,7 @@ private:
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
-                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+                    KRATOS_ERROR << "The dimension " << dims_out[0] << " of provided data is not compatible";
 
             /*
              * Output buffer
@@ -871,7 +867,7 @@ private:
             ReadNodalResults_Vector_6(rThisVariable, pModelPart);
         }
         else
-            KRATOS_THROW_ERROR(std::logic_error, "Vector length of this size is not supported:", len)
+            KRATOS_ERROR << "Vector length " << len << " is not supported";
     }
 
     int ReadNodalResults_Vector_3( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
@@ -919,7 +915,7 @@ private:
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
-                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+                    KRATOS_ERROR << "The dimension " << dims_out[0] << " of provided data is not compatible";
 
             /*
              * Output buffer
@@ -1014,7 +1010,7 @@ private:
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
-                    KRATOS_THROW_ERROR(std::logic_error, "The dimension of provided data is not compatible:", dims_out[0])
+                    KRATOS_ERROR << "The dimension " << dims_out[0] << " of provided data is not compatible";
 
             /*
              * Output buffer
@@ -1111,11 +1107,9 @@ private:
             if(!allow_unequal)
                 if(dims_out[0] != pElements.size())
                 {
-                    std::stringstream ss;
-                    ss << "The dimension of provided data is not compatible.";
-                    ss << " The number of elements is " << pElements.size();
-                    ss << ", the dimension of read-out data is " << dims_out[0];
-                    KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+                    KRATOS_ERROR << "The dimension of provided data is not compatible."
+                                 << " The number of elements is " << pElements.size()
+                                 << ", the dimension of read-out data is " << dims_out[0];
                 }
 
             /*
@@ -1213,13 +1207,7 @@ inline std::ostream& operator <<(std::ostream& rOStream, const HDF5PostUtility& 
 
 }// namespace Kratos.
 
-#undef DEBUG_LEVEL1
-#undef DEBUG_LEVEL2
-#undef DEBUG_MULTISOLVE
-#undef DEBUG_GENERATE_MESH
-#undef ENABLE_PROFILING
-
-#endif
+#endif // KRATOS_HDF5_POST_UTILITY_H_INCLUDED
 
 
 //      void WriteNodalResults_(

@@ -10,11 +10,6 @@
 #define KRATOS_LAYER_APP_SPATIAL_GRID_ELEMENTAL_BINNING_H_INCLUDED
 
 // System includes
-#include <cmath>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <map>
 
 // External includes
 
@@ -50,8 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
+/***
  * This utility class supports for element binning into a structured grid.
  */
 class SpatialGridElementalBinning : public MeshQueryTool<Element>
@@ -77,12 +71,13 @@ public:
 
     /// Default constructor.
     SpatialGridElementalBinning(double X0, double Y0, double Z0, double Dx, double Dy, double Dz, double tol)
-    : mX0(X0), mY0(Y0), mZ0(Z0), mDx(Dx), mDy(Dy), mDz(Dz), mTol(tol)
+    : mX0(X0), mY0(Y0), mZ0(Z0), mDx(Dx), mDy(Dy), mDz(Dz)
     {
+        this->SetTolerance(tol);
     }
 
     /// Destructor.
-    virtual ~SpatialGridElementalBinning()
+    ~SpatialGridElementalBinning() override
     {
     }
 
@@ -250,7 +245,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void FindBoundingBox(std::vector<double>& vmin, std::vector<double>& vmax, GeometryType& rGeometry) const
+    void FindBoundingBox(std::vector<double>& vmin, std::vector<double>& vmax, const GeometryType& rGeometry) const
     {
         vmin[0] = rGeometry[0].X(); vmin[1] = rGeometry[0].Y(); vmin[2] = rGeometry[0].Z();
         vmax[0] = rGeometry[0].X(); vmax[1] = rGeometry[0].Y(); vmax[2] = rGeometry[0].Z();
@@ -301,27 +296,11 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-//inline std::istream& operator >>(std::istream& rIStream, SpatialGridElementalBinning& rThis)
-//{
-//    return rIStream;
-//}
-
-///// output stream function
-//inline std::ostream& operator <<(std::ostream& rOStream,
-//        const SpatialGridElementalBinning& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
-
-//    return rOStream;
-//}
 ///@}
 
 ///@} addtogroup block
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_SPATIAL_GRID_ELEMENTAL_BINNING_H_INCLUDED defined
 

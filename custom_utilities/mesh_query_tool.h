@@ -101,7 +101,7 @@ public:
         return mTolerance;
     }
 
-    void SetTolerance(const double& v)
+    void SetTolerance(const double v)
     {
         mTolerance = v;
     }
@@ -208,6 +208,19 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
+    /// Assignment operator.
+    MeshQueryTool& operator=(MeshQueryTool const& rOther)
+    {
+        mTolerance = rOther.mTolerance;
+        return *this;
+    }
+
+    /// Copy constructor.
+    MeshQueryTool(MeshQueryTool const& rOther)
+    : mTolerance(rOther.mTolerance)
+    {
+    }
+
     ///@}
 
 private:
@@ -241,17 +254,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    MeshQueryTool& operator=(MeshQueryTool const& rOther)
-    {
-        return *this;
-    }
-
-    /// Copy constructor.
-    MeshQueryTool(MeshQueryTool const& rOther)
-    {
-    }
-
     ///@}
 
 }; // Class MeshQueryTool
@@ -266,21 +268,22 @@ private:
 ///@{
 
 /// input stream function
-//inline std::istream& operator >>(std::istream& rIStream, MeshQueryTool& rThis)
-//{
-//    return rIStream;
-//}
+template<class TEntityType, class TEntitiesContainerType>
+inline std::istream& operator >>(std::istream& rIStream, MeshQueryTool<TEntityType, TEntitiesContainerType>& rThis)
+{
+    return rIStream;
+}
 
-///// output stream function
-//inline std::ostream& operator <<(std::ostream& rOStream,
-//        const MeshQueryTool& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
+/// output stream function
+template<class TEntityType, class TEntitiesContainerType>
+inline std::ostream& operator <<(std::ostream& rOStream, const MeshQueryTool<TEntityType, TEntitiesContainerType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-//    return rOStream;
-//}
+    return rOStream;
+}
 ///@}
 
 ///@} addtogroup block

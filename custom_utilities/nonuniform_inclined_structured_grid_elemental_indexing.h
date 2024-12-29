@@ -72,7 +72,7 @@ public:
     ///@{
 
     /// Default constructor.
-    NonuniformInclinedStructuredGridElementalIndexing(const double& Tolerance)
+    NonuniformInclinedStructuredGridElementalIndexing(const double Tolerance)
     : BaseType()
     {
         this->SetTolerance(Tolerance);
@@ -85,7 +85,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NonuniformInclinedStructuredGridElementalIndexing()
+    ~NonuniformInclinedStructuredGridElementalIndexing() override
     {}
 
     ///@}
@@ -97,7 +97,7 @@ public:
     ///@{
 
     /// Set the axis
-    void SetAxis(const std::size_t& i, const double& x, const double& y, const double& z)
+    void SetAxis(const std::size_t i, const double x, const double y, const double z)
     {
         double s = sqrt(x*x + y*y + z*z);
         mAxes[i][0] = x/s; mAxes[i][1] = y/s; mAxes[i][2] = z/s;
@@ -106,13 +106,13 @@ public:
     /// Initialize the elements binning
     void Initialize( const ElementsContainerType& pElements ) final
     {
-        std::cout << "Initialize the structured grid indexing" << std::endl;
+        std::cout << "Initialize the structured grid indexing, number of elements = " << pElements.size() << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();
 #endif
 
-        const double& TOL = this->Tolerance();
+        const double TOL = this->Tolerance();
 
         // obtain all the coordinates
         mAxesPoints.clear();
@@ -156,7 +156,7 @@ public:
 
         IndexType Nx=0, Ny=0;
         Nx = mAxesPoints[0].size();
-        if (TDim > 1)
+        if constexpr (TDim > 1)
             Ny = mAxesPoints[1].size();
 
         Kratos::progress_display show_progress( pElements.size() );
@@ -175,12 +175,12 @@ public:
             // find the index number of the element
             const double ctx = this->ComputeCoordinates(0, C[0], C[1], C[2]);
             i1 = static_cast<std::size_t>(FindSpan(ctx, mAxesPoints[0], TOL));
-            if (TDim > 1)
+            if constexpr (TDim > 1)
             {
                 const double cty = this->ComputeCoordinates(1, C[0], C[1], C[2]);
                 i2 = static_cast<std::size_t>(FindSpan(cty, mAxesPoints[1], TOL));
             }
-            if (TDim > 2)
+            if constexpr (TDim > 2)
             {
                 const double ctz = this->ComputeCoordinates(2, C[0], C[1], C[2]);
                 i3 = static_cast<std::size_t>(FindSpan(ctz, mAxesPoints[2], TOL));
@@ -206,16 +206,16 @@ public:
     void FindPotentialPartners( const PointType& rSourcePoint, std::vector<IndexType>& master_elements ) const final
     {
         // get the containing elements from the bin
-        const double& TOL = this->Tolerance();
+        const double TOL = this->Tolerance();
         std::size_t i1, i2=0, i3=0;
         const double xt = this->ComputeCoordinates(0, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
         i1 = static_cast<std::size_t>(FindSpan(xt, mAxesPoints[0], TOL));
-        if (TDim > 1)
+        if constexpr (TDim > 1)
         {
             const double yt = this->ComputeCoordinates(1, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
             i2 = static_cast<std::size_t>(FindSpan(yt, mAxesPoints[1], TOL));
         }
-        if (TDim > 2)
+        if constexpr (TDim > 2)
         {
             const double zt = this->ComputeCoordinates(2, rSourcePoint.X(), rSourcePoint.Y(), rSourcePoint.Z());
             i3 = static_cast<std::size_t>(FindSpan(zt, mAxesPoints[2], TOL));
@@ -223,7 +223,7 @@ public:
 
         IndexType Nx=0, Ny=0;
         Nx = mAxesPoints[0].size();
-        if (TDim > 1)
+        if constexpr (TDim > 1)
             Ny = mAxesPoints[1].size();
 
         const std::size_t I = (i3*Ny + i2)*Nx + i1;
@@ -250,7 +250,7 @@ public:
     {
         auto it = rAllElements.find(master_elements[0]);
         if (it == rAllElements.end())
-            KRATOS_THROW_ERROR(std::logic_error, "The master element is not yet determined", "")
+            KRATOS_ERROR << "The master element is not yet determined";
         pMatchedMaster = *(it.base());
 
         const GeometryType& rGeometry = pMatchedMaster->GetGeometry();
@@ -262,7 +262,7 @@ public:
         if (rGeometry.IsInside(rSourcePoint, local_coords))
         // if (IsInside(rGeometry, rSourcePoint, local_coords))
         {
-            // if (TDim == 2)
+            // if constexpr (TDim == 2)
             // {
             //     if (abs(local_coords[2]) > 1.0e-7)
             //     {
@@ -272,7 +272,7 @@ public:
             //             KRATOS_WATCH(rGeometry[i].GetSolutionStepValue(DISPLACEMENT))
             //         std::cout << "predict local point: " << predict_local_coords << std::endl;
             //         std::cout << "found point: " << local_coords << std::endl;
-            //         KRATOS_THROW_ERROR(std::logic_error, "Error computing local point", "")
+            //         KRATOS_ERROR << "Error computing local point";
             //     }
             // }
             return true;
@@ -368,13 +368,13 @@ private:
     ///@{
 
     /// Compute the transformed coordinates
-    double ComputeCoordinates(const std::size_t&i, const double& x, const double& y, const double& z) const
+    double ComputeCoordinates(const std::size_t i, const double x, const double y, const double z) const
     {
         return (x*mAxes[i][0] + y*mAxes[i][1] + z*mAxes[i][2]);
     }
 
     /// Find the span of the value in an array
-    int FindSpan(const double& v, const std::vector<double>& values, const double& TOL) const
+    int FindSpan(const double v, const std::vector<double>& values, const double TOL) const
     {
         if (v < (values[0] - TOL))
         {
@@ -454,7 +454,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<1>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << rGeometry.GetGeometryFamily();
 }
 
 template<>
@@ -498,7 +498,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<2>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << rGeometry.GetGeometryFamily();
 }
 
 template<>
@@ -550,7 +550,7 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::GetCorners(std::vecto
         }
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "Unsupported geometry family", static_cast<int>(rGeometry.GetGeometryFamily()))
+        KRATOS_ERROR << "Unsupported geometry family " << rGeometry.GetGeometryFamily();
 }
 
 template<>
@@ -665,22 +665,6 @@ void NonuniformInclinedStructuredGridElementalIndexing<3>::PredictLocalPoint(con
 ///@name Input and output
 ///@{
 
-/// input stream function
-//inline std::istream& operator >>(std::istream& rIStream, NonuniformInclinedStructuredGridElementalIndexing& rThis)
-//{
-//    return rIStream;
-//}
-
-///// output stream function
-//inline std::ostream& operator <<(std::ostream& rOStream,
-//        const NonuniformInclinedStructuredGridElementalIndexing& rThis)
-//{
-//    rThis.PrintInfo(rOStream);
-//    rOStream << std::endl;
-//    rThis.PrintData(rOStream);
-
-//    return rOStream;
-//}
 ///@}
 
 ///@} addtogroup block
