@@ -223,7 +223,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropiate name
+                    //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer;
                     for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -275,7 +275,7 @@ public:
 
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() + 1];
+                    std::vector<int> nodes_id(mMeshElements.begin()->GetGeometry().size() + 1);
                     for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
                     {
@@ -299,15 +299,11 @@ public:
                         {
                             if ((it)->GetProperties().Id()==current_layer)
                             {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id );
-                                /// DEBUGGING
-                                // std::cout << "element " << (it)->Id() << " is written to GiD" << std::endl;
-                                /// END DEBUGGING
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id.data() );
                             }
                         }
                     }
 
-                    delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
                     GiD_fEndMesh(MeshFile);
                 }
@@ -391,7 +387,7 @@ public:
 
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() + 1];
+                    std::vector<int> nodes_id(mMeshConditions.begin()->GetGeometry().size() + 1);
                     for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
                     {
@@ -406,11 +402,10 @@ public:
                         if ( condition_is_active )
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id );
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id.data() );
                         }
                     }
 
-                    delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
                     GiD_fEndMesh(MeshFile);
                 }

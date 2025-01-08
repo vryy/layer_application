@@ -140,9 +140,7 @@ public:
                 mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
-                    std::stringstream buffer;
-                    buffer << "error opening results file:" << "/" <<  file_name.str()   << "/";
-                    KRATOS_THROW_ERROR(std::runtime_error, buffer.str(), "");
+                    KRATOS_ERROR << "error opening results file:" << "/" <<  file_name.str()   << "/";
                 }
                 mResultFileOpen = true;
                 mMeshFile = mResultFile;
@@ -202,18 +200,18 @@ public:
                 GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
-                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+                KRATOS_ERROR << "undefined WriteDeformedMeshFlag";
         }
         GiD_fEndCoordinates(mMeshFile);
-        int nodes_id[1];
 
         GiD_fBeginElements(mMeshFile);
+        std::vector<int> nodes_id(1);
         for ( typename MeshType::NodeConstantIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteElement(mMeshFile, node_iterator->Id(), nodes_id);
+            GiD_fWriteElement(mMeshFile, node_iterator->Id(), nodes_id.data());
         }
         GiD_fEndElements(mMeshFile);
 
@@ -222,9 +220,7 @@ public:
         Timer::Stop("Writing Mesh");
 
         KRATOS_CATCH("")
-    }//WriteNodeMesh
-
-
+    } //WriteNodeMesh
 
     /**
      * This is a multi-purpose function that writes arbitrary meshes of elements
@@ -268,13 +264,13 @@ public:
             else if ( mWriteDeformed == WriteUndeformed )
                 it->WriteMesh(mMeshFile, false);
             else
-                KRATOS_THROW_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
+                KRATOS_ERROR << "undefined WriteDeformedMeshFlag";
         }
 
         Timer::Stop("Writing Mesh");
 
         KRATOS_CATCH("")
-    }//WriteMesh
+    } //WriteMesh
 
 
     /***************************************************************************************************/
