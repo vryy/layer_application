@@ -196,7 +196,6 @@ public:
     {
         KRATOS_TRY
 
-        bool nodes_written = false;
         if ( mMeshElements.size() != 0 )
         {
             //compute number of layers
@@ -221,6 +220,7 @@ public:
             //std::cout << "start printing elements" <<std::endl;
             for (unsigned int current_layer = 0; current_layer < elements_per_layer.size(); current_layer++)
             {
+                bool nodes_written = false;
                 if (elements_per_layer[current_layer] > 0)
                 {
                     //create an appropriate name
@@ -334,6 +334,7 @@ public:
             //std::cout << "start printing conditions" <<std::endl;
             for (unsigned int current_layer = 0; current_layer < conditions_per_layer.size(); current_layer++)
             {
+                bool nodes_written = false;
                 if (conditions_per_layer[current_layer] > 0)
                 {
                     // determine mesh name
