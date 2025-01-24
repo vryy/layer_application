@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 layer_application/LICENSE.txt
-//					 Kratos default license: kratos/license.txt
+//  License:         layer_application/LICENSE.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Hoang-Giang Bui
 //
@@ -54,7 +54,7 @@ public:
 
     const std::string MeshTitle() const {return mMeshTitle;}
 
-    bool AddElement ( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement ( const ModelPart::ElementsContainerType::const_iterator pElemIt )
     {
         KRATOS_TRY
 
@@ -69,8 +69,8 @@ public:
             if (element_is_active)
             {
                 mMeshElements[pElemIt->GetProperties().Id()].push_back ( * (pElemIt.base() ) );
-                GeometryType& geom = pElemIt->GetGeometry();
-                for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); ++it)
+                const GeometryType& geom = pElemIt->GetGeometry();
+                for ( Element::GeometryType::const_iterator it = geom.begin(); it != geom.end(); ++it)
                 {
                     mMeshElementNodes[pElemIt->GetProperties().Id()].push_back ( * (it.base() ) );
                 }
@@ -85,7 +85,7 @@ public:
         KRATOS_CATCH ("")
     }
 
-    bool AddCondition (const ModelPart::ConditionsContainerType::iterator pCondIt)
+    bool AddCondition (const ModelPart::ConditionsContainerType::const_iterator pCondIt)
     {
         KRATOS_TRY
 
@@ -100,8 +100,8 @@ public:
             if (condition_is_active)
             {
                 mMeshConditions[pCondIt->GetProperties().Id()].push_back ( * (pCondIt.base() ) );
-                GeometryType& geom = pCondIt->GetGeometry();
-                for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); ++it)
+                const GeometryType& geom = pCondIt->GetGeometry();
+                for ( Condition::GeometryType::const_iterator it = geom.begin(); it != geom.end(); ++it)
                 {
                     mMeshConditionNodes[pCondIt->GetProperties().Id()].push_back ( * (it.base() ) );
                 }
@@ -134,7 +134,7 @@ public:
     }
 
     template<class TNodesContainerType, class TElementsContainerType>
-    void WriteMesh(FILE* MeshFile, TNodesContainerType& MeshNodes, TElementsContainerType& MeshElements, bool deformed, VTK_PostMode mode)
+    void WriteMesh(FILE* MeshFile, const TNodesContainerType& MeshNodes, const TElementsContainerType& MeshElements, bool deformed, VTK_PostMode mode) const
     {
         // printing nodes
         std::map<std::size_t, std::size_t> NodeIdMap;
@@ -143,7 +143,7 @@ public:
         VTK_fBeginCoordinates(MeshFile, mode);
         if (mode == VTK_PostAscii)
         {
-            for ( typename TNodesContainerType::iterator it = MeshNodes.begin();
+            for ( typename TNodesContainerType::const_iterator it = MeshNodes.begin();
                     it != MeshNodes.end(); ++it )
             {
                 if ( deformed )
@@ -160,7 +160,7 @@ public:
             std::vector<float> data_list;
             data_list.reserve(3*(MeshNodes.end() - MeshNodes.begin()));
 
-            for ( typename TNodesContainerType::iterator it = MeshNodes.begin();
+            for ( typename TNodesContainerType::const_iterator it = MeshNodes.begin();
                     it != MeshNodes.end(); ++it )
             {
                 if ( deformed )
@@ -191,8 +191,8 @@ public:
         bool is_active;
         if (mode == VTK_PostAscii)
         {
-            int* nodes_id = new int[nodes_size];
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            std::vector<int> nodes_id(nodes_size);
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
@@ -217,16 +217,15 @@ public:
 
                 if ( is_active )
                 {
-                    VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id, nodes_size );
+                    VTK_fWriteElementConnectivity ( MeshFile, (it)->Id(), nodes_id.data(), nodes_size );
                 }
             }
-            delete [] nodes_id;
         }
         else if (mode == VTK_PostBinary)
         {
             std::vector<int> data_list;
             data_list.reserve(nodes_size*(MeshElements.end() - MeshElements.begin()));
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 is_active = true;
@@ -262,7 +261,7 @@ public:
 
         if (mode == VTK_PostAscii)
         {
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 is_active = true;
@@ -293,7 +292,7 @@ public:
         {
             std::vector<int> data_list;
             data_list.reserve(MeshElements.end() - MeshElements.begin());
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 is_active = true;
@@ -327,7 +326,7 @@ public:
         VTK_fBeginElementsTypes(MeshFile, mode);
         if (mode == VTK_PostAscii)
         {
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 is_active = true;
@@ -357,7 +356,7 @@ public:
         {
             std::vector<uint8_t> data_list;
             data_list.reserve(MeshElements.end() - MeshElements.begin());
-            for ( typename TElementsContainerType::iterator it = MeshElements.begin();
+            for ( typename TElementsContainerType::const_iterator it = MeshElements.begin();
                     it != MeshElements.end(); ++it )
             {
                 is_active = true;
@@ -398,36 +397,36 @@ public:
         mMeshConditions.clear();
     }
 
-    const std::string GetMeshElementsName(const std::size_t& prop_id)
+    const std::string GetMeshElementsName(const std::size_t prop_id) const
     {
         std::stringstream ss;
         ss << mMeshTitle << "_element_" << prop_id;
         return ss.str();
     }
 
-    const std::string GetMeshConditionsName(const std::size_t& prop_id)
+    const std::string GetMeshConditionsName(const std::size_t prop_id) const
     {
         std::stringstream ss;
         ss << mMeshTitle << "_condition_" << prop_id;
         return ss.str();
     }
 
-    ModelPart::NodesContainerType& GetMeshElementNodes(const std::size_t& prop_id)
+    const ModelPart::NodesContainerType& GetMeshElementNodes(const std::size_t prop_id) const
     {
-        return mMeshElementNodes[prop_id];
+        return mMeshElementNodes.at(prop_id);
     }
 
-    ModelPart::NodesContainerType& GetMeshConditionNodes(const std::size_t& prop_id)
+    const ModelPart::NodesContainerType& GetMeshConditionNodes(const std::size_t prop_id) const
     {
-        return mMeshConditionNodes[prop_id];
+        return mMeshConditionNodes.at(prop_id);
     }
 
-    MeshElementsContainerType& GetMeshElements()
+    const MeshElementsContainerType& GetMeshElements() const
     {
         return mMeshElements;
     }
 
-    MeshConditionsContainerType& GetMeshConditions()
+    const MeshConditionsContainerType& GetMeshConditions() const
     {
         return mMeshConditions;
     }
@@ -450,7 +449,8 @@ protected:
     MeshConditionsContainerType mMeshConditions;
 
     const char* mMeshTitle;
-};//class VtkMeshContainer
-}// namespace Kratos.
-#endif // KRATOS_VTK_MESH_CONTAINER_H_INCLUDED defined
+}; // class VtkMeshContainer
 
+} // namespace Kratos.
+
+#endif // KRATOS_VTK_MESH_CONTAINER_H_INCLUDED defined

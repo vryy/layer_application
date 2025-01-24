@@ -129,8 +129,6 @@ public:
 
             if (element_is_active)
             {
-    //            std::cout << "element " << pElemIt->Id() << " of geometryType "
-    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
                 mMeshElements.push_back ( * (pElemIt.base() ) );
                 GeometryType& geom = pElemIt->GetGeometry();
                 for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
@@ -161,8 +159,6 @@ public:
 
             if (condition_is_active)
             {
-    //            std::cout << "condition " << pCondIt->Id() << " of geometryType "
-    //                      << mGeometryType << " is added to " << mMeshTitle << std::endl;
                 mMeshConditions.push_back ( * (pCondIt.base() ) );
                 GeometryType& geom = pCondIt->GetGeometry();
                 for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
@@ -208,7 +204,7 @@ public:
             }
             if (max_id > 10000)
                 std::cout<< "a property Id > 10000 found. Are u sure you need so many properties?" << std::endl;
-            std::vector<int> elements_per_layer (max_id+1,0);
+            std::vector<int> elements_per_layer(max_id+1, 0);
 
             //fill layer list
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -240,13 +236,11 @@ public:
                     //begin mesh
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
-                        //std::cout << " -print element 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType, mMeshElements.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
-                        //std::cout << " -print element 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType, mMeshElements.begin()->GetGeometry().size() );
                     }
                     else
                         KRATOS_ERROR << "check working space dimension of model";
@@ -264,9 +258,6 @@ public:
                             else
                                 GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
                                                        (it)->Y0(), (it)->Z0() );
-                            /// DEBUGGING
-                            // std::cout << "node " << (it)->Id() << " is written to GiD" << std::endl;
-                            /// END DEBUGGING
                         }
                         GiD_fEndCoordinates(MeshFile);
 
@@ -289,7 +280,6 @@ public:
                             nodes_id[1] = (it)->GetGeometry()[2].Id();
                             nodes_id[2] = (it)->GetGeometry()[1].Id();
                         }
-                        // nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id()+1;
                         nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
                         bool element_is_active = true;
@@ -308,7 +298,6 @@ public:
                     GiD_fEndMesh(MeshFile);
                 }
             }
-            //std::cout << "end printing elements" <<std::endl;
         }
 
         if ( mMeshConditions.size() != 0 )
@@ -331,7 +320,6 @@ public:
                 int prop_id = (it)->GetProperties().Id();
                 conditions_per_layer[prop_id] += 1;
             }
-            //std::cout << "start printing conditions" <<std::endl;
             for (unsigned int current_layer = 0; current_layer < conditions_per_layer.size(); current_layer++)
             {
                 bool nodes_written = false;
@@ -355,13 +343,11 @@ public:
                     // begin mesh
                     if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
-                        //std::cout << " -print condition 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
-                        //std::cout << " -print condition 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
@@ -394,8 +380,7 @@ public:
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[i].Id();
-                        // nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        nodes_id[ (it)->GetGeometry().size()] = (it)->GetProperties().Id();
+                        nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
                         bool condition_is_active = true;
                         if( it->IsDefined( ACTIVE ) )
@@ -437,9 +422,8 @@ protected:
     ModelPart::ElementsContainerType mMeshElements;
     ModelPart::ConditionsContainerType mMeshConditions;
     std::string mMeshTitle;
-};//class GidSDMeshContainer
+}; //class GidSDMeshContainer
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED defined
-

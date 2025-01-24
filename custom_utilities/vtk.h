@@ -9,6 +9,9 @@
 //#include "zconf.h"
 #endif
 
+namespace Kratos
+{
+
 ///Flags for mesh writing
 enum VTK_PostMode {VTK_PostAscii, VTK_PostBinary};
 enum VTK_PostFileFormat {VTK_PostVTU, VTK_PostVTM};
@@ -380,7 +383,8 @@ int vtk_write_compressed (FILE * vtkfile, char *numeric_data, size_t byte_length
     return 0;
 }
 
+} // end namespace Kratos
+
 #endif // defined(_USE_ZLIB) && defined(_USE_LIBB64)
 
 #endif // KRATOS_VTK_H_INCLUDED
-

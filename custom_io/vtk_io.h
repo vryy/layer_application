@@ -24,10 +24,8 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
 #include "geometries/geometry_data.h"
 #include "utilities/timer.h"
 #include "custom_utilities/vtk.h"
@@ -41,7 +39,7 @@ namespace Kratos
  * 14 Aug 2017: supports only nodal scalar & vector results
  */
 template<class TMeshContainer>
-class VtkIO// : public IO
+class VtkIO // : public IO
 {
 public:
     ///pointer definition of VtkIO
@@ -57,7 +55,7 @@ public:
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
     /// Constructor
-    VtkIO( const std::string& rDatafilename, const VTK_PostMode& rMode)
+    VtkIO( const std::string& rDatafilename, const VTK_PostMode& rMode )
     {
         mMode = rMode;
         mResultFileOpen = false;
@@ -210,7 +208,7 @@ public:
                                           GeometryData::KratosGeometryType::Kratos_Icosahedron,
                                           VTK_Polyhedron, "Kratos_Icosahedron_Mesh" ) );
         #endif
-    }//SetUpMeshContainers
+    } // SetUpMeshContainers
 
     /**
      * sets up the file name
@@ -263,9 +261,9 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    virtual void Initialize( double name, MeshType& rThisMesh )
+    virtual void Initialize( double name, const MeshType& rThisMesh )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class function", __FUNCTION__)
+        KRATOS_ERROR << "Calling base class function";
     }
 
     /**
@@ -274,7 +272,7 @@ public:
      */
     virtual void Finalize()
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class function", __FUNCTION__)
+        KRATOS_ERROR << "Calling base class function";
     }
 
     /**
@@ -520,14 +518,14 @@ private:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
                 VTK_fWriteScalar( pResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable, SolutionStepNumber) );
         }
         else if (mMode == VTK_PostBinary)
         {
             std::vector<float> data_list;
             data_list.reserve(rNodes.end() - rNodes.begin());
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
                 data_list.push_back(i_node->GetSolutionStepValue(rVariable, SolutionStepNumber));
             float* tmp = (float*)(&data_list[0]);
             vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
@@ -552,7 +550,7 @@ private:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
             {
                 array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 VTK_fWriteVector3( pResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
@@ -562,7 +560,7 @@ private:
         {
             std::vector<float> data_list;
             data_list.reserve(3*(rNodes.end() - rNodes.begin()));
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
             {
                 array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 data_list.push_back(temp[0]);
@@ -594,7 +592,7 @@ private:
         if (mMode == VTK_PostAscii)
         {
             double* temp = new double[NumberOfComponents];
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
             {
                 const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 for ( unsigned int i = 0; i < NumberOfComponents; ++i )
@@ -607,7 +605,7 @@ private:
         {
             std::vector<float> data_list;
             data_list.reserve(NumberOfComponents*(rNodes.end() - rNodes.begin()));
-            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node)
+            for ( NodesContainerType::const_iterator i_node = rNodes.begin(); i_node != rNodes.end() ; ++i_node )
             {
                 const Vector& solution = i_node->GetSolutionStepValue( rVariable, SolutionStepNumber );
                 for ( unsigned int i = 0; i < NumberOfComponents; ++i )
@@ -637,14 +635,14 @@ private:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem )
                 VTK_fWriteScalar( pResultFile, i_elem->Id(), i_elem->GetValue(rVariable) );
         }
         else if (mMode == VTK_PostBinary)
         {
             std::vector<float> data_list;
             data_list.reserve(rElements.end() - rElements.begin());
-            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem )
                 data_list.push_back(i_elem->GetValue(rVariable));
             float* tmp = (float*)(&data_list[0]);
             vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
@@ -670,14 +668,14 @@ private:
 
         if (mMode == VTK_PostAscii)
         {
-            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem )
                 VTK_fWriteScalar( pResultFile, i_elem->Id(), i_elem->GetProperties().Id() );
         }
         else if (mMode == VTK_PostBinary)
         {
             std::vector<float> data_list;
             data_list.reserve(rElements.end() - rElements.begin());
-            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem)
+            for ( typename EntitiesContainerType::const_iterator i_elem = rElements.begin(); i_elem != rElements.end() ; ++i_elem )
                 data_list.push_back(i_elem->GetProperties().Id());
             float* tmp = (float*)(&data_list[0]);
             vtk_write_compressed ( pResultFile, (char*)tmp, sizeof(*tmp)*data_list.size());
@@ -695,6 +693,22 @@ private:
 
 }; // Class VtkIO
 
-}// namespace Kratos.
+/**
+ * Input and output
+ */
+
+/**
+ * output stream function
+ */
+template<class TMeshContainer>
+inline std::ostream& operator << (std::ostream& rOStream, const VtkIO<TMeshContainer>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+    return rOStream;
+}
+
+} // namespace Kratos.
 
 #endif // KRATOS_VTK_IO_H_INCLUDED  defined

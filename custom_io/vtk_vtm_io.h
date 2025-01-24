@@ -15,20 +15,11 @@
 #define  KRATOS_VTK_VTM_IO_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
-#include <iomanip>
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "geometries/geometry_data.h"
-#include "utilities/timer.h"
 #include "custom_io/vtk_io.h"
 #include "custom_io/vtk_mesh_container.h"
 
@@ -56,13 +47,13 @@ public:
     typedef typename BaseType::ConditionsContainerType ConditionsContainerType;
 
     /// Constructor
-    VtkVTMIO( const std::string& rDatafilename, const VTK_PostMode& rMode)
+    VtkVTMIO( const std::string& rDatafilename, const VTK_PostMode& rMode )
     : BaseType( rDatafilename, rMode )
     {
     }
 
     /// Destructor.
-    virtual ~VtkVTMIO()
+    ~VtkVTMIO() override
     {
     }
 
@@ -72,7 +63,7 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    void Initialize( double name, MeshType& rThisMesh ) override
+    void Initialize( double name, const MeshType& rThisMesh ) override
     {
         mName = name;
 
@@ -92,14 +83,14 @@ public:
 
         if ( BaseType::mResultFileOpen )
         {
-            for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+            for ( typename MeshType::ElementConstantIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
                         it != BaseType::MeshContainers().end(); it++ )
                     if ( it->AddElement( element_iterator ) )
                         break;
 
-            for ( typename MeshType::ConditionsContainerType::iterator conditions_iterator = rThisMesh.ConditionsBegin();
+            for ( typename MeshType::ConditionConstantIterator conditions_iterator = rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
                         it != BaseType::MeshContainers().end(); it++ )
@@ -123,15 +114,13 @@ public:
         FILE* tmp_file;
 
         std::string base_filename = BaseType::mResultFileName.substr(BaseType::mResultFileName.find_last_of("/\\") + 1);
-        // KRATOS_WATCH(base_filename)
 
         unsigned int file_index = 0;
         for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
                     it != BaseType::MeshContainers().end(); ++it )
         {
-
             // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshElementsContainerType::iterator it2 = it->GetMeshElements().begin();
+            for ( typename TMeshContainer::MeshElementsContainerType::const_iterator it2 = it->GetMeshElements().begin();
                     it2 != it->GetMeshElements().end(); ++it2 )
             {
                 const std::string& MeshName = it->GetMeshElementsName(it2->first);
@@ -141,8 +130,8 @@ public:
                               << std::setprecision(12) << "_" << mName << ".vtu";
                 tmp_file = VTK_fOpenPostVTUFile(tmp_filename.str().c_str(), BaseType::mMode);
 
-                ModelPart::ElementsContainerType& MeshElements = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshElementNodes(it2->first);
+                const ModelPart::ElementsContainerType& MeshElements = it2->second;
+                const ModelPart::NodesContainerType& MeshNodes = it->GetMeshElementNodes(it2->first);
 
                 // start writing the piece
                 VTK_fBeginMesh( tmp_file, MeshName.c_str(), MeshNodes.size(), MeshElements.size() );
@@ -178,8 +167,8 @@ public:
                 VTK_fEndDataset( BaseType::mResultFile );
             }
 
-            // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshConditionsContainerType::iterator it2 = it->GetMeshConditions().begin();
+            // iterate through condition mesh in the mesh container
+            for ( typename TMeshContainer::MeshConditionsContainerType::const_iterator it2 = it->GetMeshConditions().begin();
                     it2 != it->GetMeshConditions().end(); ++it2 )
             {
                 const std::string& MeshName = it->GetMeshConditionsName(it2->first);
@@ -189,8 +178,8 @@ public:
                               << std::setprecision(12) << "_" << mName << ".vtu";
                 tmp_file = VTK_fOpenPostVTUFile(tmp_filename.str().c_str(), BaseType::mMode);
 
-                ModelPart::ConditionsContainerType& MeshConditions = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshConditionNodes(it2->first);
+                const ModelPart::ConditionsContainerType& MeshConditions = it2->second;
+                const ModelPart::NodesContainerType& MeshNodes = it->GetMeshConditionNodes(it2->first);
 
                 // start writing the piece
                 VTK_fBeginMesh( tmp_file, MeshName.c_str(), MeshNodes.size(), MeshConditions.size() );
@@ -232,6 +221,14 @@ public:
         BaseType::mResultFileOpen = false;
     }
 
+    /**
+     * Turn back information as a string.
+     */
+    std::string Info() const override
+    {
+        return "VTK VTM IO";
+    }
+
 private:
 
     double mName;
@@ -248,23 +245,6 @@ private:
 
 }; // Class VtkVTMIO
 
-
-/**
- * Input and output
- */
-
-/**
- * output stream function
- */
-inline std::ostream& operator << (std::ostream& rOStream, const VtkVTMIO<>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
-
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_VTK_VTM_IO_H_INCLUDED  defined
-

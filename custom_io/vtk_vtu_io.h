@@ -15,15 +15,8 @@
 #define  KRATOS_VTK_VTU_IO_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
-#include <iomanip>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -62,7 +55,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~VtkVTUIO()
+    ~VtkVTUIO() override
     {
     }
 
@@ -72,7 +65,7 @@ public:
      * @param name the current solution step (i.e. time)
      * @param rThisMesh the mesh containing the results
      */
-    void Initialize( double name, MeshType& rThisMesh ) override
+    void Initialize( double name, const MeshType& rThisMesh ) override
     {
         if ( !BaseType::mResultFileOpen )
         {
@@ -90,14 +83,14 @@ public:
 
         if ( BaseType::mResultFileOpen )
         {
-            for ( typename MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+            for ( typename MeshType::ElementConstantIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
                         it != BaseType::MeshContainers().end(); it++ )
                     if ( it->AddElement( element_iterator ) )
                         break;
 
-            for ( typename MeshType::ConditionsContainerType::iterator conditions_iterator = rThisMesh.ConditionsBegin();
+            for ( typename MeshType::ConditionConstantIterator conditions_iterator = rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); ++conditions_iterator )
                 for ( typename std::vector<TMeshContainer>::iterator it = BaseType::MeshContainers().begin();
                         it != BaseType::MeshContainers().end(); it++ )
@@ -122,11 +115,11 @@ public:
                     it != BaseType::MeshContainers().end(); ++it )
         {
             // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshElementsContainerType::iterator it2 = it->GetMeshElements().begin();
+            for ( typename TMeshContainer::MeshElementsContainerType::const_iterator it2 = it->GetMeshElements().begin();
                     it2 != it->GetMeshElements().end(); ++it2 )
             {
-                ModelPart::ElementsContainerType& MeshElements = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshElementNodes(it2->first);
+                const ModelPart::ElementsContainerType& MeshElements = it2->second;
+                const ModelPart::NodesContainerType& MeshNodes = it->GetMeshElementNodes(it2->first);
                 const std::string& MeshName = it->GetMeshElementsName(it2->first);
 
                 // start writing the piece
@@ -154,11 +147,11 @@ public:
             }
 
             // iterate through element mesh in the mesh container
-            for ( typename TMeshContainer::MeshConditionsContainerType::iterator it2 = it->GetMeshConditions().begin();
+            for ( typename TMeshContainer::MeshConditionsContainerType::const_iterator it2 = it->GetMeshConditions().begin();
                     it2 != it->GetMeshConditions().end(); ++it2 )
             {
-                ModelPart::ConditionsContainerType& MeshConditions = it2->second;
-                ModelPart::NodesContainerType& MeshNodes = it->GetMeshConditionNodes(it2->first);
+                const ModelPart::ConditionsContainerType& MeshConditions = it2->second;
+                const ModelPart::NodesContainerType& MeshNodes = it->GetMeshConditionNodes(it2->first);
                 const std::string& MeshName = it->GetMeshConditionsName(it2->first);
 
                 // start writing the piece
@@ -204,23 +197,6 @@ private:
 
 }; // Class VtkVTUIO
 
-
-/**
- * Input and output
- */
-
-/**
- * output stream function
- */
-inline std::ostream& operator << (std::ostream& rOStream, const VtkVTUIO<>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-    return rOStream;
-}
-
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_VTK_VTU_IO_H_INCLUDED  defined
-
