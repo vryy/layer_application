@@ -273,6 +273,19 @@ private:
         }
     }
 
+    bool IsInside( const PointType& rSourcePoint, const std::vector<double>& vmin, const std::vector<double>& vmax) const
+    {
+        bool is_inside = true;
+        const double TOL = this->Tolerance();
+
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            is_inside = is_inside && (rSourcePoint[0] > (vmin[i] - TOL)) && (rSourcePoint[0] < (vmax[i] + TOL));
+        }
+
+        return is_inside;
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
