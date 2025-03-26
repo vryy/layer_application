@@ -131,6 +131,13 @@ void ModelPartUtilities_CalculateMassMatrix(ModelPartUtilities& rDummy,
     rDummy.CalculateMassMatrix(rEntity, rCurrentProcessInfo, echo_level);
 }
 
+void ModelPartUtilities_GidPostBin2ModelPart(ModelPartUtilities& rDummy,
+    const std::string& fileName, ModelPart& r_model_part,
+    const Parameters& mesh_info)
+{
+    rDummy.GiDPostBin2ModelPart(fileName, r_model_part, mesh_info);
+}
+
 boost::python::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBinning& dummy, ModelPart& r_model_part, int id, double r)
 {
     boost::python::list list;
@@ -328,6 +335,7 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Condition>)
     .def("CalculateMassMatrix", &ModelPartUtilities_CalculateMassMatrix<Element>)
     .def("CalculateMassMatrix", &ModelPartUtilities_CalculateMassMatrix<Condition>)
+    .def("GiDPostBin2ModelPart", &ModelPartUtilities_GidPostBin2ModelPart)
     ;
 
     //    KratosLayerApplication_AddNodalDataStateToPython<Variable<bool> >("BoolNodalDataState");

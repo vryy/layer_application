@@ -17,6 +17,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "custom_utilities/gidpost_reader.h"
 
 
 namespace Kratos
@@ -175,6 +177,37 @@ public:
         }
     }
 
+    /// Fill the model_part based on GiD post result data reader
+    /// A json parameters can be optionally provided to assist with search and read process. An example
+    /// of the parameters looks like
+    // """
+    // {
+    //     "Kratos_Hexahedra3D27_Mesh_1":
+    //     {
+    //         "type": "element",
+    //         "name": "KinematicLinear3D27N",
+    //         "prop_id": 1
+    //     },
+    //     "echo_level": 1
+    // }
+    // """
+    static void GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part, const Parameters& mesh_info);
+
+    /// Fill the model_part based on GiD binary data
+    /// A json parameters can be optionally provided to assist with search and read process. An example
+    /// of the parameters looks like
+    // """
+    // {
+    //     "Kratos_Hexahedra3D27_Mesh_1":
+    //     {
+    //         "type": "element",
+    //         "name": "KinematicLinear3D27N",
+    //         "prop_id": 1
+    //     },
+    //     "echo_level": 1
+    // }
+    // """
+    static void GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part, const Parameters& mesh_info);
 
     ///@}
     ///@name Access
