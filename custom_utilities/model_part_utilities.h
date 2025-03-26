@@ -11,11 +11,6 @@
 
 // System includes
 #include <string>
-#include <vector>
-#include <iostream>
-#include <set>
-#include <ctime>
-#include <iomanip>
 
 // External includes
 
@@ -27,7 +22,7 @@
 namespace Kratos
 {
 
-///@addtogroup ApplicationNameApplication
+///@addtogroup LayerApplication
 ///@{
 
 ///@name Kratos Globals
@@ -49,8 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
+/*** Utilities for various operations on Kratos::ModelPart
  */
 class ModelPartUtilities
 {
@@ -89,95 +83,21 @@ public:
 
     /// Export the nodal coordinates to output stream
     static void ExportNodalCoordinates(std::ostream& rOStream, ModelPart& r_model_part,
-        const bool& with_id, const bool& with_x, const bool& with_y, const bool& with_z,
-        const std::string& separator, const int& precision)
-    {
-        rOStream << std::setprecision(precision);
-
-        for(ModelPart::NodeIterator i_node = r_model_part.NodesBegin();
-                i_node != r_model_part.NodesEnd(); ++i_node)
-        {
-            bool init = false;
-
-            if (with_id)
-            {
-                rOStream << i_node->Id();
-                init = true;
-            }
-
-            if (with_x)
-            {
-                if (init)
-                    rOStream << separator;
-                rOStream << i_node->X0();
-                init = true;
-            }
-
-            if (with_y)
-            {
-                if (init)
-                    rOStream << separator;
-                rOStream << i_node->Y0();
-            }
-
-            if (with_z)
-            {
-                if (init)
-                    rOStream << separator;
-                rOStream << i_node->Z0();
-            }
-
-            rOStream << std::endl;
-        }
-    }
+        const bool with_id, const bool with_x, const bool with_y, const bool with_z,
+        const std::string& separator, const int precision);
 
     /// Export the nodal coordinates to output stream
     static void ExportNodalCoordinatesToGiD(std::ostream& rOStream, ModelPart& r_model_part,
-        const int& precision)
-    {
-        rOStream << std::setprecision(precision);
-
-        for(ModelPart::NodeIterator i_node = r_model_part.NodesBegin();
-                i_node != r_model_part.NodesEnd(); ++i_node)
-        {
-            rOStream << "Mescape Geometry Create Point "
-                     << i_node->X0() << " " << i_node->Y0() << " " << i_node->Z0()
-                     << std::endl;
-        }
-    }
+        const int precision);
 
     /// Export the edge information to output stream
     /// REMARK: for second order element, only the 2-node edge on the side is returned
     static void ExportEdgeInformation(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements,
-        const std::string& separator)
-    {
-        typedef std::pair<std::size_t, std::size_t> edge_t;
-        typedef std::set<edge_t> edge_container_t;
-
-        edge_container_t edges;
-        ExtractEdgeInformation(edges, rpElements);
-
-        for (edge_container_t::iterator it = edges.begin(); it != edges.end(); ++it)
-        {
-            rOStream << it->first << separator << it->second << std::endl;
-        }
-    }
+        const std::string& separator);
 
     /// Export the edge information to output stream
     /// REMARK: for second order element, only the 2-node edge on the side is returned
-    static void ExportEdgeInformationToGiD(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements)
-    {
-        typedef std::pair<std::size_t, std::size_t> edge_t;
-        typedef std::set<edge_t> edge_container_t;
-
-        edge_container_t edges;
-        ExtractEdgeInformation(edges, rpElements);
-
-        for (edge_container_t::iterator it = edges.begin(); it != edges.end(); ++it)
-        {
-            rOStream << "Mescape Geometry Create Line Join " << it->first << " " << it->second << std::endl;
-        }
-    }
+    static void ExportEdgeInformationToGiD(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements);
 
     /// Create a new entity out from a geometry
     template<class TEntityType>
@@ -215,7 +135,7 @@ public:
 
     /// Invoke the CalculateLocalSystem of an Element/Condition. It is useful when debugging them.
     template<class TEntityType>
-    static void CalculateLocalSystem(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
+    static void CalculateLocalSystem(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int echo_level)
     {
         Matrix LHS;
         Vector RHS;
@@ -225,7 +145,11 @@ public:
         if (echo_level > 0)
         {
             rEntity.PrintInfo(std::cout);
-            std::cout << ":" << std::endl;
+            std::cout << std::endl;
+        }
+
+        if (echo_level > 1)
+        {
             KRATOS_WATCH(LHS)
             KRATOS_WATCH(RHS)
         }
@@ -233,7 +157,7 @@ public:
 
     /// Invoke the CalculateLocalSystem of an Element/Condition. It is useful when debugging them.
     template<class TEntityType>
-    static void CalculateMassMatrix(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
+    static void CalculateMassMatrix(TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int echo_level)
     {
         Matrix MassMatrix;
 
@@ -242,10 +166,15 @@ public:
         if (echo_level > 0)
         {
             rEntity.PrintInfo(std::cout);
-            std::cout << ":" << std::endl;
+            std::cout << std::endl;
+        }
+
+        if (echo_level > 1)
+        {
             KRATOS_WATCH(MassMatrix)
         }
     }
+
 
     ///@}
     ///@name Access
@@ -276,13 +205,6 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-    }
-
-    void Print()
-    {
-        PrintInfo(std::cout);
-        std::cout << std::endl;
-        PrintData(std::cout);
     }
 
     ///@}
@@ -488,4 +410,3 @@ inline std::ostream& operator <<(std::ostream& rOStream, const ModelPartUtilitie
 }// namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_MODEL_PART_UTILITY_H_INCLUDED
-
