@@ -90,6 +90,11 @@ namespace Kratos
     , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D27N, Hexahedra3D27, 27 )
     , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D6N, Prism3D6, 6 )
     , LAYER_APP_CREATE_ELEMENT( mPostUPSElement3D15N, Prism3D15, 15 )
+    , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D3N, Triangle3D3, 3 )
+    , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D6N, Triangle3D6, 6 )
+    , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D4N, Quadrilateral3D4, 4 )
+    , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D8N, Quadrilateral3D8, 8 )
+    , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D9N, Quadrilateral3D9, 9 )
     {}
 
     void KratosLayerApplication::Register()
@@ -152,6 +157,12 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "PostUPSElement3D27N", mPostUPSElement3D27N )
         KRATOS_REGISTER_ELEMENT( "PostUPSElement3D6N", mPostUPSElement3D6N )
         KRATOS_REGISTER_ELEMENT( "PostUPSElement3D15N", mPostUPSElement3D15N )
-    }
-} // namespace Kratos
 
+        KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D3N", mPostSurfaceCondition3D3N )
+        KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D4N", mPostSurfaceCondition3D4N )
+        KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D6N", mPostSurfaceCondition3D6N )
+        KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D8N", mPostSurfaceCondition3D8N )
+        KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D9N", mPostSurfaceCondition3D9N )
+    }
+
+} // namespace Kratos

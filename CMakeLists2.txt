@@ -58,6 +58,7 @@ endif()
 
 ######### add compilation units here
 set( KRATOS_LAYER_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/post_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/post_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/post_ups_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/gidpost_binary_reader.cpp

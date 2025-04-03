@@ -25,6 +25,7 @@
 #include "includes/variables.h"
 #include "includes/kratos_application.h"
 #include "custom_utilities/spatial_point.h"
+#include "custom_conditions/post_condition.h"
 #include "custom_elements/post_element.h"
 #include "custom_elements/post_ups_element.h"
 
@@ -71,7 +72,7 @@ namespace Kratos
         KratosLayerApplication();
 
         /// Destructor.
-        virtual ~KratosLayerApplication(){}
+        ~KratosLayerApplication() override {}
 
         ///@}
         ///@name Operators
@@ -82,7 +83,7 @@ namespace Kratos
         ///@name Operations
         ///@{
 
-        virtual void Register();
+        void Register() override;
 
         ///@}
         ///@name Access
@@ -99,20 +100,20 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const
+        std::string Info() const override
         {
             return "Application for layer handling for arbitrary mesh";
         }
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const
+        void PrintInfo(std::ostream& rOStream) const override
         {
             rOStream << Info();
             PrintData(rOStream);
         }
 
         ///// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const
+        void PrintData(std::ostream& rOStream) const override
         {
             rOStream << "in KratosLayerApplication:";
             KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
@@ -216,6 +217,12 @@ namespace Kratos
         const PostUPSElement mPostUPSElement3D6N;
         const PostUPSElement mPostUPSElement3D15N;
 
+        const PostCondition mPostSurfaceCondition3D3N;
+        const PostCondition mPostSurfaceCondition3D4N;
+        const PostCondition mPostSurfaceCondition3D6N;
+        const PostCondition mPostSurfaceCondition3D8N;
+        const PostCondition mPostSurfaceCondition3D9N;
+
         ///@}
         ///@name Private Operators
         ///@{
@@ -265,8 +272,6 @@ namespace Kratos
 
     ///@}
 
-
 } // namespace Kratos
 
 #endif // KRATOS_LAYER_APPLICATION_H_INCLUDED defined
-
