@@ -30,6 +30,8 @@ class PostElement : public Element
         // Counted pointer of PostElement
         KRATOS_CLASS_POINTER_DEFINITION(PostElement);
 
+        typedef Element::IntegrationMethod IntegrationMethod;
+
         /**
          * Default constructor.
          */
@@ -40,7 +42,7 @@ class PostElement : public Element
         /**
          * Destructor.
          */
-        virtual ~PostElement();
+        ~PostElement() override;
 
         /**
          * Operations.
@@ -51,6 +53,8 @@ class PostElement : public Element
 
         Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
                                 PropertiesType::Pointer pProperties) const final;
+
+        IntegrationMethod GetIntegrationMethod() const override;
 
         /**
          * Calculates the local system contributions for this contact element
@@ -100,7 +104,6 @@ class PostElement : public Element
 
         /**
          * Turn back information as a string.
-         * (DEACTIVATED)
          */
         std::string Info() const final
         {
@@ -109,7 +112,6 @@ class PostElement : public Element
 
         /**
          * Print information about this object.
-         * (DEACTIVATED)
          */
         void PrintInfo(std::ostream& rOStream) const final
         {
@@ -118,7 +120,6 @@ class PostElement : public Element
 
         /**
          * Print object's data.
-         * (DEACTIVATED)
          */
         void PrintData(std::ostream& rOStream) const final
         {
@@ -128,7 +129,7 @@ class PostElement : public Element
 
         friend class Serializer;
 
-        std::unordered_map<std::size_t, std::vector<double> > mDoubleValuesContainer;
+        std::unordered_map<std::size_t, std::vector<double> > mDoubleValuesContainer;   // container for double variables, the key is variable key
         std::unordered_map<std::size_t, std::vector<Vector> > mVectorValuesContainer;
         std::unordered_map<std::size_t, std::vector<array_1d<double, 3> > > mArray1DValuesContainer;
 
@@ -146,12 +147,10 @@ class PostElement : public Element
                            VectorType& rRightHandSideVector,
                            const ProcessInfo& rCurrentProcessInfo,
                            bool CalculateStiffnessMatrixFlag,
-                           bool CalculateResidualVectorFlag);
+                           bool CalculateResidualVectorFlag );
 
 }; // Class PostElement
 
 }  // namespace Kratos.
 
-
 #endif // KRATOS_POST_ELEMENT_H_INCLUDED defined
-

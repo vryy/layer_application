@@ -10,6 +10,7 @@
 // External includes
 
 // Project includes
+#include "includes/legacy_structural_app_vars.h"
 #include "custom_elements/post_element.h"
 
 namespace Kratos
@@ -43,9 +44,7 @@ PostElement::~PostElement()
 
 
 //********************************************************
-//**** Operations ****************************************
 //********************************************************
-
 Element::Pointer PostElement::Create( IndexType NewId, NodesArrayType const& ThisNodes,
                                       PropertiesType::Pointer pProperties ) const
 {
@@ -66,11 +65,6 @@ void PostElement::Initialize( const ProcessInfo& rCurrentProcessInfo )
 
 //************************************************************************************
 //************************************************************************************
-//************************************************************************************
-//************************************************************************************
-/**
- * calculates only the RHS vector (certainly to be removed due to contact algorithm)
- */
 void PostElement::CalculateRightHandSide( VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -86,9 +80,6 @@ void PostElement::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
 //************************************************************************************
 //************************************************************************************
-/**
- * calculates this contact element's local contributions
- */
 void PostElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo)
@@ -99,13 +90,9 @@ void PostElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 }
-    //************************************************************************************
+
+//************************************************************************************
 //************************************************************************************    /
-/**
- * This function calculates all system contributions due to the contact problem
- * with regard to the current master and slave partners.
- * All Conditions are assumed to be defined in 2D/3D space and having 2/3 DOFs per node
- */
 void PostElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                 VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo,
@@ -122,11 +109,6 @@ void PostElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-/**
-* Setting up the EquationIdVector for the current partners.
-* All conditions are assumed to be defined in 2D/3D space with 2/3 DOFs per node.
-* All Equation IDs are given Master first, Slave second
-*/
 void PostElement::EquationIdVector( EquationIdVectorType& rResult,
                                     const ProcessInfo& CurrentProcessInfo) const
 {
@@ -135,11 +117,6 @@ void PostElement::EquationIdVector( EquationIdVectorType& rResult,
 
 //************************************************************************************
 //************************************************************************************
-/**
- * Setting up the DOF list for the current partners.
- * All conditions are assumed to be defined in 2D/3D space with 2/3 DOFs per Node.
- * All DOF are given Master first, Slave second
- */
 //************************************************************************************
 //************************************************************************************
 void PostElement::GetDofList( DofsVectorType& ElementalDofList,
@@ -217,6 +194,8 @@ void PostElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable
     }
     else
     {
+        if (rValues.size() != it->second.size())
+            rValues.resize(it->second.size());
         std::copy(it->second.begin(), it->second.end(), rValues.begin());
     }
 }
@@ -224,6 +203,78 @@ void PostElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable
 void PostElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
        std::vector<array_1d<double, 3 > >& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
+    // special handling to obtain the coordinates of the integration points
+    if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
+    {
+        auto it = mArray1DValuesContainer.find(INTEGRATION_POINT_LOCAL.Key());
+        if (it != mArray1DValuesContainer.end())
+        // if the integration points are provided for the element via INTEGRATION_POINT_LOCAL,
+        // we will use it
+        {
+            if (rValues.size() != it->second.size())
+                rValues.resize(it->second.size());
+
+            GeometryType::IntegrationPointsArrayType integration_points(it->second.size());
+            for(std::size_t point = 0; point < it->second.size(); ++point)
+                noalias(integration_points[point]) = it->second[point];
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(integration_points);
+            #endif
+
+            VectorType N( GetGeometry().size() );
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                GetGeometry().ShapeFunctionsValues( N, integration_points[point] );
+
+                noalias( rValues[point] ) = ZeroVector(3);
+                for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        // otherwise we use the default integration method, which can be controlled via INTEGRATION_ORDER
+        {
+            const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(ThisIntegrationMethod);
+            #endif
+
+            //reading integration points and local gradients
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+
+            if (rValues.size() != integration_points.size())
+                rValues.resize(integration_points.size());
+
+            const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+            VectorType N( GetGeometry().size() );
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(N) = row( Ncontainer, point );
+
+                noalias( rValues[point] ) = ZeroVector(3);
+                for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+
+        return;
+    }
+
     auto it = mArray1DValuesContainer.find(rVariable.Key());
     if (it == mArray1DValuesContainer.end())
     {
@@ -231,6 +282,8 @@ void PostElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3
     }
     else
     {
+        if (rValues.size() != it->second.size())
+            rValues.resize(it->second.size());
         std::copy(it->second.begin(), it->second.end(), rValues.begin());
     }
 }
@@ -245,9 +298,66 @@ void PostElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable
     }
     else
     {
+        if (rValues.size() != it->second.size())
+            rValues.resize(it->second.size());
         std::copy(it->second.begin(), it->second.end(), rValues.begin());
     }
 }
 
-} // Namespace Kratos
+PostElement::IntegrationMethod PostElement::GetIntegrationMethod() const
+{
+    if(this->Has( INTEGRATION_ORDER ))
+    {
+        if(this->GetValue(INTEGRATION_ORDER) == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
+    }
+    else if(GetProperties().Has( INTEGRATION_ORDER ))
+    {
+        if(GetProperties()[INTEGRATION_ORDER] == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
+    }
+    else
+        return GetGeometry().GetDefaultIntegrationMethod(); // default method
+}
 
+} // Namespace Kratos
