@@ -40,7 +40,7 @@ class PostUPSElement : public Element
         /**
          * Destructor.
          */
-        virtual ~PostUPSElement();
+        ~PostUPSElement() override;
 
         /**
          * Operations.
@@ -153,6 +153,4 @@ class PostUPSElement : public Element
 
 }  // namespace Kratos.
 
-
 #endif // KRATOS_POST_UPS_ELEMENT_H_INCLUDED defined
-

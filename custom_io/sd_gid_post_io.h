@@ -20,12 +20,6 @@
 #define  KRATOS_SD_GID_POST_IO_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
-#include <iomanip>
 
 // External includes
 #define USE_CONST
