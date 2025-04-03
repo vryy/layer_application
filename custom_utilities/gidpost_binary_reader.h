@@ -48,6 +48,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/array_1d.h"
 #include "gidpost_reader.h"
 
 namespace Kratos
@@ -123,13 +124,16 @@ public:
         std::string Name;
         std::string ElemType;
         int NumberOfGaussPoints;
-//        std::string NaturalCoordinates;
+        std::string NaturalCoordinates;
+        std::vector<std::vector<double> > GpCoordinates;
+        z_off_t StartCoordPos;
+        z_off_t EndCoordPos;
         void PrintData(std::ostream& rOStream) const
         {
             rOStream << Name;
             rOStream << " ElemType:" << ElemType;
             rOStream << " NumberOfGaussPoints:" << NumberOfGaussPoints;
-//            rOStream << " NaturalCoordinates:" << NaturalCoordinates;
+            rOStream << " NaturalCoordinates:" << NaturalCoordinates;
         }
     };
 
@@ -145,6 +149,8 @@ public:
 
     std::vector<std::string> GetMeshesName() const override;
 
+    void GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const override;
+
     void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates, std::map<int, std::vector<int> >& rConnectivities) override;
 
     std::vector<std::string> GetNodalScalarValuesName() const override;
@@ -155,9 +161,20 @@ public:
 
     void ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size) override;
 
+    /// Get the names of all the Gauss point scalar values
+    std::vector<std::pair<std::string, std::string> > GetGaussPointScalarValuesName() const override;
+
     void ReadGaussPointRecord(const std::string& GpName) override;
 
-    void ReadGaussPointScalarValues(const std::string& Name, std::string GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues) override;
+    void GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType) const override;
+
+    void GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType, std::string& NaturalCoordinates) const override;
+
+    void GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<std::vector<double> >& rCoordinates) const override;
+
+    void GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<array_1d<double, 3> >& rCoordinates) const override;
+
+    void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues) override;
 
 protected:
 

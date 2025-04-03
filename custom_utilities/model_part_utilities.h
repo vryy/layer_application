@@ -56,6 +56,7 @@ public:
     ///@{
 
     typedef std::size_t IndexType;
+    typedef ModelPart::ElementType::GeometryType GeometryType;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartUtilities);
@@ -177,6 +178,12 @@ public:
         }
     }
 
+    /// Guess the integration order, providing the number of integration points
+    static int GetIntegrationOrder(const GeometryType& rGeometry, const unsigned int npoints);
+
+    /// Clear everything from the model_part, make it fresh again
+    static void ClearModelPart(ModelPart& r_model_part);
+
     /// Fill the model_part based on GiD post result data reader
     /// A json parameters can be optionally provided to assist with search and read process. An example
     /// of the parameters looks like
@@ -191,7 +198,7 @@ public:
     //     "echo_level": 1
     // }
     // """
-    static void GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part, const Parameters& mesh_info);
+    static void GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList* pElementalVariablesList = nullptr);
 
     /// Fill the model_part based on GiD binary data
     /// A json parameters can be optionally provided to assist with search and read process. An example
@@ -207,7 +214,7 @@ public:
     //     "echo_level": 1
     // }
     // """
-    static void GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part, const Parameters& mesh_info);
+    static void GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList* pElementalVariablesList = nullptr);
 
     ///@}
     ///@name Access

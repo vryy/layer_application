@@ -1,3 +1,5 @@
+#include <set>
+
 #include "gidpost_binary_reader.h"
 
 #define GZ_WATCH(a) if(a <= 0) return a;
@@ -80,32 +82,47 @@ std::vector<std::string> GiDPostBinaryReader::GetMeshesName() const
     return mesh_list;
 }
 
+void GiDPostBinaryReader::GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const
+{
+    for(std::size_t i = 0; i < mPosMesh.size(); ++i)
+    {
+        if (mPosMesh[i].Name.compare(Name) == 0)
+        {
+            Dim = mPosMesh[i].Dim;
+            ElemType = mPosMesh[i].ElemType;
+            return;
+        }
+    }
+
+    KRATOS_ERROR << "Mesh " << Name << " is not found";
+}
+
 std::vector<std::string> GiDPostBinaryReader::GetNodalScalarValuesName() const
 {
-    std::vector<std::string> result_list;
+    std::set<std::string> result_list;
     for(std::size_t i = 0; i < mPosResult.size(); ++i)
     {
         if (mPosResult[i].Type.compare("Scalar") == 0
             && (mPosResult[i].Location.compare("OnNodes") == 0))
         {
-            result_list.push_back(mPosResult[i].Name);
+            result_list.insert(mPosResult[i].Name);
         }
     }
-    return result_list;
+    return std::vector<std::string>(result_list.begin(), result_list.end());
 }
 
 std::vector<std::string> GiDPostBinaryReader::GetNodalVectorValuesName() const
 {
-    std::vector<std::string> result_list;
+    std::set<std::string> result_list;
     for(std::size_t i = 0; i < mPosResult.size(); ++i)
     {
         if (mPosResult[i].Type.compare("Vector") == 0
             && (mPosResult[i].Location.compare("OnNodes") == 0))
         {
-            result_list.push_back(mPosResult[i].Name);
+            result_list.insert(mPosResult[i].Name);
         }
     }
-    return result_list;
+    return std::vector<std::string>(result_list.begin(), result_list.end());
 }
 
 void GiDPostBinaryReader::ReadNodalScalarValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<double> >& rValues)
@@ -251,13 +268,126 @@ void GiDPostBinaryReader::ReadNodalVectorValues(const std::string& Name, std::ve
     }
 }
 
-void GiDPostBinaryReader::ReadGaussPointRecord(const std::string& GpName)
+std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussPointScalarValuesName() const
 {
-    // TODO
-    KRATOS_ERROR << "Not yet implemented";
+    std::vector<std::pair<std::string, std::string> > result_list;
+    for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    {
+        if (mPosResult[i].Type.compare("Scalar") == 0
+            && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
+        {
+            result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
+        }
+    }
+    return result_list;
 }
 
-void GiDPostBinaryReader::ReadGaussPointScalarValues(const std::string& Name, std::string GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
+void GiDPostBinaryReader::ReadGaussPointRecord(const std::string& GpName)
+{
+    Reset();
+
+    for(std::size_t i = 0; i < mGpRecord.size(); ++i)
+    {
+        bool check = (mGpRecord[i].Name.compare(GpName) == 0);
+        check = (mGpRecord[i].NaturalCoordinates == "Given");
+
+        if(!check)
+            continue;
+
+        /* iterate through gp coordinates */
+        SetCurrentPosition(mGpRecord[i].StartCoordPos);
+
+        std::vector<double> values;
+        gid_value_t v;
+        z_off_t CurPos;
+        while(true)
+        {
+            Read(v);
+
+            CurPos = GetCurrentPosition();
+            values.push_back(static_cast<double>(v));
+
+            if(CurPos >= mGpRecord[i].EndCoordPos)
+            {
+                break;
+            }
+        }
+        values.pop_back(); // remove the last element. For some reason, GidPost library appends a dummy value at the end of the Gp coordinates.
+
+        int dim = values.size() / mGpRecord[i].NumberOfGaussPoints;
+
+        mGpRecord[i].GpCoordinates.clear();
+        for (int j = 0; j < mGpRecord[i].NumberOfGaussPoints; ++j)
+        {
+            std::vector<double> p(dim);
+            for (int k = 0; k < dim; ++k)
+                p[k] = values[dim*j + k];
+            mGpRecord[i].GpCoordinates.push_back(p);
+        }
+    }
+}
+
+void GiDPostBinaryReader::GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType) const
+{
+    for(std::size_t i = 0; i < mGpRecord.size(); ++i)
+    {
+        if (mGpRecord[i].Name.compare(GpName) == 0)
+        {
+            Np = mGpRecord[i].NumberOfGaussPoints;
+            ElemType = mGpRecord[i].ElemType;
+            return;
+        }
+    }
+
+    KRATOS_ERROR << "Gauss point record " << GpName << " is not found";
+}
+
+void GiDPostBinaryReader::GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType, std::string& NaturalCoordinates) const
+{
+    for(std::size_t i = 0; i < mGpRecord.size(); ++i)
+    {
+        if (mGpRecord[i].Name.compare(GpName) == 0)
+        {
+            Np = mGpRecord[i].NumberOfGaussPoints;
+            ElemType = mGpRecord[i].ElemType;
+            NaturalCoordinates = mGpRecord[i].NaturalCoordinates;
+            return;
+        }
+    }
+
+    KRATOS_ERROR << "Gauss point record " << GpName << " is not found";
+}
+
+void GiDPostBinaryReader::GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<std::vector<double> >& rCoordinates) const
+{
+    for(std::size_t i = 0; i < mGpRecord.size(); ++i)
+    {
+        if (mGpRecord[i].Name.compare(GpName) == 0)
+        {
+            rCoordinates = mGpRecord[i].GpCoordinates;
+        }
+    }
+}
+
+void GiDPostBinaryReader::GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<array_1d<double, 3> >& rCoordinates) const
+{
+    for(std::size_t i = 0; i < mGpRecord.size(); ++i)
+    {
+        if (mGpRecord[i].Name.compare(GpName) == 0)
+        {
+            rCoordinates.resize(mGpRecord[i].GpCoordinates.size());
+            for (std::size_t j = 0; j < mGpRecord[i].GpCoordinates.size(); ++j)
+            {
+                unsigned int dim = mGpRecord[i].GpCoordinates[j].size() < 3 ? mGpRecord[i].GpCoordinates[j].size() : 3;
+                rCoordinates[j].clear();
+                for (unsigned int k = 0; k < dim; ++k)
+                    rCoordinates[j][k] = mGpRecord[i].GpCoordinates[j][k];
+            }
+        }
+    }
+}
+
+void GiDPostBinaryReader::ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
 {
     Reset();
 
@@ -582,21 +712,21 @@ void GiDPostBinaryReader::ParseAndIndex2()
         {
             // search for the next End keyword
             found = false;
+            std::string end_keyword = "End Coordinates";
             while(!CheckEof())
             {
-                found = FindNext(0, c, "End Coordinates", 15);
+                found = FindNext(0, c, end_keyword.c_str(), end_keyword.size());
                 if(found)
                     break;
             }
-//std::cout << "At " << __LINE__ << ": found: " << found << ", temp_curr: " << temp_curr << std::endl;
+
             if(found)
             {
                 mesh.StartCoordPos = temp_curr;
-                mesh.EndCoordPos = GetCurrentPosition() - 15*sizeof(char);
+                mesh.EndCoordPos = GetCurrentPosition() - end_keyword.size()*sizeof(char);
             }
             else
             {
-//                continue;
                 ERROR("That should not happen", "No matching End Coordinates keyword")
             }
 
@@ -615,20 +745,20 @@ void GiDPostBinaryReader::ParseAndIndex2()
         {
             // search for the next End keyword
             found = false;
+            std::string end_keyword = "End Elements";
             while(!CheckEof())
             {
-                found = FindNext(0, c, "End Elements", 12);
+                found = FindNext(0, c, end_keyword.c_str(), end_keyword.size());
                 if(found)
                     break;
             }
             if(found)
             {
                 mesh.StartElemPos = temp_curr;
-                mesh.EndElemPos = GetCurrentPosition() - 12*sizeof(char);
+                mesh.EndElemPos = GetCurrentPosition() - end_keyword.size()*sizeof(char);
             }
             else
             {
-//                    continue;
                 ERROR("That should not happen", "No matching End Elements keyword")
             }
         }
@@ -673,20 +803,20 @@ void GiDPostBinaryReader::ParseAndIndex2()
         {
             // search for the next End keyword
             found = false;
+            std::string end_keyword = "End Values";
             while(!CheckEof())
             {
-                found = FindNext(0, c, "End Values", 10);
+                found = FindNext(0, c, end_keyword.c_str(), end_keyword.size());
                 if(found)
                     break;
             }
             if(found)
             {
                 result.StartPos = temp_curr;
-                result.EndPos = GetCurrentPosition() - 10*sizeof(char);
+                result.EndPos = GetCurrentPosition() - end_keyword.size()*sizeof(char);
             }
             else
             {
-//                    continue;
                 ERROR("That should not happen", "No matching End Values keyword")
             }
         }
@@ -709,6 +839,7 @@ void GiDPostBinaryReader::ParseAndIndex2()
         // read the element type
         std::string dummy;
         ReadWord(dummy);
+
         if(dummy == "ElemType")
         {
             ReadWord(gp_rec.ElemType);
@@ -724,23 +855,51 @@ void GiDPostBinaryReader::ParseAndIndex2()
             dummy.clear(); ReadWord(dummy);
             gp_rec.NumberOfGaussPoints = atoi(dummy.c_str());
 
-            // this was skipped because the representation in post file is not consistent
-//                dummy.clear(); ReadWord(dummy);WATCH(dummy)
-//                dummy.clear(); ReadWord(dummy);WATCH(dummy)
-//                dummy.clear(); ReadWord(dummy);WATCH(dummy)
-//                dummy.clear(); ReadWord(dummy);WATCH(dummy)
-//                dummy.clear(); ReadWord(dummy);WATCH(dummy)
-//                ReadWord(gp_rec.NaturalCoordinates);
+            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            ReadWord(gp_rec.NaturalCoordinates);
+
+            gp_rec.StartCoordPos = gp_rec.EndCoordPos = 0;
+
+            temp_curr = GetCurrentPosition();
+
+            next = true;
+            if(next)
+            {
+                // search for the next End keyword
+                found = false;
+                std::string end_keyword = "End GaussPoints";
+                while(!CheckEof())
+                {
+                    found = FindNext(0, c, end_keyword.c_str(), end_keyword.size());
+                    if(found)
+                        break;
+                }
+                if(found)
+                {
+                    gp_rec.StartCoordPos = temp_curr;
+                    gp_rec.EndCoordPos = GetCurrentPosition() - end_keyword.size()*sizeof(char);
+                }
+                else
+                {
+                    ERROR("That should not happen", "No matching End GaussPoints keyword")
+                }
+            }
+            else
+                SetCurrentPosition(temp_curr);
 
             mGpRecord.push_back(gp_rec);
-            // WATCH("----------------")
         }
     } // end handle keyword "GaussPoints"
 
     auto time_end = std::chrono::high_resolution_clock::now();
     auto elapsed = time_end - time_begin;
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    std::cout << "Indexing " + BaseType::GetFileName() + " completed... " << microseconds << "us" << std::endl;
+    double milliseconds = microseconds / 1e3;
+    std::cout << "Indexing " + BaseType::GetFileName() + " completed... " << milliseconds << "ms" << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

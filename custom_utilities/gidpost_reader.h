@@ -87,17 +87,31 @@ public:
     virtual std::vector<std::string> GetMeshesName() const
     {}
 
+    /// Get the info of the mesh
+    virtual void GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const
+    {}
+
     /// Read a specific mesh name from the binary
     virtual void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates, std::map<int, std::vector<int> >& rConnectivities)
     {}
 
     /// Get the names of all the nodal scalar values
     virtual std::vector<std::string> GetNodalScalarValuesName() const
-    {}
+    {
+        return {};
+    }
 
     /// Get the names of all the nodal vector values
     virtual std::vector<std::string> GetNodalVectorValuesName() const
-    {}
+    {
+        return {};
+    }
+
+    /// Get the names of all the Gauss point scalar values
+    virtual std::vector<std::pair<std::string, std::string> > GetGaussPointScalarValuesName() const
+    {
+        return {};
+    }
 
     /// Read the nodal values (as scalar)
     /// step_list: all the time steps that simulation produces results
@@ -116,11 +130,27 @@ public:
     virtual void ReadGaussPointRecord(const std::string& GpName)
     {}
 
+    /// Get the Gauss point record info
+    virtual void GetGaussPointRecordInfo(const std::string& Name, int& Np, std::string& ElemType) const
+    {}
+
+    /// Get the Gauss point record info
+    virtual void GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType, std::string& NaturalCoordinates) const
+    {}
+
+    /// Get the Gauss point coordinates
+    virtual void GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<std::vector<double> >& rCoordinates) const
+    {}
+
+    /// Get the Gauss point coordinates
+    virtual void GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<array_1d<double, 3> >& rCoordinates) const
+    {}
+
     /// Read the Gauss point values (as scalar)
     /// step_list: all the time steps that simulation produces results
     /// output values: map key is element index
     ///                map values is series of scalar results at Gauss points/element at multiple time step
-    virtual void ReadGaussPointScalarValues(const std::string& Name, std::string GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
+    virtual void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
     {}
 
     /// Get the string without quote

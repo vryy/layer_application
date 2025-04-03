@@ -6,6 +6,7 @@
 //
 //
 // Project includes
+#include "includes/legacy_structural_app_vars.h"
 #include "custom_utilities/gidpost_binary_reader.h"
 #include "custom_utilities/model_part_utilities.h"
 
@@ -104,15 +105,73 @@ void ModelPartUtilities::ExportEdgeInformationToGiD(std::ostream& rOStream, Mode
     }
 }
 
+int ModelPartUtilities::GetIntegrationOrder(const GeometryType& rGeometry, const unsigned int npoints)
+{
+    unsigned int number_of_integration_methods = static_cast<unsigned int>(GeometryData::IntegrationMethod::NumberOfIntegrationMethods);
+    for (unsigned int i = 0; i < number_of_integration_methods; ++i)
+    {
+        const GeometryData::IntegrationMethod ThisIntegrationMethod =
+            static_cast<GeometryData::IntegrationMethod>(i+1);
+
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            rGeometry.IntegrationPoints( ThisIntegrationMethod );
+
+        if (integration_points.size() == npoints)
+            return i + 1;
+    }
+
+    KRATOS_ERROR << "Can't find suitable integration order for " << npoints
+                 << " integration points of geometry " << rGeometry.GetGeometryType();
+}
+
+// TODO to test
+void ModelPartUtilities::ClearModelPart(ModelPart& r_model_part)
+{
+    // remove all elements
+    std::vector<IndexType> all_elements;
+    for (auto it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
+        all_elements.push_back(it->Id());
+    for (const auto id : all_elements)
+        r_model_part.RemoveElement(id);
+
+    // remove all conditions
+    std::vector<IndexType> all_conditions;
+    for (auto it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
+        all_conditions.push_back(it->Id());
+    for (const auto id : all_conditions)
+        r_model_part.RemoveCondition(id);
+
+    // remove all nodes
+    std::vector<IndexType> all_nodes;
+    for (auto it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it)
+        all_nodes.push_back(it->Id());
+    for (const auto id : all_nodes)
+        r_model_part.RemoveNode(id);
+
+    // remove all properties
+    std::vector<IndexType> all_properties;
+    for (auto it = r_model_part.PropertiesBegin(); it != r_model_part.PropertiesEnd(); ++it)
+        all_properties.push_back(it->Id());
+    for (const auto id : all_properties)
+        r_model_part.RemoveProperties(id);
+
+    // remove all constraints
+    std::vector<IndexType> all_constraints;
+    for (auto it = r_model_part.MasterSlaveConstraintsBegin(); it != r_model_part.MasterSlaveConstraintsEnd(); ++it)
+        all_constraints.push_back(it->Id());
+    for (const auto id : all_constraints)
+        r_model_part.RemoveMasterSlaveConstraint(id);
+}
+
 void ModelPartUtilities::GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part,
-        const Parameters& mesh_info)
+        const Parameters& mesh_info, VariablesList* pElementalVariablesList)
 {
     GiDPostBinaryReader reader(fileName);
-    GiDPost2ModelPart(reader, r_model_part, mesh_info);
+    GiDPost2ModelPart(reader, r_model_part, mesh_info, pElementalVariablesList);
 }
 
 void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part,
-        const Parameters& mesh_info)
+        const Parameters& mesh_info, VariablesList* pElementalVariablesList)
 {
     typedef ModelPart::IndexType IndexType;
 
@@ -120,12 +179,61 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 
     int echo_level = mesh_info.Has("echo_level") ? mesh_info.GetValue("echo_level").GetInt() : 0;
 
+    // we iterate through all mesh to collect all nodal variables.
+    // This ensures all new nodes are created consistently with all
+    // nodal variables properly set
+    for (const auto& name : mesh_names)
+    {
+        // here we have to get all nodal result to add the solution step variables to node
+        std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
+        std::vector<std::string> nodal_vector_result_names = reader.GetNodalVectorValuesName();
+
+        for (const auto& result_name : nodal_scalar_result_names)
+        {
+            // get the variable from kernel
+            std::string var_name = GiDPostReader::StripQuote(result_name);
+            if (!KratosComponents<Variable<double> >::Has(var_name))
+                KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
+            const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
+
+            if (!r_model_part.HasNodalSolutionStepVariable(rVariable))
+                r_model_part.AddNodalSolutionStepVariable(rVariable);
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: found nodal scalar value " << result_name << std::endl;
+        }
+
+        for (const auto& result_name : nodal_vector_result_names)
+        {
+            // get the variable from kernel
+            std::string var_name = GiDPostReader::StripQuote(result_name);
+            if (!KratosComponents<Variable<array_1d<double, 3> > >::Has(var_name))
+                KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
+            const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
+
+            if (!r_model_part.HasNodalSolutionStepVariable(rVariable))
+                r_model_part.AddNodalSolutionStepVariable(rVariable);
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: found nodal vector value " << result_name << std::endl;
+        }
+    }
+
+    // we append the node, element and condition from the corresponding last index of the input model_part
+    std::size_t last_node_id = r_model_part.GetLastNodeId();
+    std::size_t last_elem_id = r_model_part.GetLastElementId();
+    std::size_t last_cond_id = r_model_part.GetLastConditionId();
+
     for (const auto& name : mesh_names)
     {
         std::map<int, std::vector<double> > coordinates;
         std::map<int, std::vector<int> > connectivities;
 
         reader.ReadMesh(name, coordinates, connectivities);
+
+        int dim;
+        std::string gid_elem_type;
+        reader.GetMeshInfo(name, dim, gid_elem_type);
 
         std::string corrected_name;
         bool found_mesh = false;
@@ -185,12 +293,77 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             if (name.find("Hexahedra3D27") != std::string::npos)
             {
                 entity_type = 1;
-                entity_name = "DummyElement3D27N";  // to use this element, one needs to import the structural application. TODO move this element to kernel?
+                entity_name = "PostElement3D27N";
+            }
+            else if (name.find("Hexahedra3D20") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement3D20N";
+            }
+            else if (name.find("Hexahedra3D8") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement3D8N";
+            }
+            else if (name.find("Tetrahedra3D10") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement3D10N";
+            }
+            else if (name.find("Tetrahedra3D4") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement3D4N";
+            }
+            else if (name.find("Quadrilateral2D9") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement2D9N";
+            }
+            else if (name.find("Quadrilateral2D8") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement2D8N";
+            }
+            else if (name.find("Quadrilateral2D4") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement2D4N";
+            }
+            else if (name.find("Triangle2D6") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement2D6N";
+            }
+            else if (name.find("Triangle2D3") != std::string::npos)
+            {
+                entity_type = 1;
+                entity_name = "PostElement2D3N";
             }
             else if (name.find("Quadrilateral3D9") != std::string::npos)
             {
                 entity_type = 2;
-                entity_name = "DummySurfaceCondition3D9N";
+                entity_name = "PostSurfaceCondition3D9N";
+            }
+            else if (name.find("Quadrilateral3D8") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostSurfaceCondition3D8N";
+            }
+            else if (name.find("Quadrilateral3D4") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostSurfaceCondition3D4N";
+            }
+            else if (name.find("Triangle3D6") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostSurfaceCondition3D6N";
+            }
+            else if (name.find("Triangle3D3") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostSurfaceCondition3D3N";
             }
             else
                 KRATOS_ERROR << "Can't determine entity name for mesh " << name;
@@ -203,6 +376,32 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             prop_id = std::stoi(name.substr(pos + 1));
         }
 
+        // do some checks
+        if (dim == 2)
+        {
+            if ((gid_elem_type == "Quadrilateral" || gid_elem_type == "Triangle")
+                && entity_type != 1
+            )
+                KRATOS_ERROR << "Mesh is " << gid_elem_type << " but the entity is not element. Is there something wrong?";
+
+            if ((gid_elem_type == "Line" || gid_elem_type == "Linear")
+                && entity_type != 2
+            )
+                KRATOS_ERROR << "Mesh is " << gid_elem_type << " but the entity is not condition. Is there something wrong?";
+        }
+        if (dim == 3)
+        {
+            if ((gid_elem_type == "Hexahedra" || gid_elem_type == "Tetrathedra")
+                && entity_type != 1
+            )
+                KRATOS_ERROR << "Mesh is " << gid_elem_type << " but the entity is not element. Is there something wrong?";
+
+            if ((gid_elem_type == "Quadrilateral" || gid_elem_type == "Triangle")
+                && entity_type != 2
+            )
+                KRATOS_ERROR << "Mesh is " << gid_elem_type << " but the entity is not condition. Is there something wrong?";
+        }
+
         if (echo_level > 0)
         {
             if (entity_type == 1)
@@ -211,44 +410,48 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 std::cout << "GiDPost2ModelPart: mesh " << name << " is assigned with condition " << entity_name << " on prop_id " << prop_id << std::endl;
         }
 
-        // create nodes
-        std::size_t last_node_id = r_model_part.GetLastNodeId();
+        /* create nodes */
         for (const auto& [id, coords] : coordinates)
         {
-            r_model_part.CreateNewNode(id + last_node_id, coords[0], coords[1], coords[2]);
+            // because the node can be duplicated. Note that each mesh
+            // can have more than nodes that it required, just the element
+            // and condition are unique.
+            if (!r_model_part.HasNode(id + last_node_id))
+                r_model_part.CreateNewNode(id + last_node_id, coords[0], coords[1], coords[2]);
         }
+
+        /* create elements and conditions */
 
         Properties::Pointer prop = r_model_part.pGetProperties(prop_id);
 
         if (entity_type == 1)
         {
             // create elements
-            std::size_t last_elem_id = r_model_part.GetLastElementId();
             for (const auto& [id, conn] : connectivities)
             {
                 std::vector<IndexType> new_conn;
                 for (const int nid : conn)
                     new_conn.push_back(static_cast<IndexType>(nid + last_node_id));
-                r_model_part.CreateNewElement(entity_name, id + last_elem_id, new_conn, prop);
+                r_model_part.CreateNewElement(entity_name, id + last_elem_id, new_conn, prop)
+                ->Initialize(r_model_part.GetProcessInfo());
             }
         }
         else if (entity_type == 2)
         {
             // create conditions
-            std::size_t last_cond_id = r_model_part.GetLastConditionId();
             for (const auto& [id, conn] : connectivities)
             {
                 std::vector<IndexType> new_conn;
                 for (const int nid : conn)
                     new_conn.push_back(static_cast<IndexType>(nid + last_node_id));
-                r_model_part.CreateNewCondition(entity_name, id + last_cond_id, new_conn, prop);
+                r_model_part.CreateNewCondition(entity_name, id + last_cond_id, new_conn, prop)
+                ->Initialize(r_model_part.GetProcessInfo());
             }
         }
         else
             KRATOS_ERROR << "Entity type " << entity_type << " is invalid. Maybe you forgot to set the entity type?";
 
-        // import nodal scalar results
-        std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
+        /* import nodal scalar results */
 
         const unsigned int buffer_size = r_model_part.GetBufferSize();
         if (echo_level > 0)
@@ -256,86 +459,237 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             std::cout << "GiDPost2ModelPart: model_part buffer size = " << buffer_size << std::endl;
         }
 
-        if (echo_level > 1)
+        std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
+
+        for (const auto& result_name : nodal_scalar_result_names)
         {
-            if (nodal_scalar_result_names.size() > 0)
+            // read the nodal values
+            std::vector<double> step_list;
+            std::map<std::size_t, std::vector<double> > step_values;
+
+            reader.ReadNodalScalarValues(result_name, step_list, step_values);
+
+            // get the variable from kernel
+            std::string var_name = GiDPostReader::StripQuote(result_name);
+            const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
+
+            for (const auto& [id, values] : step_values)
             {
-                std::cout << "GiDPost2ModelPart: found nodal scalar values:";
-                for (const auto& str : nodal_scalar_result_names)
-                    std::cout << " " << str;
-                std::cout << std::endl;
+                auto& rNode = r_model_part.Nodes()[id + last_node_id];
+
+                unsigned int cnt = 0;
+                for (auto it = values.rbegin(); it != values.rend(); ++it)
+                {
+                    if (cnt >= buffer_size)
+                        break; // only read until buffer size
+
+                    rNode.GetSolutionStepValue(rVariable, cnt) = *it;
+
+                    if (echo_level > 2)
+                    {
+                        std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
+                                  << " with value " << *it << " at position " << cnt
+                                  << std::endl;
+                    }
+
+                    ++cnt;
+                }
             }
-            else
-                std::cout << "GiDPost2ModelPart: found no nodal scalar values" << std::endl;
+
+            if (echo_level > 0)
+            {
+                std::cout << "GiDPost2ModelPart: read nodal scalar values " << rVariable.Name() << " completed" << std::endl;
+            }
         }
 
-        // import nodal vector results
+        /* import nodal vector results */
+
         std::vector<std::string> nodal_vector_result_names = reader.GetNodalVectorValuesName();
 
-        if (echo_level > 1)
+        for (const auto& result_name : nodal_vector_result_names)
         {
-            if (nodal_vector_result_names.size() > 0)
+            const int vector_size = 4; // for now we support reading vector values of size 3 only
+            // TODO generalize the vector dimension., maybe through json parameters?
+
+            // read the nodal values
+            std::vector<double> step_list;
+            std::map<std::size_t, std::vector<std::vector<double> > > step_values;
+
+            reader.ReadNodalVectorValues(result_name, step_list, step_values, vector_size);
+
+            // get the variable from kernel
+            std::string var_name = GiDPostReader::StripQuote(result_name);
+            const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
+
+            for (const auto& [id, values] : step_values)
             {
-                std::cout << "GiDPost2ModelPart: found nodal vector values:";
-                for (const auto& str : nodal_vector_result_names)
-                    std::cout << " " << str;
-                std::cout << std::endl;
+                auto& rNode = r_model_part.Nodes()[id + last_node_id];
+
+                unsigned int cnt = 0;
+                for (auto it = values.rbegin(); it != values.rend(); ++it)
+                {
+                    if (cnt >= buffer_size)
+                        break; // only read until buffer size
+                    array_1d<double, 3> v;
+                    v[0] = (*it)[0];
+                    v[1] = (*it)[1];
+                    v[2] = (*it)[2];
+
+                    noalias(rNode.GetSolutionStepValue(rVariable, cnt)) = v;
+
+                    if (echo_level > 2)
+                    {
+                        std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
+                                  << " with value " << v << " at position " << cnt
+                                  << std::endl;
+                    }
+
+                    ++cnt;
+                }
             }
-            else
-                std::cout << "GiDPost2ModelPart: found no nodal vector values" << std::endl;
+
+            if (echo_level > 0)
+            {
+                std::cout << "GiDPost2ModelPart: read nodal vector values " << rVariable.Name() << " completed" << std::endl;
+            }
         }
 
-        if (nodal_vector_result_names.size() > 0)
+        /* import Gauss point scalar results */
+
+        std::vector<std::pair<std::string, std::string> > gp_scalar_result_names = reader.GetGaussPointScalarValuesName();
+
+        for (const auto& [result_name, gp_name] : gp_scalar_result_names)
         {
-            const int vector_size = 4; // for now we support reading vector values of size 3 only TODO generalize the vector dimension.
+            // get the variable from kernel
+            std::string var_name = GiDPostReader::StripQuote(result_name);
+            if (!KratosComponents<Variable<double> >::Has(var_name))
+                KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
+            const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
 
-            for (const auto& result_name : nodal_vector_result_names)
+            // get the Gauss point record info
+            int npoints;
+            std::string gp_elem_type;
+            std::string gp_coordinates_type;
+            reader.GetGaussPointRecordInfo(gp_name, npoints, gp_elem_type, gp_coordinates_type);
+            reader.ReadGaussPointRecord(gp_name);
+
+            std::vector<array_1d<double, 3> > gp_coordinates;
+            reader.GetGaussPointRecordCoordinates(gp_name, gp_coordinates);
+
+            // results (with name) can be on different mesh. It is essential to check if the element type
+            // of the Gauss point results match with the mesh element type
+            if (gid_elem_type.compare(gp_elem_type) != 0)
+                continue;
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: found Gauss point scalar value " << result_name
+                          << ", name " << gp_name
+                          << std::endl;
+
+            if (pElementalVariablesList != nullptr)
             {
-                // read the nodal values
-                std::vector<double> step_list;
-                std::map<std::size_t, std::vector<std::vector<double> > > step_values;
+                pElementalVariablesList->Add(rVariable);
+            }
 
-                reader.ReadNodalVectorValues(result_name, step_list, step_values, vector_size);
+            std::vector<double> step_list;
+            std::map<std::size_t, std::vector<std::vector<double> > > step_values;
+            reader.ReadGaussPointScalarValues(result_name, gp_name, step_list, step_values);
 
-                // get the variable from kernel
-                std::string var_name = GiDPostReader::StripQuote(result_name);
-                if (!KratosComponents<Variable<array_1d<double, 3> > >::Has(var_name))
-                    KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
-                const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
-
-                for (const auto& [id, values] : step_values)
+            for (const auto& [id, values] : step_values)
+            {
+                if (entity_type == 1)
                 {
-                    auto& rNode = r_model_part.Nodes()[id + last_node_id];
+                    auto& rElement = r_model_part.Elements()[id + last_elem_id];
 
-                    unsigned int cnt = 0;
                     for (auto it = values.rbegin(); it != values.rend(); ++it)
                     {
-                        if (cnt >= buffer_size)
-                            break; // only read until buffer size
-                        array_1d<double, 3> v;
-                        v[0] = (*it)[0];
-                        v[1] = (*it)[1];
-                        v[2] = (*it)[2];
+                        // do a size check
+                        if (it->size() != npoints)
+                            KRATOS_ERROR << "The number of values does not match number of integration points in the Gauss point record. Is there something wrong?";
 
-                        noalias(rNode.GetSolutionStepValue(rVariable, cnt)) = v;
+                        if (gp_coordinates_type == "Given")
+                        {
+                            // set the integration point coordinates. The PostElement will need it to calculate the global coordinates of the integration point
+                            rElement.SetValuesOnIntegrationPoints(INTEGRATION_POINT_LOCAL, gp_coordinates, r_model_part.GetProcessInfo());
+                        }
+                        else if (gp_coordinates_type == "Internal")
+                        {
+                            // guess the integration order based on number of integration points
+                            int integration_order = GetIntegrationOrder(rElement.GetGeometry(), npoints);
+                            if (rElement.Has(INTEGRATION_ORDER))
+                                if (rElement.GetValue(INTEGRATION_ORDER) != integration_order)
+                                    KRATOS_ERROR << "The existing INTEGRATION_ORDER of element " << rElement.Id()
+                                                 << " conflicts with the number of integration points on Gp record."
+                                                 << " Something is inconsistent.";
+                            else
+                                rElement.SetValue(INTEGRATION_ORDER, integration_order);
+                        }
+                        else
+                            KRATOS_ERROR << "Unknown coordinates type " << gp_coordinates_type;
+
+                        rElement.SetValuesOnIntegrationPoints(rVariable, *it, r_model_part.GetProcessInfo());
 
                         if (echo_level > 2)
                         {
-                            std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
-                                      << " with value " << v << " at position " << cnt
-                                      << std::endl;
+                            std::cout << "GiDPost2ModelPart: element " << rElement.Id() << " is assigned " << rVariable.Name()
+                                      << " with values";
+                            for (std::size_t i = 0; i < it->size(); ++i)
+                                std::cout << " " << (*it)[i];
+                            std::cout << std::endl;
                         }
-
-                        ++cnt;
                     }
                 }
-
-                if (echo_level > 0)
+                else if (entity_type == 2)
                 {
-                    std::cout << "GiDPost2ModelPart: read nodal vector values " << rVariable.Name() << " completed" << std::endl;
+                    auto& rCondition = r_model_part.Conditions()[id + last_cond_id];
+
+                    for (auto it = values.rbegin(); it != values.rend(); ++it)
+                    {
+                        // do a size check
+                        if (it->size() != npoints)
+                            KRATOS_ERROR << "The number of values does not match number of integration points in the Gauss point record. Is there something wrong?";
+
+                        if (gp_coordinates_type == "Given")
+                        {
+                            // set the integration point coordinates. The PostCondition will need it to calculate the global coordinates of the integration point
+                            rCondition.SetValuesOnIntegrationPoints(INTEGRATION_POINT_LOCAL, gp_coordinates, r_model_part.GetProcessInfo());
+                        }
+                        else if (gp_coordinates_type == "Internal")
+                        {
+                            // guess the integration order based on number of integration points
+                            int integration_order = GetIntegrationOrder(rCondition.GetGeometry(), npoints);
+                            if (rCondition.Has(INTEGRATION_ORDER))
+                                if (rCondition.GetValue(INTEGRATION_ORDER) != integration_order)
+                                    KRATOS_ERROR << "The existing INTEGRATION_ORDER of element " << rCondition.Id()
+                                                 << " conflicts with the number of integration points on Gp record."
+                                                 << " Something is inconsistent.";
+                            else
+                                rCondition.SetValue(INTEGRATION_ORDER, integration_order);
+                        }
+                        else
+                            KRATOS_ERROR << "Unknown coordinates type " << gp_coordinates_type;
+
+                        rCondition.SetValuesOnIntegrationPoints(rVariable, *it, r_model_part.GetProcessInfo());
+
+                        if (echo_level > 2)
+                        {
+                            std::cout << "GiDPost2ModelPart: condition " << rCondition.Id() << " is assigned " << rVariable.Name()
+                                      << " with values";
+                            for (std::size_t i = 0; i < it->size(); ++i)
+                                std::cout << " " << (*it)[i];
+                            std::cout << std::endl;
+                        }
+                    }
                 }
             }
+
+            if (echo_level > 0)
+            {
+                std::cout << "GiDPost2ModelPart: read Gauss point scalar values " << rVariable.Name() << " completed" << std::endl;
+            }
         }
+
+        // // TODO
     }
 }
 
