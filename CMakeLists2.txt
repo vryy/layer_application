@@ -1,10 +1,5 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-######### add include directory here
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications )
-include_directories( ${CMAKE_SOURCE_DIR} )
-#######################################################################
+set(LAYER_APPLICATION_COMPILE_DEFS "")
+set(LAYER_APPLICATION_INCLUDE_DIRS "")
 
 # zlib, lib64
 
@@ -14,18 +9,18 @@ set( libb64_src
 )
 add_library(b64 STATIC ${libb64_src})
 
-add_definitions(-D_USE_ZLIB)
-add_definitions(-D_USE_LIBB64)
+set(LAYER_APPLICATION_COMPILE_DEFS "${LAYER_APPLICATION_COMPILE_DEFS};_USE_ZLIB")
+set(LAYER_APPLICATION_COMPILE_DEFS "${LAYER_APPLICATION_COMPILE_DEFS};_USE_LIBB64")
 
 # hdf5
 if(DEFINED $ENV{HDF5_ROOT})
     # SET(HDF5_DIR $ENV{HDF5_ROOT}/share/cmake/hdf5)
     # FIND_PACKAGE(HDF5 QUIET NAMES hdf5 hdf5_cpp)
-    FIND_PACKAGE(HDF5 REQUIRED COMPONENTS CXX)
+    find_package(HDF5 REQUIRED COMPONENTS CXX)
     set(HDF5_PROVIDED TRUE)
 elseif(DEFINED HDF5_ROOT)
     # SET(HDF5_DIR ${HDF5_ROOT}/share/cmake/hdf5)
-    FIND_PACKAGE(HDF5 REQUIRED COMPONENTS CXX)
+    find_package(HDF5 REQUIRED COMPONENTS CXX)
     set(HDF5_PROVIDED TRUE)
 else()
     set(HDF5_PROVIDED FALSE)
@@ -35,9 +30,8 @@ set(LAYER_APP_USE_HDF5 FALSE)
 if(${HDF5_PROVIDED} MATCHES TRUE)
     # message("HDF5_INCLUDE_DIR: " ${HDF5_INCLUDE_DIR})
     # message("HDF5_LIBRARIES: " ${HDF5_LIBRARIES})
-    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
-#    add_definitions( -DBOOST_FILESYSTEM_VERSION=2 )
-    add_definitions(-DLAYER_APP_USE_HDF5)
+    set(LAYER_APPLICATION_COMPILE_DEFS "${LAYER_APPLICATION_COMPILE_DEFS};LAYER_APP_USE_HDF5")
+    set(LAYER_APPLICATION_INCLUDE_DIRS "${LAYER_APPLICATION_INCLUDE_DIRS};${HDF5_INCLUDE_DIR}")
     set(LAYER_APP_USE_HDF5 TRUE)
     message("LayerApplication uses HDF5, includes = " ${HDF5_INCLUDE_DIR} ", libraries = " ${HDF5_LIBRARIES})
 else()
@@ -46,9 +40,9 @@ endif()
 
 # mmg
 if((DEFINED $ENV{MMG_DIR}) OR (DEFINED MMG_DIR))
-    FIND_PACKAGE(MMG REQUIRED)
-    INCLUDE_DIRECTORIES(${MMG_INCLUDE_DIRS})
-    add_definitions(-DLAYER_APP_USE_MMG)
+    find_package(MMG REQUIRED)
+    set(LAYER_APPLICATION_INCLUDE_DIRS "${LAYER_APPLICATION_INCLUDE_DIRS};${MMG_INCLUDE_DIRS}")
+    set(LAYER_APPLICATION_COMPILE_DEFS "${LAYER_APPLICATION_COMPILE_DEFS};LAYER_APP_USE_MMG")
     set(LAYER_APP_USE_MMG TRUE)
     message("LayerApplication uses MMG, includes = " ${MMG_INCLUDE_DIRS} ", libraries = " ${MMG_LIBRARIES})
 else()
@@ -64,6 +58,8 @@ set( KRATOS_LAYER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/gidpost_binary_reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/model_part_utilities.cpp
 )
+
+set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/model_part_utilities.cpp APPEND_STRING PROPERTY COMPILE_DEFINITIONS "PROFILING_LEVEL=1")
 
 if(${LAYER_APP_USE_MMG} MATCHES TRUE)
     set( KRATOS_LAYER_APPLICATION_SOURCES
@@ -88,20 +84,32 @@ add_library(KratosLayerApplication SHARED ${KRATOS_LAYER_APPLICATION_SOURCES})
 if(MSVC)
     target_compile_options(KratosLayerApplication PRIVATE $<$<CONFIG:Debug>:/bigobj>)
 endif()
-target_link_libraries(KratosLayerApplication KratosCore)
-target_link_libraries(KratosLayerApplication zlibstatic)
-target_link_libraries(KratosLayerApplication b64)
+
+# facilitate the dependencies of the application
+add_library(KratosLayerApplicationDependencies INTERFACE)
+target_link_libraries(KratosLayerApplicationDependencies INTERFACE zlibstatic)
+target_link_libraries(KratosLayerApplicationDependencies INTERFACE b64)
 if(${LAYER_APP_USE_HDF5} MATCHES TRUE)
-    target_link_libraries(KratosLayerApplication ${HDF5_LIBRARIES})
+    target_link_libraries(KratosLayerApplicationDependencies INTERFACE ${HDF5_LIBRARIES})
 endif()
 if(${LAYER_APP_USE_MMG} MATCHES TRUE)
-    target_link_libraries(KratosLayerApplication ${MMG_LIBRARIES})
+    target_link_libraries(KratosLayerApplicationDependencies INTERFACE ${MMG_LIBRARIES})
 endif()
-set_target_properties(KratosLayerApplication PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;LAYER_APPLICATION=EXPORT")
+
+# officially link to the core and dependencies
+target_link_libraries(KratosLayerApplication PUBLIC KratosCore)
+target_link_libraries(KratosLayerApplication PUBLIC KratosLayerApplicationDependencies)
+
+target_include_directories(KratosLayerApplication PUBLIC ${LAYER_APPLICATION_INCLUDE_DIRS})
+target_include_directories(KratosLayerApplication PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_compile_definitions(KratosLayerApplication PRIVATE KRATOS_CORE=IMPORT)
+target_compile_definitions(KratosLayerApplication PRIVATE LAYER_APPLICATION=EXPORT)
+target_compile_definitions(KratosLayerApplication PUBLIC ${LAYER_APPLICATION_COMPILE_DEFS})
+
 set_target_properties(KratosLayerApplication PROPERTIES PREFIX "")
 install(TARGETS KratosLayerApplication DESTINATION libs )
 #######################################################################
-
 
 ## changing the .dll suffix to .pyd for Windows compatibility
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -109,14 +117,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #######################################################################
 
-
 ## install application's python script if required
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 #######################################################################
-
 
 ## Add to the KratosMultiphysics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/LayerApplication.py" DESTINATION KratosMultiphysics )
