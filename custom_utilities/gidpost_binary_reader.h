@@ -151,7 +151,9 @@ public:
 
     void GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const override;
 
-    void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates, std::map<int, std::vector<int> >& rConnectivities) override;
+    void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates) override;
+
+    void ReadMesh(const std::string& Name, std::map<int, std::vector<int> >& rConnectivities) override;
 
     std::vector<std::string> GetNodalScalarValuesName() const override;
 

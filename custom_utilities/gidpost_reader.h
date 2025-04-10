@@ -91,9 +91,20 @@ public:
     virtual void GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const
     {}
 
-    /// Read a specific mesh name from the binary
-    virtual void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates, std::map<int, std::vector<int> >& rConnectivities)
+    /// Read the coordinates from mesh name from the binary
+    virtual void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates)
     {}
+
+    /// Read the connectivities from mesh name from the binary
+    virtual void ReadMesh(const std::string& Name, std::map<int, std::vector<int> >& rConnectivities)
+    {}
+
+    /// Read a specific mesh name from the binary
+    void ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates, std::map<int, std::vector<int> >& rConnectivities)
+    {
+        this->ReadMesh(Name, rCoordinates);
+        this->ReadMesh(Name, rConnectivities);
+    }
 
     /// Get the names of all the nodal scalar values
     virtual std::vector<std::string> GetNodalScalarValuesName() const
@@ -152,17 +163,6 @@ public:
     ///                map values is series of scalar results at Gauss points/element at multiple time step
     virtual void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
     {}
-
-    /// Get the string without quote
-    static std::string StripQuote(const std::string& str)
-    {
-        if (str.front() == '\"' && str.back() == '\"')
-        {
-            return str.substr(1, str.size()-2);
-        }
-        else
-            return str;
-    }
 
 private:
 

@@ -7,6 +7,10 @@
 //
 // Project includes
 #include "includes/legacy_structural_app_vars.h"
+#if defined(PROFILING_LEVEL)
+#include "utilities/openmp_utils.h"
+#endif
+#include "utilities/string_utils.h"
 #include "custom_utilities/gidpost_binary_reader.h"
 #include "custom_utilities/model_part_utilities.h"
 
@@ -182,7 +186,6 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
     // we iterate through all mesh to collect all nodal variables.
     // This ensures all new nodes are created consistently with all
     // nodal variables properly set
-    for (const auto& name : mesh_names)
     {
         // here we have to get all nodal result to add the solution step variables to node
         std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
@@ -191,7 +194,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         for (const auto& result_name : nodal_scalar_result_names)
         {
             // get the variable from kernel
-            std::string var_name = GiDPostReader::StripQuote(result_name);
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
             if (!KratosComponents<Variable<double> >::Has(var_name))
                 KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
             const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
@@ -206,7 +209,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         for (const auto& result_name : nodal_vector_result_names)
         {
             // get the variable from kernel
-            std::string var_name = GiDPostReader::StripQuote(result_name);
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
             if (!KratosComponents<Variable<array_1d<double, 3> > >::Has(var_name))
                 KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
             const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
@@ -220,16 +223,202 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
     }
 
     // we append the node, element and condition from the corresponding last index of the input model_part
-    std::size_t last_node_id = r_model_part.GetLastNodeId();
-    std::size_t last_elem_id = r_model_part.GetLastElementId();
-    std::size_t last_cond_id = r_model_part.GetLastConditionId();
+    IndexType last_node_id = r_model_part.GetLastNodeId();
+    IndexType last_elem_id = r_model_part.GetLastElementId();
+    IndexType last_cond_id = r_model_part.GetLastConditionId();
+
+    /* create nodes */
 
     for (const auto& name : mesh_names)
     {
         std::map<int, std::vector<double> > coordinates;
+
+#if PROFILING_LEVEL > 0
+        double time1 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        reader.ReadMesh(name, coordinates);
+
+#if PROFILING_LEVEL > 0
+        double time2 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        SizeType nnodes = 0;
+        for (const auto& [id, coords] : coordinates)
+        {
+            // because the node can be duplicated. Note that each mesh
+            // can have more than nodes that it required, just the element
+            // and condition are unique.
+            if (!r_model_part.HasNode(id + last_node_id))
+            {
+                r_model_part.CreateNewNode(id + last_node_id, coords[0], coords[1], coords[2]);
+                ++nnodes;
+
+                if (echo_level > 2)
+                {
+                    std::cout << "GiDPost2ModelPart: node " << id + last_node_id << " is created"
+                              << std::endl;
+                }
+            }
+        }
+
+#if PROFILING_LEVEL > 0
+        double time3 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        if (echo_level > 1)
+            std::cout << "GiDPost2ModelPart: " << nnodes << " nodes are created on mesh " << name
+#if PROFILING_LEVEL > 0
+                      << ", read coordinates = " << (time2 - time1) << "s"
+                      << ", create nodes = " << (time3 - time2) << "s"
+#endif
+                      << std::endl;
+    }
+
+    /* import nodal scalar results */
+
+    const unsigned int buffer_size = r_model_part.GetBufferSize();
+    if (echo_level > 0)
+    {
+        std::cout << "GiDPost2ModelPart: model_part buffer size = " << buffer_size << std::endl;
+    }
+
+    std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
+
+    for (const auto& result_name : nodal_scalar_result_names)
+    {
+        // read the nodal values
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<double> > step_values;
+
+#if PROFILING_LEVEL > 0
+        double time1 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        reader.ReadNodalScalarValues(result_name, step_list, step_values);
+
+#if PROFILING_LEVEL > 0
+        double time2 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        // get the variable from kernel
+        std::string var_name = StringUtils::StripQuote(result_name, '\"');
+        const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
+
+        for (const auto& [id, values] : step_values)
+        {
+            auto& rNode = r_model_part.Nodes()[id + last_node_id];
+
+            unsigned int cnt = 0;
+            for (auto it = values.rbegin(); it != values.rend(); ++it)
+            {
+                if (cnt >= buffer_size)
+                    break; // only read until buffer size
+
+                rNode.GetSolutionStepValue(rVariable, cnt) = *it;
+
+                if (echo_level > 2)
+                {
+                    std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
+                              << " with value " << *it << " at position " << cnt
+                              << std::endl;
+                }
+
+                ++cnt;
+            }
+        }
+
+#if PROFILING_LEVEL > 0
+        double time3 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        if (echo_level > 1)
+        {
+            std::cout << "GiDPost2ModelPart: read nodal scalar values " << rVariable.Name() << " completed"
+#if PROFILING_LEVEL > 0
+                      << ", read results: " << (time2 - time1) << "s"
+                      << ", transfer results: " << (time3 - time2) << "s"
+#endif
+                      << std::endl;
+        }
+    }
+
+    /* import nodal vector results */
+
+    std::vector<std::string> nodal_vector_result_names = reader.GetNodalVectorValuesName();
+
+    for (const auto& result_name : nodal_vector_result_names)
+    {
+        const int vector_size = 4; // for now we support reading vector values of size 3 only
+        // TODO generalize the vector dimension., maybe through json parameters?
+
+        // read the nodal values
+        std::vector<double> step_list;
+        std::map<std::size_t, std::vector<std::vector<double> > > step_values;
+
+#if PROFILING_LEVEL > 0
+        double time1 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        reader.ReadNodalVectorValues(result_name, step_list, step_values, vector_size);
+
+#if PROFILING_LEVEL > 0
+        double time2 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        // get the variable from kernel
+        std::string var_name = StringUtils::StripQuote(result_name, '\"');
+        const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
+
+        for (const auto& [id, values] : step_values)
+        {
+            auto& rNode = r_model_part.Nodes()[id + last_node_id];
+
+            unsigned int cnt = 0;
+            for (auto it = values.rbegin(); it != values.rend(); ++it)
+            {
+                if (cnt >= buffer_size)
+                    break; // only read until buffer size
+                array_1d<double, 3> v;
+                v[0] = (*it)[0];
+                v[1] = (*it)[1];
+                v[2] = (*it)[2];
+
+                noalias(rNode.GetSolutionStepValue(rVariable, cnt)) = v;
+
+                if (echo_level > 2)
+                {
+                    std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
+                              << " with value " << v << " at position " << cnt
+                              << std::endl;
+                }
+
+                ++cnt;
+            }
+        }
+
+#if PROFILING_LEVEL > 0
+        double time3 = OpenMPUtils::GetCurrentTime();
+#endif
+
+        if (echo_level > 1)
+        {
+            std::cout << "GiDPost2ModelPart: read nodal vector values " << rVariable.Name() << " completed"
+#if PROFILING_LEVEL > 0
+                      << ", read results: " << (time2 - time1) << "s"
+                      << ", transfer results: " << (time3 - time2) << "s"
+#endif
+                      << std::endl;
+        }
+    }
+
+    /* create elements and conditions */
+
+    for (const auto& name : mesh_names)
+    {
         std::map<int, std::vector<int> > connectivities;
 
-        reader.ReadMesh(name, coordinates, connectivities);
+        reader.ReadMesh(name, connectivities);
 
         int dim;
         std::string gid_elem_type;
@@ -372,8 +561,15 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         if (do_guess_prop_id)
         {
             // guess the prop_id from mesh name
-            std::size_t pos = name.rfind('_');
-            prop_id = std::stoi(name.substr(pos + 1));
+            prop_id = ExtractPropertiesId(name);
+            if (prop_id < 0)
+                KRATOS_ERROR << "Failed to extract Properties Id from mesh " << name;
+
+            if (echo_level > 1)
+            {
+                std::cout << "GiDPost2ModelPart: Properties Id " << prop_id << " is predicted for mesh " << name
+                          << std::endl;
+            }
         }
 
         // do some checks
@@ -410,18 +606,6 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 std::cout << "GiDPost2ModelPart: mesh " << name << " is assigned with condition " << entity_name << " on prop_id " << prop_id << std::endl;
         }
 
-        /* create nodes */
-        for (const auto& [id, coords] : coordinates)
-        {
-            // because the node can be duplicated. Note that each mesh
-            // can have more than nodes that it required, just the element
-            // and condition are unique.
-            if (!r_model_part.HasNode(id + last_node_id))
-                r_model_part.CreateNewNode(id + last_node_id, coords[0], coords[1], coords[2]);
-        }
-
-        /* create elements and conditions */
-
         Properties::Pointer prop = r_model_part.pGetProperties(prop_id);
 
         if (entity_type == 1)
@@ -435,6 +619,8 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 r_model_part.CreateNewElement(entity_name, id + last_elem_id, new_conn, prop)
                 ->Initialize(r_model_part.GetProcessInfo());
             }
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: " << connectivities.size() << " elements are created on mesh " << name << std::endl;
         }
         else if (entity_type == 2)
         {
@@ -447,112 +633,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 r_model_part.CreateNewCondition(entity_name, id + last_cond_id, new_conn, prop)
                 ->Initialize(r_model_part.GetProcessInfo());
             }
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: " << connectivities.size() << " conditions are created on mesh " << name << std::endl;
         }
         else
             KRATOS_ERROR << "Entity type " << entity_type << " is invalid. Maybe you forgot to set the entity type?";
-
-        /* import nodal scalar results */
-
-        const unsigned int buffer_size = r_model_part.GetBufferSize();
-        if (echo_level > 0)
-        {
-            std::cout << "GiDPost2ModelPart: model_part buffer size = " << buffer_size << std::endl;
-        }
-
-        std::vector<std::string> nodal_scalar_result_names = reader.GetNodalScalarValuesName();
-
-        for (const auto& result_name : nodal_scalar_result_names)
-        {
-            // read the nodal values
-            std::vector<double> step_list;
-            std::map<std::size_t, std::vector<double> > step_values;
-
-            reader.ReadNodalScalarValues(result_name, step_list, step_values);
-
-            // get the variable from kernel
-            std::string var_name = GiDPostReader::StripQuote(result_name);
-            const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
-
-            for (const auto& [id, values] : step_values)
-            {
-                auto& rNode = r_model_part.Nodes()[id + last_node_id];
-
-                unsigned int cnt = 0;
-                for (auto it = values.rbegin(); it != values.rend(); ++it)
-                {
-                    if (cnt >= buffer_size)
-                        break; // only read until buffer size
-
-                    rNode.GetSolutionStepValue(rVariable, cnt) = *it;
-
-                    if (echo_level > 2)
-                    {
-                        std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
-                                  << " with value " << *it << " at position " << cnt
-                                  << std::endl;
-                    }
-
-                    ++cnt;
-                }
-            }
-
-            if (echo_level > 0)
-            {
-                std::cout << "GiDPost2ModelPart: read nodal scalar values " << rVariable.Name() << " completed" << std::endl;
-            }
-        }
-
-        /* import nodal vector results */
-
-        std::vector<std::string> nodal_vector_result_names = reader.GetNodalVectorValuesName();
-
-        for (const auto& result_name : nodal_vector_result_names)
-        {
-            const int vector_size = 4; // for now we support reading vector values of size 3 only
-            // TODO generalize the vector dimension., maybe through json parameters?
-
-            // read the nodal values
-            std::vector<double> step_list;
-            std::map<std::size_t, std::vector<std::vector<double> > > step_values;
-
-            reader.ReadNodalVectorValues(result_name, step_list, step_values, vector_size);
-
-            // get the variable from kernel
-            std::string var_name = GiDPostReader::StripQuote(result_name);
-            const Variable<array_1d<double, 3> >& rVariable = KratosComponents<Variable<array_1d<double, 3> > >::Get(var_name);
-
-            for (const auto& [id, values] : step_values)
-            {
-                auto& rNode = r_model_part.Nodes()[id + last_node_id];
-
-                unsigned int cnt = 0;
-                for (auto it = values.rbegin(); it != values.rend(); ++it)
-                {
-                    if (cnt >= buffer_size)
-                        break; // only read until buffer size
-                    array_1d<double, 3> v;
-                    v[0] = (*it)[0];
-                    v[1] = (*it)[1];
-                    v[2] = (*it)[2];
-
-                    noalias(rNode.GetSolutionStepValue(rVariable, cnt)) = v;
-
-                    if (echo_level > 2)
-                    {
-                        std::cout << "GiDPost2ModelPart: node " << rNode.Id() << " is assigned " << rVariable.Name()
-                                  << " with value " << v << " at position " << cnt
-                                  << std::endl;
-                    }
-
-                    ++cnt;
-                }
-            }
-
-            if (echo_level > 0)
-            {
-                std::cout << "GiDPost2ModelPart: read nodal vector values " << rVariable.Name() << " completed" << std::endl;
-            }
-        }
 
         /* import Gauss point scalar results */
 
@@ -561,7 +646,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         for (const auto& [result_name, gp_name] : gp_scalar_result_names)
         {
             // get the variable from kernel
-            std::string var_name = GiDPostReader::StripQuote(result_name);
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
             if (!KratosComponents<Variable<double> >::Has(var_name))
                 KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
             const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
@@ -691,6 +776,24 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 
         // // TODO
     }
+}
+
+int ModelPartUtilities::ExtractPropertiesId(const std::string& name)
+{
+    // strip the quote if needed
+    std::string name_correct = StringUtils::StripQuote(name, '\"');
+
+    // split to words
+    std::vector<std::string> words = StringUtils::Split(name_correct, '_');
+
+    // look back from last and check which one is an integer
+    for (auto it = words.rbegin(); it != words.rend(); ++it)
+    {
+        if (StringUtils::IsValidInteger(*it))
+            return std::atoi(it->c_str());
+    }
+
+    return -1;
 }
 
 }// namespace Kratos.

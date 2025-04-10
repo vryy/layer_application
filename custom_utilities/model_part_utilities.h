@@ -55,7 +55,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t IndexType;
+    typedef ModelPart::IndexType IndexType;
+    typedef ModelPart::SizeType SizeType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
 
     /// Pointer definition
@@ -108,7 +109,7 @@ public:
         const std::size_t& Id, Properties::Pointer pProperties, typename TEntityType::GeometryType& rGeometry)
     {
         if(!KratosComponents<TEntityType>::Has(sample_entity_name))
-            KRATOS_THROW_ERROR(std::logic_error, sample_entity_name, "is not registered to the KRATOS kernel")
+            KRATOS_ERROR << sample_entity_name << " is not registered to the KRATOS kernel";
         TEntityType const& r_clone_entity = KratosComponents<TEntityType>::Get(sample_entity_name);
 
         typename TEntityType::Pointer pNewEntity = r_clone_entity.Create(Id, rGeometry, pProperties);
@@ -122,7 +123,7 @@ public:
         const std::size_t& Id, Properties::Pointer pProperties, const std::vector<std::size_t>& node_ids)
     {
         if(!KratosComponents<TEntityType>::Has(sample_entity_name))
-            KRATOS_THROW_ERROR(std::logic_error, sample_entity_name, "is not registered to the KRATOS kernel")
+            KRATOS_ERROR << sample_entity_name << " is not registered to the KRATOS kernel";
         TEntityType const& r_clone_entity = KratosComponents<TEntityType>::Get(sample_entity_name);
 
         // create the points array
@@ -389,9 +390,11 @@ private:
                 }
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "Invalid geometry", static_cast<int>((*it)->GetGeometry().GetGeometryType()))
+                KRATOS_ERROR << "Invalid geometry " << (*it)->GetGeometry().GetGeometryType();
         }
     }
+
+    static int ExtractPropertiesId(const std::string& Name);
 
     ///@}
     ///@name Private  Access

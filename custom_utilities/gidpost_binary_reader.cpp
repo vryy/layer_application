@@ -481,8 +481,7 @@ void GiDPostBinaryReader::ReadGaussPointScalarValues(const std::string& Name, co
     }
 }
 
-void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates,
-                  std::map<int, std::vector<int> >& rConnectivities)
+void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates)
 {
     Reset();
 
@@ -497,7 +496,6 @@ void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::v
             continue;
 
         bool coordinates_are_read = false;
-        bool connectivities_are_read = false;
         std::string line;
         std::vector<std::string> fields;
         z_off_t CurPos;
@@ -561,6 +559,27 @@ void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::v
             }
             while(!(coordinates_are_read));
         } // end if(mPosMesh[i].HasCoord())
+    }
+}
+
+void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::vector<int> >& rConnectivities)
+{
+    Reset();
+
+    std::string RefName = '"' + Name + '"';
+    std::vector<double> v(3);
+    std::vector<gid_index_t> e;
+    for(std::size_t i = 0; i < mPosMesh.size(); ++i)
+    {
+        bool check = (mPosMesh[i].Name.compare(RefName) == 0) || (mPosMesh[i].Name.compare(Name) == 0);
+
+        if(!check)
+            continue;
+
+        bool connectivities_are_read = false;
+        std::string line;
+        std::vector<std::string> fields;
+        z_off_t CurPos;
 
         if(mPosMesh[i].HasElem())
         {
