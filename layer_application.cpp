@@ -99,27 +99,10 @@ namespace Kratos
 
     void KratosLayerApplication::Register()
     {
-        // calling base class register to register Kratos components
-        KratosApplication::Register();
         std::cout << "Initializing KratosLayerApplication... " << std::endl;
 
-        // register variables to Kratos kernel
-        KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_TYPE)
-        KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_NAME)
-        KRATOS_REGISTER_VARIABLE(LAYER_NAME)
-        KRATOS_REGISTER_VARIABLE(LAYER_PROP_ID)
-        #ifdef LAYER_APP_USE_MMG
-        KRATOS_REGISTER_VARIABLE(NODAL_MMG_SCALAR_METRIC)
-        KRATOS_REGISTER_VARIABLE(NODAL_MMG_VECTOR_METRIC)
-        KRATOS_REGISTER_VARIABLE(NODAL_MMG_TENSOR_METRIC)
-        KRATOS_REGISTER_VARIABLE(NODAL_MMG_LEVEL_SET)
-        KRATOS_REGISTER_VARIABLE(MMG_GRADATION)
-        KRATOS_REGISTER_VARIABLE(MMG_HAUSDORFF_DISTANCE)
-        KRATOS_REGISTER_VARIABLE(MMG_MINIMAL_MESH_SIZE)
-        KRATOS_REGISTER_VARIABLE(MMG_MAXIMAL_MESH_SIZE)
-        KRATOS_REGISTER_VARIABLE(MMG_CONSTANT_MESH_SIZE)
-        KRATOS_REGISTER_VARIABLE(MMG_RMC_VOLUME_FRACTION)
-        #endif
+        // register variables to the kernel
+        this->RegisterVariables();
 
         // register element to the kernel
         KRATOS_REGISTER_ELEMENT( "PostElement2D3N", mPostElement2D3N )
@@ -163,6 +146,27 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D6N", mPostSurfaceCondition3D6N )
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D8N", mPostSurfaceCondition3D8N )
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D9N", mPostSurfaceCondition3D9N )
+    }
+
+    void KratosLayerApplication::RegisterVariables()
+    {
+        // register variables to Kratos kernel
+        KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_TYPE)
+        KRATOS_REGISTER_VARIABLE(LAYER_ENTITY_NAME)
+        KRATOS_REGISTER_VARIABLE(LAYER_NAME)
+        KRATOS_REGISTER_VARIABLE(LAYER_PROP_ID)
+        #ifdef LAYER_APP_USE_MMG
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_SCALAR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_VECTOR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_TENSOR_METRIC)
+        KRATOS_REGISTER_VARIABLE(NODAL_MMG_LEVEL_SET)
+        KRATOS_REGISTER_VARIABLE(MMG_GRADATION)
+        KRATOS_REGISTER_VARIABLE(MMG_HAUSDORFF_DISTANCE)
+        KRATOS_REGISTER_VARIABLE(MMG_MINIMAL_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_MAXIMAL_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_CONSTANT_MESH_SIZE)
+        KRATOS_REGISTER_VARIABLE(MMG_RMC_VOLUME_FRACTION)
+        #endif
     }
 
 } // namespace Kratos

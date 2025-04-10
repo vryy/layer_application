@@ -85,6 +85,8 @@ namespace Kratos
 
         void Register() override;
 
+        void RegisterVariables() override;
+
         ///@}
         ///@name Access
         ///@{
