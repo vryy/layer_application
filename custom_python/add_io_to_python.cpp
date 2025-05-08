@@ -53,49 +53,49 @@ void GidPostIO_WriteMesh( TGidPostIOType& dummy, typename TGidPostIOType::MeshTy
 
 template<typename TGidPostIOType>
 void PrintElementalPartitionIndex( TGidPostIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag, int rank)
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag, int rank)
 {
     dummy.PrintElementalPartitionIndex( rVariable, r_model_part, SolutionTag, 0, rank );
 }
 
 template<typename TGidPostIOType>
 void IntegerPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<int>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
 
 template<typename TGidPostIOType>
-void DoublePrintOnGaussPoints( TGidPostIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void DoublePrintOnGaussPoints( TGidPostIOType& dummy, const Variable<typename TGidPostIOType::DataType>& rVariable,
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
 
 template<typename TGidPostIOType>
-void Array1DPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<array_1d<double,3> >& rVariable,
-                                ModelPart& r_model_part, double SolutionTag )
+void Array1DPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<array_1d<typename TGidPostIOType::DataType, 3> >& rVariable,
+                                typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
 
 template<typename TGidPostIOType>
-void VectorPrintOnGaussPoints1( TGidPostIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void VectorPrintOnGaussPoints1( TGidPostIOType& dummy, const Variable<typename TGidPostIOType::VectorType>& rVariable,
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
 
 template<typename TGidPostIOType>
-void VectorPrintOnGaussPoints2( TGidPostIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag, int value_index )
+void VectorPrintOnGaussPoints2( TGidPostIOType& dummy, const Variable<typename TGidPostIOType::VectorType>& rVariable,
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag, int value_index )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag, value_index );
 }
 
 template<typename TGidPostIOType>
-void MatrixPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void MatrixPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<typename TGidPostIOType::MatrixType>& rVariable,
+                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
@@ -177,7 +177,13 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     void (TGidPostIOType::*pointer_to_double_write_nodal_results1)( Variable<double> const& rVariable,
             double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_complex_write_nodal_results1)( Variable<std::complex<double> > const& rVariable,
+            double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_array1d_write_nodal_results1)( Variable<array_1d<double, 3> > const& rVariable,
+            double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_complexarray1d_write_nodal_results1)( Variable<array_1d<std::complex<double>, 3> > const& rVariable,
             double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_vector_write_nodal_results1)( Variable<Vector> const& rVariable,
@@ -198,7 +204,13 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     void (TGidPostIOType::*pointer_to_double_write_nodal_results2)( Variable<double> const& rVariable,
             const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_complex_write_nodal_results2)( Variable<std::complex<double> > const& rVariable,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_array1d_write_nodal_results2)( Variable<array_1d<double, 3> > const& rVariable,
+            const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
+            std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
+    void (TGidPostIOType::*pointer_to_complexarray1d_write_nodal_results2)( Variable<array_1d<std::complex<double>, 3> > const& rVariable,
             const typename TGidPostIOType::NodesContainerType& rNodes, double SolutionTag,
             std::size_t SolutionStepNumber ) = &TGidPostIOType::WriteNodalResults;
     void (TGidPostIOType::*pointer_to_vector_write_nodal_results2)( Variable<Vector> const& rVariable,
@@ -243,7 +255,9 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     .def("WriteNodalResults", pointer_to_bool_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_int_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_double_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_complex_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_array1d_write_nodal_results1)
+    .def("WriteNodalResults", pointer_to_complexarray1d_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_vector_write_nodal_results1)
     .def("WriteNodalResults", pointer_to_matrix_write_nodal_results1)
 
@@ -251,7 +265,9 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     .def("WriteNodalResults", pointer_to_bool_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_int_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_double_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_complex_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_array1d_write_nodal_results2)
+    .def("WriteNodalResults", pointer_to_complexarray1d_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_vector_write_nodal_results2)
     .def("WriteNodalResults", pointer_to_matrix_write_nodal_results2)
 
@@ -284,8 +300,11 @@ void LayerApplication_AddIOToPython()
 {
     using namespace boost::python;
 
-    typedef SDGidPostIO<GidSDIntegrationPointsContainer, GidSDMeshContainer> SDGidPostIOType;
-    typedef SDGidPostIO<GidSDIntegrationPointsContainer, GidMfemMeshContainer> MfemGidPostIOType;
+    typedef SDGidPostIO<GidSDIntegrationPointsContainer<ModelPart>, GidSDMeshContainer<ModelPart> > SDGidPostIOType;
+    typedef SDGidPostIO<GidSDIntegrationPointsContainer<ComplexModelPart>, GidSDMeshContainer<ComplexModelPart> > ComplexSDGidPostIOType;
+    typedef SDGidPostIO<GidSDIntegrationPointsContainer<GComplexModelPart>, GidSDMeshContainer<GComplexModelPart, 1> > GComplexSDGidPostIORealType;
+    typedef SDGidPostIO<GidSDIntegrationPointsContainer<GComplexModelPart>, GidSDMeshContainer<GComplexModelPart, 2> > GComplexSDGidPostIOImagType;
+    typedef SDGidPostIO<GidSDIntegrationPointsContainer<ModelPart>, GidMfemMeshContainer<ModelPart> > MfemGidPostIOType;
     typedef SDTikzPostIO<TikzIntegrationPointsContainer, TikzMeshContainer> SDTikzPostIOType;
     typedef VtkIO<VtkMeshContainer> VtkIOType;
     typedef VtkVTUIO<VtkMeshContainer> VtkVTUIOType;
@@ -294,6 +313,9 @@ void LayerApplication_AddIOToPython()
     /////////////////////////////////////////////////////////////
 
     LayerApplication_AddGidPostIOToPython<SDGidPostIOType>("SDGidPostIO");
+    LayerApplication_AddGidPostIOToPython<ComplexSDGidPostIOType>("ComplexSDGidPostIO");
+    LayerApplication_AddGidPostIOToPython<GComplexSDGidPostIORealType>("GComplexSDGidPostIOReal");
+    LayerApplication_AddGidPostIOToPython<GComplexSDGidPostIOImagType>("GComplexSDGidPostIOImag");
     LayerApplication_AddGidPostIOToPython<MfemGidPostIOType>("MfemGidPostIO");
 
     /////////////////////////////////////////////////////////////

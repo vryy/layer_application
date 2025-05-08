@@ -73,6 +73,7 @@ public:
     };
 
     /// Type definitions
+    typedef ModelPart ModelPartType;
     typedef Element::GeometryType GeometryType;
     typedef GeometryType::PointType NodeType;
     typedef NodeType::PointType PointType;

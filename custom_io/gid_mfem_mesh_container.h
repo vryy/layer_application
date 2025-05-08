@@ -34,13 +34,14 @@ namespace Kratos
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
  */
-class GidMfemMeshContainer : public GidSDMeshContainer
+template<class TModelPartType>
+class GidMfemMeshContainer : public GidSDMeshContainer<TModelPartType>
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GidMfemMeshContainer);
 
-    typedef GidSDMeshContainer BaseType;
+    typedef GidSDMeshContainer<TModelPartType> BaseType;
 
     ///Constructor
     GidMfemMeshContainer ( GeometryData::KratosGeometryType geometryType, std::string mesh_title )
@@ -52,15 +53,15 @@ public:
     {
         KRATOS_TRY
 
-        std::vector<int> ns = GetNodalSequence(mGeometryType);
+        std::vector<int> ns = GetNodalSequence(BaseType::mGeometryType);
 
         bool nodes_written = false;
-        if ( mMeshElements.size() != 0 )
+        if ( BaseType::mMeshElements.size() != 0 )
         {
             //compute number of layers
             int max_id = 0;
-            for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                    it != mMeshElements.end(); ++it )
+            for ( typename TModelPartType::ElementsContainerType::iterator it = BaseType::mMeshElements.begin();
+                    it != BaseType::mMeshElements.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
                 if (max_id < prop_id) max_id = prop_id;
@@ -70,8 +71,8 @@ public:
             std::vector<int> elements_per_layer (max_id+1,0);
 
             //fill layer list
-            for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                    it != mMeshElements.end(); ++it )
+            for ( typename TModelPartType::ElementsContainerType::iterator it = BaseType::mMeshElements.begin();
+                    it != BaseType::mMeshElements.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
                 elements_per_layer[prop_id] += 1;
@@ -83,9 +84,9 @@ public:
                 {
                     //create an appropiate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
-                    current_layer_name << mMeshTitle << "_" << current_layer;
-                    for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                            it != mMeshElements.end(); ++it )
+                    current_layer_name << BaseType::mMeshTitle << "_" << current_layer;
+                    for ( typename TModelPartType::ElementsContainerType::iterator it = BaseType::mMeshElements.begin();
+                            it != BaseType::mMeshElements.end(); ++it )
                     {
                         if ( it->GetProperties().Id() == current_layer )
                         {
@@ -96,15 +97,15 @@ public:
                     }
 
                     //begin mesh
-                    if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
+                    if ( BaseType::mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         //std::cout << " -print element 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, BaseType::mGidElementType, BaseType::mMeshElements.begin()->GetGeometry().size() );
                     }
-                    else if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
+                    else if ( BaseType::mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
                         //std::cout << " -print element 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, BaseType::mGidElementType, BaseType::mMeshElements.begin()->GetGeometry().size() );
                     }
                     else
                         KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
@@ -113,8 +114,8 @@ public:
                     if(nodes_written == false)
                     {
                         GiD_fBeginCoordinates(MeshFile);
-                        for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
-                                it != mMeshNodes.end(); ++it )
+                        for ( typename TModelPartType::NodesContainerType::iterator it = BaseType::mMeshNodes.begin();
+                                it != BaseType::mMeshNodes.end(); ++it )
                         {
                             if ( deformed )
                                 GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
@@ -133,15 +134,15 @@ public:
 
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() + 1];
-                    for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                            it != mMeshElements.end(); ++it )
+                    int* nodes_id = new int[BaseType::mMeshElements.begin()->GetGeometry().size() + 1];
+                    for ( typename TModelPartType::ElementsContainerType::iterator it = BaseType::mMeshElements.begin();
+                            it != BaseType::mMeshElements.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[ns[i]].Id();
 
-                        if ( mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
-                                || mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3 )
+                        if ( BaseType::mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
+                                || BaseType::mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3 )
                         {
                             nodes_id[0] = (it)->GetGeometry()[0].Id();
                             nodes_id[1] = (it)->GetGeometry()[2].Id();
@@ -173,12 +174,12 @@ public:
             //std::cout << "end printing elements" <<std::endl;
         }
 
-        if ( mMeshConditions.size() != 0 )
+        if ( BaseType::mMeshConditions.size() != 0 )
         {
             //compute number of layers
             int max_id = 0;
-            for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                    it != mMeshConditions.end(); ++it )
+            for ( typename TModelPartType::ConditionsContainerType::iterator it = BaseType::mMeshConditions.begin();
+                    it != BaseType::mMeshConditions.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
                 if (max_id < prop_id) max_id = prop_id;
@@ -187,8 +188,8 @@ public:
                 std::cout<< "a property Id > 10000 found. Are u sure you need so many properties?" << std::endl;
             std::vector<int> conditions_per_layer (max_id+1,0);
             //fill layer list
-            for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                    it != mMeshConditions.end(); ++it )
+            for ( typename TModelPartType::ConditionsContainerType::iterator it = BaseType::mMeshConditions.begin();
+                    it != BaseType::mMeshConditions.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
                 conditions_per_layer[prop_id] += 1;
@@ -200,10 +201,10 @@ public:
                 {
                     // determine mesh name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
-                    current_layer_name << mMeshTitle << "_" << current_layer;
+                    current_layer_name << BaseType::mMeshTitle << "_" << current_layer;
 
-                    for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
-                            it != mMeshConditions.end(); ++it )
+                    for ( typename TModelPartType::ConditionsContainerType::iterator it = BaseType::mMeshConditions.begin(  );
+                            it != BaseType::mMeshConditions.end(); ++it )
                     {
                         if ( it->GetProperties().Id() == current_layer )
                         {
@@ -214,17 +215,17 @@ public:
                     }
 
                     // begin mesh
-                    if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
+                    if ( BaseType::mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         //std::cout << " -print condition 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
-                                        mMeshConditions.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, BaseType::mGidElementType,
+                                        BaseType::mMeshConditions.begin()->GetGeometry().size() );
                     }
-                    else if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
+                    else if ( BaseType::mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
                         //std::cout << " -print condition 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,
-                                        mMeshConditions.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, BaseType::mGidElementType,
+                                        BaseType::mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else
                         KRATOS_THROW_ERROR (std::logic_error,"check working space dimension of model","");
@@ -233,8 +234,8 @@ public:
                     if(nodes_written == false)
                     {
                         GiD_fBeginCoordinates(MeshFile);
-                        for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
-                                it != mMeshNodes.end(); ++it )
+                        for ( typename TModelPartType::NodesContainerType::iterator it = BaseType::mMeshNodes.begin();
+                                it != BaseType::mMeshNodes.end(); ++it )
                         {
                             if ( deformed )
                                 GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
@@ -249,9 +250,9 @@ public:
 
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() + 1];
-                    for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
-                            it != mMeshConditions.end(); ++it )
+                    int* nodes_id = new int[BaseType::mMeshConditions.begin()->GetGeometry().size() + 1];
+                    for ( typename TModelPartType::ConditionsContainerType::iterator it = BaseType::mMeshConditions.begin(  );
+                            it != BaseType::mMeshConditions.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[ns[i]].Id();
@@ -315,8 +316,8 @@ private:
         }
     }
 
-};//class GidMfemMeshContainer
+}; // class GidMfemMeshContainer
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_GID_MFEM_MESH_CONTAINER_H_INCLUDED defined

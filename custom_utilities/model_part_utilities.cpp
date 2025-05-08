@@ -7,6 +7,7 @@
 //
 // Project includes
 #include "includes/legacy_structural_app_vars.h"
+#include "layer_application_variables.h"
 #if defined(PROFILING_LEVEL)
 #include "utilities/openmp_utils.h"
 #endif
@@ -168,14 +169,14 @@ void ModelPartUtilities::ClearModelPart(ModelPart& r_model_part)
 }
 
 void ModelPartUtilities::GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part,
-        const Parameters& mesh_info, VariablesList* pElementalVariablesList)
+        const Parameters& mesh_info, VariablesList<>* pElementalVariablesList)
 {
     GiDPostBinaryReader reader(fileName);
     GiDPost2ModelPart(reader, r_model_part, mesh_info, pElementalVariablesList);
 }
 
 void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part,
-        const Parameters& mesh_info, VariablesList* pElementalVariablesList)
+        const Parameters& mesh_info, VariablesList<>* pElementalVariablesList)
 {
     typedef ModelPart::IndexType IndexType;
 
@@ -273,7 +274,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                       << ", create nodes = " << (time3 - time2) << "s"
 #endif
                       << std::endl;
-    }
+    } // end creating nodes
 
     /* import nodal scalar results */
 
@@ -341,7 +342,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 #endif
                       << std::endl;
         }
-    }
+    } // end importing nodal scalar results
 
     /* import nodal vector results */
 
@@ -410,7 +411,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 #endif
                       << std::endl;
         }
-    }
+    } // end importing nodal vector results
 
     /* create elements and conditions */
 
@@ -443,7 +444,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 
         // get the entity name and type
         int entity_type, prop_id;
-        std::string entity_name;
+        std::string layer_name = "", entity_name;
         bool do_guess_entity = true, do_guess_prop_id = true;
 
         if (found_mesh)
@@ -471,6 +472,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             {
                 prop_id = sub_params.GetValue("prop_id").GetInt();
                 do_guess_prop_id = false;
+            }
+
+            if (sub_params.Has("layer_name"))
+            {
+                layer_name = sub_params.GetValue("layer_name").GetString();
             }
         }
 
@@ -554,6 +560,16 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 entity_type = 2;
                 entity_name = "PostSurfaceCondition3D3N";
             }
+            else if (name.find("Line2D2") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostLineCondition2D2N";
+            }
+            else if (name.find("Line2D3") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostLineCondition2D3N";
+            }
             else
                 KRATOS_ERROR << "Can't determine entity name for mesh " << name;
         }
@@ -561,9 +577,10 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         if (do_guess_prop_id)
         {
             // guess the prop_id from mesh name
-            prop_id = ExtractPropertiesId(name);
+            ExtractPropertiesId(name, prop_id, layer_name);
             if (prop_id < 0)
-                KRATOS_ERROR << "Failed to extract Properties Id from mesh " << name;
+                // KRATOS_ERROR << "Failed to extract Properties Id from mesh " << name;
+                prop_id = 1;
 
             if (echo_level > 1)
             {
@@ -607,6 +624,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         }
 
         Properties::Pointer prop = r_model_part.pGetProperties(prop_id);
+        prop->SetValue(LAYER_NAME, layer_name);
 
         if (entity_type == 1)
         {
@@ -684,7 +702,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             {
                 if (entity_type == 1)
                 {
-                    auto& rElement = r_model_part.Elements()[id + last_elem_id];
+                    auto it = r_model_part.Elements().find(id + last_elem_id);
+                    if (it == r_model_part.ElementsEnd())
+                        continue;
+
+                    auto& rElement = *it;
 
                     for (auto it = values.rbegin(); it != values.rend(); ++it)
                     {
@@ -726,7 +748,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 }
                 else if (entity_type == 2)
                 {
-                    auto& rCondition = r_model_part.Conditions()[id + last_cond_id];
+                    auto it = r_model_part.Conditions().find(id + last_cond_id);
+                    if (it == r_model_part.ConditionsEnd())
+                        continue;
+
+                    auto& rCondition = *it;
 
                     for (auto it = values.rbegin(); it != values.rend(); ++it)
                     {
@@ -775,10 +801,10 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
         }
 
         // // TODO
-    }
+    } // end creating elements and conditions
 }
 
-int ModelPartUtilities::ExtractPropertiesId(const std::string& name)
+void ModelPartUtilities::ExtractPropertiesId(const std::string& name, int& prop_id, std::string& layer_name)
 {
     // strip the quote if needed
     std::string name_correct = StringUtils::StripQuote(name, '\"');
@@ -786,14 +812,44 @@ int ModelPartUtilities::ExtractPropertiesId(const std::string& name)
     // split to words
     std::vector<std::string> words = StringUtils::Split(name_correct, '_');
 
-    // look back from last and check which one is an integer
-    for (auto it = words.rbegin(); it != words.rend(); ++it)
+    // // look back from last and check which one is an integer
+    // for (auto it = words.rbegin(); it != words.rend(); ++it)
+    // {
+    //     if (StringUtils::IsValidInteger(*it))
+    //         return std::atoi(it->c_str());
+    // }
+
+    // extract all the integers
+    std::vector<int> numbers;
+    std::map<int, std::size_t> map_number_to_index;
+    std::size_t cnt = 0;
+    for (auto it = words.begin(); it != words.end(); ++it)
     {
         if (StringUtils::IsValidInteger(*it))
-            return std::atoi(it->c_str());
+        {
+            int i = std::atoi(it->c_str());
+            map_number_to_index[i] = cnt;
+            numbers.push_back(i);
+        }
+        ++cnt;
     }
 
-    return -1;
+    if (numbers.size() > 0)
+    {
+        prop_id = numbers[0]; // the first number is chosen as Properties Id
+        std::size_t i = map_number_to_index[prop_id];
+        layer_name = "";
+        for (std::size_t j = i+1; j < words.size(); ++j)
+        {
+            if (j == words.size() - 1)
+                layer_name += words[j];
+            else
+                layer_name += words[j] + "_";
+        }
+        return;
+    }
+
+    prop_id = -1;
 }
 
 }// namespace Kratos.

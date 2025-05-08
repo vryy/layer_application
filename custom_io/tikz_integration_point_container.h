@@ -30,10 +30,10 @@
 #include <cstddef>
 
 // External includes
-#include "gidpost/source/gidpost.h"
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
 #include "geometries/geometry_data.h"
@@ -56,6 +56,8 @@ typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 class TikzIntegrationPointsContainer
 {
 public:
+
+    typedef ModelPart ModelPartType;
 
     KRATOS_CLASS_POINTER_DEFINITION(TikzIntegrationPointsContainer);
 

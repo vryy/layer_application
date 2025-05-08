@@ -199,7 +199,7 @@ public:
     //     "echo_level": 1
     // }
     // """
-    static void GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList* pElementalVariablesList = nullptr);
+    static void GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList<>* pElementalVariablesList = nullptr);
 
     /// Fill the model_part based on GiD binary data
     /// A json parameters can be optionally provided to assist with search and read process. An example
@@ -215,7 +215,7 @@ public:
     //     "echo_level": 1
     // }
     // """
-    static void GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList* pElementalVariablesList = nullptr);
+    static void GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part, const Parameters& mesh_info, VariablesList<>* pElementalVariablesList = nullptr);
 
     ///@}
     ///@name Access
@@ -394,7 +394,7 @@ private:
         }
     }
 
-    static int ExtractPropertiesId(const std::string& Name);
+    static void ExtractPropertiesId(const std::string& Name, int& prop_id, std::string& layer_name);
 
     ///@}
     ///@name Private  Access

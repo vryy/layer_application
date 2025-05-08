@@ -53,15 +53,16 @@ namespace Kratos
 class Entity : public ParameterList<std::string>, public IndexedObject
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(Entity);
+
     typedef ParameterList<std::string> BaseType;
     typedef SpatialPoint<double> PointType;
     typedef IndexedObject::IndexType IndexType;
-    KRATOS_CLASS_POINTER_DEFINITION(Entity);
 
     Entity(IndexType NewId) : IndexedObject(NewId)
     {}
 
-    ~Entity()
+    ~Entity() override
     {}
 
     void AddNode(PointType::Pointer pPoint)
@@ -89,12 +90,17 @@ public:
         return Id() < rOther.Id();
     }
 
-    void PrintInfo(std::ostream& rOStream) const
+    std::string Info() const override
+    {
+        return "Entity";
+    }
+
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Entity #" << Id();
     }
 
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         for(std::size_t i = 0; i < this->size(); ++i)
             rOStream << " " << mpConnectivities[i]->Id();
@@ -114,20 +120,21 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >>(std::istream& rIStream, SpatialPoint& rThis)
-// {
-//    return rIStream;
-// }
-//
+inline std::istream& operator >>(std::istream& rIStream, Entity& rThis)
+{
+   return rIStream;
+}
+
 /// output stream function
-template<class TDataType>
 inline std::ostream& operator <<(std::ostream& rOStream, const Entity& rThis)
 {
     rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
     rThis.PrintData(rOStream);
 
     return rOStream;
 }
+
 ///@}
 
 ///@} addtogroup block

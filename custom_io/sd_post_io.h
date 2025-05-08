@@ -34,7 +34,6 @@
 
 // External includes
 #define USE_CONST
-#include "gidpost/source/gidpost.h"
 
 // Project includes
 #include "includes/define.h"
@@ -73,19 +72,21 @@ public:
     /// Type definitions
     KRATOS_CLASS_POINTER_DEFINITION(SDPostIO);
 
-    typedef ModelPart::MeshType MeshType;
+    typedef typename TMeshContainer::ModelPartType ModelPartType;
 
-    typedef MeshType::NodesContainerType NodesContainerType;
+    typedef typename ModelPartType::MeshType MeshType;
 
-    typedef MeshType::PropertiesContainerType PropertiesContainerType;
+    typedef typename MeshType::NodesContainerType NodesContainerType;
 
-    typedef MeshType::ElementsContainerType ElementsContainerType;
+    typedef typename MeshType::PropertiesContainerType PropertiesContainerType;
 
-    typedef MeshType::ConditionsContainerType ConditionsContainerType;
+    typedef typename MeshType::ElementsContainerType ElementsContainerType;
 
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::NodesContainerType NodesArrayType;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef typename MeshType::ConditionsContainerType ConditionsContainerType;
+
+    typedef typename ModelPartType::ElementsContainerType ElementsArrayType;
+    typedef typename ModelPartType::NodesContainerType NodesArrayType;
+    typedef typename ModelPartType::ConditionsContainerType ConditionsArrayType;
     typedef GeometryData::IntegrationMethod IntegrationMethodType;
     typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
 
@@ -96,6 +97,8 @@ public:
     ///single stream IO constructor
     SDPostIO( const std::string& rDatafilename)
     {
+        static_assert(std::is_same_v<typename TGaussPointContainer::ModelPartType, typename TMeshContainer::ModelPartType>,
+                "type of ModelPart of mesh and integration point container must be the same");
         mResultFileName = rDatafilename;
         mMeshFileName = rDatafilename;
         SetUpMeshContainers(); // setup default mesh containers

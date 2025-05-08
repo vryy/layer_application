@@ -15,7 +15,6 @@
 //
 //
 
-
 #if !defined(KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_SD_MESH_CONTAINER_H_INCLUDED
 
@@ -44,13 +43,21 @@ namespace Kratos
 /**
  * Auxiliary class to store meshes of different element types and to
  * write these meshes to an output file
+ * In case the model part is ComplexModelPart, the second option will determine real (1) or imaginary (2)
+ * component used for the coordinate
  */
+template<class TModelPartType, int type = 1>
 class GidSDMeshContainer
 {
 public:
 
     /// Type definitions
-    typedef Element::GeometryType GeometryType;
+    typedef TModelPartType ModelPartType;
+    typedef typename TModelPartType::CoordinateType CoordinateType;
+    typedef typename TModelPartType::ElementType::GeometryType GeometryType;
+
+    static constexpr int complex_coordinate_type = type;
+
     KRATOS_CLASS_POINTER_DEFINITION(GidSDMeshContainer);
 
     ///Constructor
@@ -116,7 +123,7 @@ public:
         }
     }
 
-    bool AddElement ( const ModelPart::ElementsContainerType::const_iterator pElemIt )
+    bool AddElement ( const typename TModelPartType::ElementsContainerType::const_iterator pElemIt )
     {
         KRATOS_TRY
 
@@ -131,7 +138,7 @@ public:
             {
                 mMeshElements.push_back ( * (pElemIt.base() ) );
                 GeometryType& geom = pElemIt->GetGeometry();
-                for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+                for ( typename GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
                 {
                     mMeshNodes.push_back ( * (it.base() ) );
                 }
@@ -146,7 +153,7 @@ public:
         KRATOS_CATCH ("")
     }
 
-    bool AddCondition ( const ModelPart::ConditionsContainerType::const_iterator pCondIt )
+    bool AddCondition ( const typename TModelPartType::ConditionsContainerType::const_iterator pCondIt )
     {
         KRATOS_TRY
 
@@ -161,7 +168,7 @@ public:
             {
                 mMeshConditions.push_back ( * (pCondIt.base() ) );
                 GeometryType& geom = pCondIt->GetGeometry();
-                for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
+                for ( typename GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
                 {
                     mMeshNodes.push_back ( * (it.base() ) );
                 }
@@ -196,7 +203,7 @@ public:
         {
             //compute number of layers
             int max_id = 0;
-            for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+            for ( typename TModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
@@ -207,7 +214,7 @@ public:
             std::vector<int> elements_per_layer(max_id+1, 0);
 
             //fill layer list
-            for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+            for ( typename TModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
@@ -222,7 +229,7 @@ public:
                     //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer;
-                    for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                    for ( typename TModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
                     {
                         if ( it->GetProperties().Id() == current_layer )
@@ -249,15 +256,39 @@ public:
                     if(nodes_written == false)
                     {
                         GiD_fBeginCoordinates(MeshFile);
-                        for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
+                        for ( typename TModelPartType::NodesContainerType::iterator it = mMeshNodes.begin();
                                 it != mMeshNodes.end(); ++it )
                         {
-                            if ( deformed )
-                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
-                                                       (it)->Y(), (it)->Z() );
-                            else
-                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
-                                                       (it)->Y0(), (it)->Z0() );
+                            if constexpr (std::is_arithmetic<CoordinateType>::value)
+                            {
+                                if ( deformed )
+                                    GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
+                                                           (it)->Y(), (it)->Z() );
+                                else
+                                    GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
+                                                           (it)->Y0(), (it)->Z0() );
+                            }
+                            else if constexpr (std::is_same<CoordinateType, KRATOS_COMPLEX_TYPE>::value)
+                            {
+                                if constexpr (complex_coordinate_type == 1)
+                                {
+                                    if ( deformed )
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X().real(),
+                                                               (it)->Y().real(), (it)->Z().real() );
+                                    else
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0().real(),
+                                                               (it)->Y0().real(), (it)->Z0().real() );
+                                }
+                                else if constexpr (complex_coordinate_type == 2)
+                                {
+                                    if ( deformed )
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X().imag(),
+                                                               (it)->Y().imag(), (it)->Z().imag() );
+                                    else
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0().imag(),
+                                                               (it)->Y0().imag(), (it)->Z0().imag() );
+                                }
+                            }
                         }
                         GiD_fEndCoordinates(MeshFile);
 
@@ -267,7 +298,7 @@ public:
                     //printing elements
                     GiD_fBeginElements(MeshFile);
                     std::vector<int> nodes_id(mMeshElements.begin()->GetGeometry().size() + 1);
-                    for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                    for ( typename TModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
@@ -304,7 +335,7 @@ public:
         {
             //compute number of layers
             int max_id = 0;
-            for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+            for ( typename TModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
@@ -314,7 +345,7 @@ public:
                 std::cout<< "a property Id > 10000 found. Are u sure you need so many properties?" << std::endl;
             std::vector<int> conditions_per_layer (max_id+1,0);
             //fill layer list
-            for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+            for ( typename TModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
                 int prop_id = (it)->GetProperties().Id();
@@ -329,7 +360,7 @@ public:
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer;
 
-                    for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
+                    for ( typename TModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
                     {
                         if ( it->GetProperties().Id() == current_layer )
@@ -358,15 +389,39 @@ public:
                     if(nodes_written == false)
                     {
                         GiD_fBeginCoordinates(MeshFile);
-                        for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
+                        for ( typename TModelPartType::NodesContainerType::iterator it = mMeshNodes.begin();
                                 it != mMeshNodes.end(); ++it )
                         {
-                            if ( deformed )
-                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
-                                                       (it)->Y(), (it)->Z() );
-                            else
-                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
-                                                       (it)->Y0(), (it)->Z0() );
+                            if constexpr (std::is_arithmetic<CoordinateType>::value)
+                            {
+                                if ( deformed )
+                                    GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
+                                                           (it)->Y(), (it)->Z() );
+                                else
+                                    GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
+                                                           (it)->Y0(), (it)->Z0() );
+                            }
+                            else if constexpr (std::is_same<CoordinateType, KRATOS_COMPLEX_TYPE>::value)
+                            {
+                                if constexpr (complex_coordinate_type == 1)
+                                {
+                                    if ( deformed )
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X().real(),
+                                                               (it)->Y().real(), (it)->Z().real() );
+                                    else
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0().real(),
+                                                               (it)->Y0().real(), (it)->Z0().real() );
+                                }
+                                else if constexpr (complex_coordinate_type == 2)
+                                {
+                                    if ( deformed )
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X().imag(),
+                                                               (it)->Y().imag(), (it)->Z().imag() );
+                                    else
+                                        GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0().imag(),
+                                                               (it)->Y0().imag(), (it)->Z0().imag() );
+                                }
+                            }
                         }
                         GiD_fEndCoordinates(MeshFile);
                         nodes_written = true;
@@ -375,7 +430,7 @@ public:
                     //printing elements
                     GiD_fBeginElements(MeshFile);
                     std::vector<int> nodes_id(mMeshConditions.begin()->GetGeometry().size() + 1);
-                    for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
+                    for ( typename TModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
@@ -409,7 +464,7 @@ public:
         mMeshConditions.clear();
     }
 
-    const ModelPart::NodesContainerType& GetMeshNodes() const
+    const typename TModelPartType::NodesContainerType& GetMeshNodes() const
     {
         return mMeshNodes;
     }
@@ -418,9 +473,9 @@ protected:
     ///member variables
     GeometryData::KratosGeometryType mGeometryType;
     GiD_ElementType mGidElementType;
-    ModelPart::NodesContainerType mMeshNodes;
-    ModelPart::ElementsContainerType mMeshElements;
-    ModelPart::ConditionsContainerType mMeshConditions;
+    typename TModelPartType::NodesContainerType mMeshNodes;
+    typename TModelPartType::ElementsContainerType mMeshElements;
+    typename TModelPartType::ConditionsContainerType mMeshConditions;
     std::string mMeshTitle;
 }; //class GidSDMeshContainer
 

@@ -15,10 +15,6 @@
 //
 //
 
-
-
-
-
 #if !defined(KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED
 
@@ -34,6 +30,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
 #include "geometries/geometry_data.h"
@@ -50,9 +47,16 @@ typedef GeometryData::KratosGeometryFamily KratosGeometryFamily;
  * Auxiliary class to store integration point containers and perform result printing
  * on integration points
  */
+template<class TModelPartType>
 class GidSDIntegrationPointsContainer
 {
 public:
+
+    typedef TModelPartType ModelPartType;
+
+    typedef typename ModelPartType::DataType DataType;
+    typedef typename ModelPartType::VectorType VectorType;
+    typedef typename ModelPartType::MatrixType MatrixType;
 
     KRATOS_CLASS_POINTER_DEFINITION(GidSDIntegrationPointsContainer);
 
@@ -102,7 +106,7 @@ public:
         return mGPTitle;
     }
 
-    bool AddElement( const ModelPart::ElementsContainerType::const_iterator pElemIt )
+    bool AddElement( const typename ModelPartType::ElementsContainerType::const_iterator pElemIt )
     {
         KRATOS_TRY
 
@@ -127,7 +131,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    bool AddCondition( const ModelPart::ConditionsContainerType::const_iterator pCondIt )
+    bool AddCondition( const typename ModelPartType::ConditionsContainerType::const_iterator pCondIt )
     {
         KRATOS_TRY
 
@@ -152,7 +156,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void PrintPartitionIndex( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& r_model_part,
+    void PrintPartitionIndex( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPartType& r_model_part,
                               double SolutionTag, unsigned int value_index, int rank )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -163,12 +167,12 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+            GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
 
             if( mMeshElements.size() != 0 )
             {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); ++it )
                 {
                     for( unsigned int i = 0; i < mSize; ++i )
@@ -180,7 +184,7 @@ public:
 
             if( mMeshConditions.size() != 0 )
             {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); ++it )
                 {
                     for( unsigned int i = 0; i < mSize; ++i )
@@ -194,7 +198,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& r_model_part,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPartType& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
         const ProcessInfo& process_info = r_model_part.GetProcessInfo();
@@ -207,14 +211,14 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+            GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
 
             std::vector<int> ValuesOnIntPoint(mSize);
 
             if( mMeshElements.size() != 0 )
             {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); ++it )
                 {
                     it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
@@ -227,7 +231,7 @@ public:
 
             if( mMeshConditions.size() != 0 )
             {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); ++it )
                 {
                     it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
@@ -242,7 +246,7 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& r_model_part,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<DataType>& rVariable, ModelPartType& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
         const ProcessInfo& process_info = r_model_part.GetProcessInfo();
@@ -255,42 +259,114 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-
-            std::vector<double> ValuesOnIntPoint(mSize);
-
-            if( mMeshElements.size() != 0 )
+            if constexpr (std::is_arithmetic<DataType>::value)
             {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
+                GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                                 GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<DataType> ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
                     {
-                        GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );
+                        }
                     }
                 }
-            }
 
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); ++it )
+                if( mMeshConditions.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
                     {
-                        GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i] );
+                        }
                     }
                 }
+
+                GiD_fEndResult(ResultFile);
+            }
+            else if constexpr (std::is_same<DataType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                GiD_fBeginResult(ResultFile, (char *)((rVariable.Name()) + "_REAL").c_str(), (char *)("Kratos"), SolutionTag,
+                                 GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<DataType> ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i].real() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i].real() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+
+                //
+
+                GiD_fBeginResult(ResultFile, (char *)((rVariable.Name()) + "_IMAG").c_str(), (char *)("Kratos"), SolutionTag,
+                                 GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i].imag() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i].imag() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
             }
 
-            GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<DataType, 3> >& rVariable, ModelPartType& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {
         const ProcessInfo& process_info = r_model_part.GetProcessInfo();
@@ -303,200 +379,366 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            GiD_fBeginResult( ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-
-            std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
-
-            if( mMeshElements.size() != 0 )
+            if constexpr (std::is_arithmetic<DataType>::value)
             {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
-                {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
-                    {
-                        GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                          ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
-                    }
-                }
-            }
-
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); ++it )
-                {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
-                    {
-                        GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                          ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
-                    }
-                }
-            }
-
-            GiD_fEndResult(ResultFile);
-        }
-    }
-
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double,6> >& rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
-    {
-        const ProcessInfo& process_info = r_model_part.GetProcessInfo();
-
-        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
-        {
-            std::stringstream ss;
-            ss << mGPTitle << "_" << rVariable.Key();
-            std::string new_gp_title = ss.str();
-
-            WriteGaussPoints(ResultFile, new_gp_title.c_str());
-
-            GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), ( char*)("Kratos"),
-                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-
-            std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
-
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
-                {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
-                    {
-                        GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                           ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2],
-                                           ValuesOnIntPoint[i][3], ValuesOnIntPoint[i][4],
-                                           ValuesOnIntPoint[i][5] );
-                    }
-                }
-            }
-
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); ++it )
-                {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
-                    {
-                        GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                           ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2],
-                                           ValuesOnIntPoint[i][3], ValuesOnIntPoint[i][4],
-                                           ValuesOnIntPoint[i][5] );
-                    }
-                }
-            }
-
-            GiD_fEndResult(ResultFile);
-        }
-    }
-
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
-    {
-        const ProcessInfo& process_info = r_model_part.GetProcessInfo();
-
-        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
-        {
-            std::stringstream ss;
-            ss << mGPTitle << "_" << rVariable.Key();
-            std::string new_gp_title = ss.str();
-
-            WriteGaussPoints(ResultFile, new_gp_title.c_str());
-
-            const bool is_stress_strain = rVariable.Name().find("STRESS") != std::string::npos
-                                       || rVariable.Name().find("STRAIN") != std::string::npos
-                                       || rVariable.Name().find("STRETCH") != std::string::npos;
-
-            if( is_stress_strain )
-            {
-                GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
-                                 GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-            }
-            else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
-                  || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
-            {
-                std::stringstream param_index;
-                param_index << value_index;
-                GiD_fBeginResult( ResultFile, (char *)(rVariable.Name() + param_index.str() ).c_str(),
-                                 "Kratos", SolutionTag, GiD_Scalar, GiD_OnGaussPoints,
-                                 new_gp_title.c_str(), NULL, 0, NULL );
-            }
-            else
-            {
-                GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                                  GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-            }
 
-            std::vector<Vector> ValuesOnIntPoint(mSize);
-            if( mMeshElements.size() != 0 )
-            {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
+                std::vector<array_1d<DataType, 3> > ValuesOnIntPoint(mSize, ZeroVector(3));
+
+                if( mMeshElements.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
                     {
-                        if( is_stress_strain )
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
                         {
-                            PrintStressVector(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
-                        }
-                        else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
-                              || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
-                        {
-                            double value = 0.0;
-                            if( ValuesOnIntPoint[i].size() > value_index )
-                                value = ValuesOnIntPoint[i][value_index];
-                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), value );
-                        }
-                        else
-                        {
-                            if( ValuesOnIntPoint[0].size() == 3 ) // 3D vector
-                                GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                             ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                              ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
                         }
                     }
                 }
-            }
 
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); ++it )
+                if( mMeshConditions.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
                     {
-                        if( is_stress_strain )
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
                         {
-                            PrintStressVector(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
-                        }
-                        else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
-                              || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
-                        {
-                            double value = 0.0;
-                            if( ValuesOnIntPoint[i].size() > value_index )
-                                value = ValuesOnIntPoint[i][value_index];
-                            GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), value );
-                        }
-                        else
-                        {
-                            if( ValuesOnIntPoint[0].size() == 3 ) // 3D vector
-                                GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
-                                                 ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                              ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
                         }
                     }
                 }
-            }
 
-            GiD_fEndResult(ResultFile);
+                GiD_fEndResult(ResultFile);
+            }
+            else if constexpr (std::is_same<DataType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                GiD_fBeginResult( ResultFile, (char *)((rVariable.Name()) + "_REAL").c_str(), (char *)("Kratos"), SolutionTag,
+                                 GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<array_1d<DataType, 3> > ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].real(),
+                                              ValuesOnIntPoint[i][1].real(), ValuesOnIntPoint[i][2].real() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].real(),
+                                              ValuesOnIntPoint[i][1].real(), ValuesOnIntPoint[i][2].real() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+
+                //
+
+                GiD_fBeginResult( ResultFile, (char *)((rVariable.Name()) + "_IMAG").c_str(), (char *)("Kratos"), SolutionTag,
+                                 GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].imag(),
+                                              ValuesOnIntPoint[i][1].imag(), ValuesOnIntPoint[i][2].imag() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].imag(),
+                                              ValuesOnIntPoint[i][1].imag(), ValuesOnIntPoint[i][2].imag() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+            }
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& r_model_part,
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<DataType, 6> >& rVariable, ModelPartType& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
+        const ProcessInfo& process_info = r_model_part.GetProcessInfo();
+
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
+
+            if constexpr (std::is_arithmetic<DataType>::value)
+            {
+                GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), ( char*)("Kratos"),
+                                 SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<array_1d<DataType, 6> > ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                               ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2],
+                                               ValuesOnIntPoint[i][3], ValuesOnIntPoint[i][4],
+                                               ValuesOnIntPoint[i][5] );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                               ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2],
+                                               ValuesOnIntPoint[i][3], ValuesOnIntPoint[i][4],
+                                               ValuesOnIntPoint[i][5] );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+            }
+            else if constexpr (std::is_same<DataType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                GiD_fBeginResult( ResultFile, (char *)((rVariable.Name()) + "_REAL").c_str(), ( char*)("Kratos"),
+                                 SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<array_1d<DataType, 6> > ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].real(),
+                                               ValuesOnIntPoint[i][1].real(), ValuesOnIntPoint[i][2].real(),
+                                               ValuesOnIntPoint[i][3].real(), ValuesOnIntPoint[i][4].real(),
+                                               ValuesOnIntPoint[i][5].real() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].real(),
+                                               ValuesOnIntPoint[i][1].real(), ValuesOnIntPoint[i][2].real(),
+                                               ValuesOnIntPoint[i][3].real(), ValuesOnIntPoint[i][4].real(),
+                                               ValuesOnIntPoint[i][5].real() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+
+                //
+
+                GiD_fBeginResult( ResultFile, (char *)((rVariable.Name()) + "_IMAG").c_str(), ( char*)("Kratos"),
+                                 SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].imag(),
+                                               ValuesOnIntPoint[i][1].imag(), ValuesOnIntPoint[i][2].imag(),
+                                               ValuesOnIntPoint[i][3].imag(), ValuesOnIntPoint[i][4].imag(),
+                                               ValuesOnIntPoint[i][5].imag() );
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            GiD_fWrite3DMatrix( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0].imag(),
+                                               ValuesOnIntPoint[i][1].imag(), ValuesOnIntPoint[i][2].imag(),
+                                               ValuesOnIntPoint[i][3].imag(), ValuesOnIntPoint[i][4].imag(),
+                                               ValuesOnIntPoint[i][5].imag() );
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+            }
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<VectorType>& rVariable, ModelPartType& r_model_part,
+                               double SolutionTag, unsigned int value_index )
+    {
+        const ProcessInfo& process_info = r_model_part.GetProcessInfo();
+
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
+
+            if constexpr (std::is_arithmetic<DataType>::value)
+            {
+                const bool is_stress_strain = rVariable.Name().find("STRESS") != std::string::npos
+                                           || rVariable.Name().find("STRAIN") != std::string::npos
+                                           || rVariable.Name().find("STRETCH") != std::string::npos;
+
+                if( is_stress_strain )
+                {
+                    GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                                     GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+                }
+                else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
+                      || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
+                {
+                    std::stringstream param_index;
+                    param_index << value_index;
+                    GiD_fBeginResult( ResultFile, (char *)(rVariable.Name() + param_index.str() ).c_str(),
+                                     "Kratos", SolutionTag, GiD_Scalar, GiD_OnGaussPoints,
+                                     new_gp_title.c_str(), NULL, 0, NULL );
+                }
+                else
+                {
+                    GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                                     GiD_Vector, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+                }
+
+                std::vector<VectorType> ValuesOnIntPoint(mSize);
+                if( mMeshElements.size() != 0 )
+                {
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            if( is_stress_strain )
+                            {
+                                PrintStressVector(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                            }
+                            else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
+                                  || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
+                            {
+                                double value = 0.0;
+                                if( ValuesOnIntPoint[i].size() > value_index )
+                                    value = ValuesOnIntPoint[i][value_index];
+                                GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), value );
+                            }
+                            else
+                            {
+                                if( ValuesOnIntPoint[0].size() == 3 ) // 3D vector
+                                    GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                                 ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
+                            }
+                        }
+                    }
+                }
+
+                if( mMeshConditions.size() != 0 )
+                {
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
+                    {
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            if( is_stress_strain )
+                            {
+                                PrintStressVector(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                            }
+                            else if( rVariable.Name() == std::string("MATERIAL_PARAMETERS")
+                                  || rVariable.Name() == std::string("INTERNAL_VARIABLES") )
+                            {
+                                double value = 0.0;
+                                if( ValuesOnIntPoint[i].size() > value_index )
+                                    value = ValuesOnIntPoint[i][value_index];
+                                GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), value );
+                            }
+                            else
+                            {
+                                if( ValuesOnIntPoint[0].size() == 3 ) // 3D vector
+                                    GiD_fWriteVector( ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i][0],
+                                                     ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
+                            }
+                        }
+                    }
+                }
+
+                GiD_fEndResult(ResultFile);
+            }
+            else if constexpr (std::is_same<DataType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                // TODO
+                KRATOS_ERROR << "PrintResults for ComplexVector is not yet supported";
+            }
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, const Variable<MatrixType>& rVariable, ModelPartType& r_model_part,
                                double SolutionTag, int value_index )
     {
         const ProcessInfo& process_info = r_model_part.GetProcessInfo();
@@ -509,38 +751,46 @@ public:
 
             WriteGaussPoints(ResultFile, new_gp_title.c_str());
 
-            GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
-                             SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
-
-            std::vector<Matrix> ValuesOnIntPoint(mSize);
-
-            if( mMeshElements.size() != 0 )
+            if constexpr (std::is_arithmetic<DataType>::value)
             {
-                for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
-                        it != mMeshElements.end(); ++it )
+                GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"),
+                                 SolutionTag, GiD_Matrix, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+                std::vector<MatrixType> ValuesOnIntPoint(mSize);
+
+                if( mMeshElements.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                            it != mMeshElements.end(); ++it )
                     {
-                        PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        }
                     }
                 }
-            }
 
-            if( mMeshConditions.size() != 0 )
-            {
-                for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
-                        it != mMeshConditions.end(); ++it )
+                if( mMeshConditions.size() != 0 )
                 {
-                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
-                    for( unsigned int i = 0; i < mSize; ++i )
+                    for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                            it != mMeshConditions.end(); ++it )
                     {
-                        PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint, process_info );
+                        for( unsigned int i = 0; i < mSize; ++i )
+                        {
+                            PrintStressTensor(ResultFile, static_cast<int>(it->Id()), ValuesOnIntPoint[i]);
+                        }
                     }
                 }
-            }
 
-            GiD_fEndResult(ResultFile);
+                GiD_fEndResult(ResultFile);
+            }
+            else if constexpr (std::is_same<DataType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                // TODO
+                KRATOS_ERROR << "PrintResults for ComplexMatrix is not yet supported";
+            }
         }
     }
 
@@ -693,10 +943,10 @@ protected:
     GiD_ElementType mGidElementFamily;
     GeometryData::IntegrationMethod mIntegrationMethod;
     std::size_t mSize;
-    ModelPart::ElementsContainerType mMeshElements;
-    ModelPart::ConditionsContainerType mMeshConditions;
-};//class GidSDIntegrationPointsContainer
+    typename ModelPartType::ElementsContainerType mMeshElements;
+    typename ModelPartType::ConditionsContainerType mMeshConditions;
+}; //class GidSDIntegrationPointsContainer
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_GID_SD_INTEGRATION_POINT_CONTAINER_H_INCLUDED defined

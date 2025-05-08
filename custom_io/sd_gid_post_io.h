@@ -37,7 +37,6 @@
 namespace Kratos
 {
 
-
 /**
  */
 template<class TGaussPointContainer, class TMeshContainer>
@@ -49,6 +48,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SDGidPostIO);
 
     typedef SDPostIO<TGaussPointContainer, TMeshContainer> BaseType;
+
+    typedef typename BaseType::ModelPartType ModelPartType;
 
     typedef typename BaseType::MeshType MeshType;
 
@@ -62,6 +63,11 @@ public:
 
     typedef typename BaseType::MeshContainerVectorType MeshContainerVectorType;
     typedef typename BaseType::GaussPointContainerVectorType GaussPointContainerVectorType;
+
+    typedef typename ModelPartType::DataType DataType;
+    typedef typename ModelPartType::VectorType VectorType;
+    typedef typename ModelPartType::MatrixType MatrixType;
+    typedef typename ModelPartType::CoordinateType CoordinateType;
 
     ///Constructor
     ///single stream IO constructor
@@ -187,14 +193,40 @@ public:
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
-            if ( mWriteDeformed == WriteUndeformed )
-                GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X0(),
-                                      node_iterator->Y0(), node_iterator->Z0() );
-            else if ( mWriteDeformed == WriteDeformed )
-                GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X(),
-                                      node_iterator->Y(), node_iterator->Z() );
-            else
-                KRATOS_ERROR << "undefined WriteDeformedMeshFlag";
+            if constexpr (std::is_arithmetic<CoordinateType>::value)
+            {
+                if ( mWriteDeformed == WriteUndeformed )
+                    GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X0(),
+                                          node_iterator->Y0(), node_iterator->Z0() );
+                else if ( mWriteDeformed == WriteDeformed )
+                    GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X(),
+                                          node_iterator->Y(), node_iterator->Z() );
+                else
+                    KRATOS_ERROR << "undefined WriteDeformedMeshFlag";
+            }
+            if constexpr (std::is_same<CoordinateType, KRATOS_COMPLEX_TYPE>::value)
+            {
+                if ( mWriteDeformed == WriteUndeformed )
+                {
+                    if constexpr (TMeshContainer::complex_coordinate_type == 1)
+                        GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X0().real(),
+                                              node_iterator->Y0().real(), node_iterator->Z0().real() );
+                    else if constexpr (TMeshContainer::complex_coordinate_type == 2)
+                        GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X0().imag(),
+                                              node_iterator->Y0().imag(), node_iterator->Z0().imag() );
+                }
+                else if ( mWriteDeformed == WriteDeformed )
+                {
+                    if constexpr (TMeshContainer::complex_coordinate_type == 1)
+                        GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X().real(),
+                                              node_iterator->Y().real(), node_iterator->Z().real() );
+                    else if constexpr (TMeshContainer::complex_coordinate_type == 2)
+                        GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X().imag(),
+                                              node_iterator->Y().imag(), node_iterator->Z().imag() );
+                }
+                else
+                    KRATOS_ERROR << "undefined WriteDeformedMeshFlag";
+            }
         }
         GiD_fEndCoordinates(mMeshFile);
 
@@ -458,6 +490,76 @@ public:
     }
 
     /**
+     * writes nodal results for variables of type complex (std::complex<double>) using nodes from mesh container
+     */
+    template<typename TDataType>
+    void WriteComplexNodalResults( Variable<TDataType> const& rVariable,
+                            double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)((rVariable.Name() + "_REAL").c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
+                        it != BaseType::mMeshContainers.end(); ++it )
+        {
+            for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
+                    i_node != it->GetMeshNodes().end() ; ++i_node )
+                GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                                 SolutionStepNumber).real() );
+        }
+        GiD_fEndResult(mResultFile);
+
+        GiD_fBeginResult( mResultFile, (char*)((rVariable.Name() + "_IMAG").c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
+                        it != BaseType::mMeshContainers.end(); ++it )
+        {
+            for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
+                    i_node != it->GetMeshNodes().end() ; ++i_node )
+                GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                                 SolutionStepNumber).imag() );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes nodal results for variables of type complex (std::complex<double>)
+     */
+    template<typename TDataType>
+    void WriteComplexNodalResults( Variable<TDataType> const& rVariable,
+                            const NodesContainerType& rNodes, double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)((rVariable.Name() + "_REAL").c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node )
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                             SolutionStepNumber).real() );
+        GiD_fEndResult(mResultFile);
+
+        GiD_fBeginResult( mResultFile, (char*)((rVariable.Name() + "_IMAG").c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node )
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                             SolutionStepNumber).imag() );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
      * writes nodal results for variables of type bool using nodes from mesh container
      */
     void WriteNodalResults( Variable<bool> const& rVariable,
@@ -518,6 +620,26 @@ public:
     }
 
     /**
+     * writes nodal results for variables of type std::complex<double> using nodes in the mesh container
+     */
+    void WriteNodalResults( Variable<std::complex<double> > const& rVariable,
+                            double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        WriteComplexNodalResults(rVariable, SolutionTag, SolutionStepNumber);
+    }
+
+    /**
+     * writes nodal results for variables of type std::complex<double>
+     */
+    void WriteNodalResults( Variable<std::complex<double> > const& rVariable,
+                            const NodesContainerType& rNodes, double SolutionTag,
+                            std::size_t SolutionStepNumber)
+    {
+        WriteComplexNodalResults(rVariable, rNodes, SolutionTag, SolutionStepNumber);
+    }
+
+    /**
      * writes nodal results for variables of type array_1d<double, 3> using nodes from the mesh container
      * (e.g. DISPLACEMENT)
      */
@@ -535,7 +657,7 @@ public:
             for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
                     i_node != it->GetMeshNodes().end() ; ++i_node )
             {
-                array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                const array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                             SolutionStepNumber );
                 GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
             }
@@ -561,9 +683,90 @@ public:
         for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node )
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+            const array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
             GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes nodal results for variables of type array_1d<std::complex<double>, 3> using nodes from the mesh container
+     * (e.g. COMPLEX_DISPLACEMENT)
+     */
+    void WriteNodalResults( Variable<array_1d<std::complex<double>, 3> > const& rVariable,
+                            double SolutionTag, std::size_t SolutionStepNumber)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult(mResultFile,(char*)((rVariable.Name() + "_REAL").c_str()), "Kratos",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
+                        it != BaseType::mMeshContainers.end(); ++it )
+        {
+            for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
+                    i_node != it->GetMeshNodes().end() ; ++i_node )
+            {
+                const array_1d<std::complex<double>, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                            SolutionStepNumber );
+                GiD_fWriteVector( mResultFile, i_node->Id(), temp[0].real(), temp[1].real(), temp[2].real() );
+            }
+        }
+        GiD_fEndResult(mResultFile);
+
+        GiD_fBeginResult(mResultFile,(char*)((rVariable.Name() + "_IMAG").c_str()), "Kratos",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename MeshContainerVectorType::iterator it = BaseType::mMeshContainers.begin();
+                        it != BaseType::mMeshContainers.end(); ++it )
+        {
+            for ( typename NodesContainerType::const_iterator i_node = it->GetMeshNodes().begin();
+                    i_node != it->GetMeshNodes().end() ; ++i_node )
+            {
+                const array_1d<std::complex<double>, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                            SolutionStepNumber );
+                GiD_fWriteVector( mResultFile, i_node->Id(), temp[0].imag(), temp[1].imag(), temp[2].imag() );
+            }
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+    }
+
+    /**
+     * writes nodal results for variables of type array_1d<double, 3>
+     * (e.g. DISPLACEMENT)
+     */
+    void WriteNodalResults( Variable<array_1d<std::complex<double>, 3> > const& rVariable,
+                            const NodesContainerType& rNodes,
+                            double SolutionTag, std::size_t SolutionStepNumber)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult(mResultFile,(char*)((rVariable.Name() + "_REAL").c_str()), "Kratos",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node )
+        {
+            const array_1d<std::complex<double>, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                        SolutionStepNumber );
+            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0].real(), temp[1].real(), temp[2].real() );
+        }
+        GiD_fEndResult(mResultFile);
+
+        GiD_fBeginResult(mResultFile,(char*)((rVariable.Name() + "_IMAG").c_str()), "Kratos",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( typename NodesContainerType::const_iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node )
+        {
+            const array_1d<std::complex<double>, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                        SolutionStepNumber );
+            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0].imag(), temp[1].imag(), temp[2].imag() );
         }
         GiD_fEndResult(mResultFile);
 
@@ -908,7 +1111,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    void PrintElementalPartitionIndex( const Variable<double>& rVariable, ModelPart& r_model_part,
+    void PrintElementalPartitionIndex( const Variable<double>& rVariable, ModelPartType& r_model_part,
                                      double SolutionTag, int value_index, int rank )
     {
         KRATOS_TRY;
@@ -935,7 +1138,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPart& r_model_part,
+    virtual void PrintOnGaussPoints( const Variable<int>& rVariable, ModelPartType& r_model_part,
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
@@ -959,7 +1162,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& r_model_part,
+    virtual void PrintOnGaussPoints( const Variable<DataType>& rVariable, ModelPartType& r_model_part,
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
@@ -983,7 +1186,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+    virtual void PrintOnGaussPoints( const Variable<array_1d<DataType, 3> >& rVariable, ModelPartType& r_model_part, double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
 
@@ -1006,7 +1209,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& r_model_part,
+    virtual void PrintOnGaussPoints( const Variable<VectorType>& rVariable, ModelPartType& r_model_part,
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
@@ -1030,7 +1233,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& r_model_part,
+    virtual void PrintOnGaussPoints( const Variable<MatrixType>& rVariable, ModelPartType& r_model_part,
                                      double SolutionTag, int value_index = 0 )
     {
         KRATOS_TRY;
