@@ -225,6 +225,9 @@ namespace Kratos
         const PostCondition mPostSurfaceCondition3D8N;
         const PostCondition mPostSurfaceCondition3D9N;
 
+        const PostCondition mPostLineCondition2D2N;
+        const PostCondition mPostLineCondition2D3N;
+
         ///@}
         ///@name Private Operators
         ///@{

@@ -201,38 +201,74 @@ void PostCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariab
 void PostCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
        std::vector<array_1d<double, 3 > >& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-        // special handling to obtain the coordinates of the integration points
+    // special handling to obtain the coordinates of the integration points
     if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
     {
         auto it = mArray1DValuesContainer.find(INTEGRATION_POINT_LOCAL.Key());
-        if (it == mArray1DValuesContainer.end())
-            KRATOS_ERROR << "INTEGRATION_POINT_LOCAL is not set for the element";
-
-        if (rValues.size() != it->second.size())
-            rValues.resize(it->second.size());
-
-        GeometryType::IntegrationPointsArrayType integration_points(it->second.size());
-        for(std::size_t point = 0; point < it->second.size(); ++point)
-            noalias(integration_points[point]) = it->second[point];
-
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        //initialize the geometry
-        GetGeometry().Initialize(integration_points);
-        #endif
-
-        VectorType N( GetGeometry().size() );
-        for(std::size_t point = 0; point < integration_points.size(); ++point)
+        if (it != mArray1DValuesContainer.end())
+        // if the integration points are provided for the element via INTEGRATION_POINT_LOCAL,
+        // we will use it
         {
-            GetGeometry().ShapeFunctionsValues( N, integration_points[point] );
+            if (rValues.size() != it->second.size())
+                rValues.resize(it->second.size());
 
-            noalias( rValues[point] ) = ZeroVector(3);
-            for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
-                noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
+            GeometryType::IntegrationPointsArrayType integration_points(it->second.size());
+            for(std::size_t point = 0; point < it->second.size(); ++point)
+                noalias(integration_points[point]) = it->second[point];
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(integration_points);
+            #endif
+
+            VectorType N( GetGeometry().size() );
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                GetGeometry().ShapeFunctionsValues( N, integration_points[point] );
+
+                noalias( rValues[point] ) = ZeroVector(3);
+                for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
         }
+        else
+        // otherwise we use the default integration method, which can be controlled via INTEGRATION_ORDER
+        {
+            const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        GetGeometry().Clean();
-        #endif
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(ThisIntegrationMethod);
+            #endif
+
+            //reading integration points and local gradients
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+
+            if (rValues.size() != integration_points.size())
+                rValues.resize(integration_points.size());
+
+            const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+            VectorType N( GetGeometry().size() );
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(N) = row( Ncontainer, point );
+
+                noalias( rValues[point] ) = ZeroVector(3);
+                for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
 
         return;
     }

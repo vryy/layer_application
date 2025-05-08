@@ -125,7 +125,7 @@ class PostCondition : public Condition
 
         friend class Serializer;
 
-        std::unordered_map<std::size_t, std::vector<double> > mDoubleValuesContainer;
+        std::unordered_map<std::size_t, std::vector<double> > mDoubleValuesContainer;   // container for double variables, the key is variable key
         std::unordered_map<std::size_t, std::vector<Vector> > mVectorValuesContainer;
         std::unordered_map<std::size_t, std::vector<array_1d<double, 3> > > mArray1DValuesContainer;
 

@@ -16,6 +16,8 @@
 
 
 // Project includes
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_2d_9.h"
@@ -95,6 +97,8 @@ namespace Kratos
     , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D4N, Quadrilateral3D4, 4 )
     , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D8N, Quadrilateral3D8, 8 )
     , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D9N, Quadrilateral3D9, 9 )
+    , LAYER_APP_CREATE_CONDITION( mPostLineCondition2D2N, Line2D2, 2 )
+    , LAYER_APP_CREATE_CONDITION( mPostLineCondition2D3N, Line2D3, 3 )
     {}
 
     void KratosLayerApplication::Register()
@@ -146,6 +150,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D6N", mPostSurfaceCondition3D6N )
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D8N", mPostSurfaceCondition3D8N )
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D9N", mPostSurfaceCondition3D9N )
+        KRATOS_REGISTER_CONDITION( "PostLineCondition2D2N", mPostLineCondition2D2N )
+        KRATOS_REGISTER_CONDITION( "PostLineCondition2D3N", mPostLineCondition2D3N )
     }
 
     void KratosLayerApplication::RegisterVariables()
