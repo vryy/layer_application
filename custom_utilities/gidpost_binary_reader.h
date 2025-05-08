@@ -211,38 +211,40 @@ private:
     /* read a string in GiD binary post file */
     /* this version does not return error code */
 //    char* ReadString(char* str);
-    void ReadString(char* str);
+    void ReadString(char* str) const;
 
-    int ReadString(char* str, int max_len);
+    int ReadString(char* str, int max_len) const;
 
     /* read a string in GiD binary post file */
     /* this version return error code */
-    int ReadString(std::string& str);
+    int ReadString(std::string& str) const;
 
-    int CheckEof();
+    int CheckEof() const;
 
-    z_off_t GetCurrentPosition();
+    z_off_t GetCurrentPosition() const;
 
-    z_off_t SetCurrentPosition(const z_off_t pos);
+    z_off_t SetCurrentPosition(const z_off_t pos) const;
 
     template<class TDataType>
-    int Read(TDataType& v)
+    int Read(TDataType& v) const
     {
         return gzread(m_file, &v, sizeof(TDataType));
     }
 
-    void ReadWord(std::string& word);
+    void ReadWord(std::string& word) const;
+
+    void ReadWordWithQuote(std::string& word) const;
 
     /* shift n bytes */
-    z_off_t Shift(const z_off_t n);
+    z_off_t Shift(const z_off_t n) const;
 
-    bool isStringChar(const char ch);
+    bool isStringChar(const char ch) const;
 
-    bool isCharInString(const char c, const std::string str);
+    bool isCharInString(const char c, const std::string& str) const;
 
-    bool CheckForString(const std::string str);
+    bool CheckForString(const std::string& str) const;
 
-    bool FindNext(int pos, char&c, const char* str, unsigned int len);
+    bool FindNext(int pos, char&c, const char* str, unsigned int len) const;
 
 }; // Class GiDPostBinaryReader
 

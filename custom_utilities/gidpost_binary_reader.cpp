@@ -702,7 +702,7 @@ void GiDPostBinaryReader::ParseAndIndex2()
 
         // read the header
         MeshHeader mesh;
-        ReadWord(mesh.Name);
+        ReadWordWithQuote(mesh.Name);
 
         std::string dimension;
         ReadWord(dimension);
@@ -973,7 +973,7 @@ int GiDPostBinaryReader::Reset()
 //        gzread(m_file, str, len*sizeof(char));
 //        return str;
 //    }
-void GiDPostBinaryReader::ReadString(char* str)
+void GiDPostBinaryReader::ReadString(char* str) const
 {
     int len;
     gzread(m_file, &len, sizeof(int));
@@ -982,7 +982,7 @@ void GiDPostBinaryReader::ReadString(char* str)
     str[len] = '\0';
 }
 
-int GiDPostBinaryReader::ReadString(char* str, int max_len)
+int GiDPostBinaryReader::ReadString(char* str, int max_len) const
 {
     int len;
     gzread(m_file, &len, sizeof(int));
@@ -1003,7 +1003,7 @@ int GiDPostBinaryReader::ReadString(char* str, int max_len)
 //    return str;
 //}
 
-int GiDPostBinaryReader::ReadString(std::string& str)
+int GiDPostBinaryReader::ReadString(std::string& str) const
 {
     int len;
     int error_code = gzread(m_file, &len, sizeof(int)); // read the length of the string
@@ -1012,7 +1012,7 @@ int GiDPostBinaryReader::ReadString(std::string& str)
     {
         if(str.size() != len)
             str.resize(len);
-        error_code = gzread(m_file, (char *)str.c_str(), len*sizeof(char));
+        error_code = gzread(m_file, (char*) str.c_str(), len*sizeof(char));
         GZ_WATCH(error_code);
         return 0;
     }
@@ -1023,22 +1023,22 @@ int GiDPostBinaryReader::ReadString(std::string& str)
     }
 }
 
-int GiDPostBinaryReader::CheckEof()
+int GiDPostBinaryReader::CheckEof() const
 {
     return gzeof(m_file);
 }
 
-z_off_t GiDPostBinaryReader::GetCurrentPosition()
+z_off_t GiDPostBinaryReader::GetCurrentPosition() const
 {
     return gztell(m_file);
 }
 
-z_off_t GiDPostBinaryReader::SetCurrentPosition(const z_off_t pos)
+z_off_t GiDPostBinaryReader::SetCurrentPosition(const z_off_t pos) const
 {
     return gzseek(m_file, pos, SEEK_SET);
 }
 
-void GiDPostBinaryReader::ReadWord(std::string& word)
+void GiDPostBinaryReader::ReadWord(std::string& word) const
 {
     char c;
     Read(c);
@@ -1049,13 +1049,28 @@ void GiDPostBinaryReader::ReadWord(std::string& word)
     }
 }
 
+void GiDPostBinaryReader::ReadWordWithQuote(std::string& word) const
+{
+    char c;
+    Read(c);
+    char c1 = c;
+    int cntq = (c1 == '"') ? 1 : 0;
+    while(((c != ' ') && (c != '\0'))
+       || (c1 == '"' && cntq < 2))
+    {
+        word.push_back(c);
+        Read(c);
+        if (c == '"') ++cntq;
+    }
+}
+
 /* shift n bytes */
-z_off_t GiDPostBinaryReader::Shift(const z_off_t n)
+z_off_t GiDPostBinaryReader::Shift(const z_off_t n) const
 {
     return gzseek(m_file, n, SEEK_CUR);
 }
 
-bool GiDPostBinaryReader::isStringChar(const char ch) {
+bool GiDPostBinaryReader::isStringChar(const char ch) const {
     if (ch >= 'a' && ch <= 'z')
         return true;
     if (ch >= 'A' && ch <= 'Z')
@@ -1063,7 +1078,7 @@ bool GiDPostBinaryReader::isStringChar(const char ch) {
     return false;
 }
 
-bool GiDPostBinaryReader::isCharInString(const char c, const std::string str)
+bool GiDPostBinaryReader::isCharInString(const char c, const std::string& str) const
 {
     for(int i = 0; i < str.size(); ++i)
     {
@@ -1073,7 +1088,7 @@ bool GiDPostBinaryReader::isCharInString(const char c, const std::string str)
     return false;
 }
 
-bool GiDPostBinaryReader::CheckForString(const std::string str)
+bool GiDPostBinaryReader::CheckForString(const std::string& str) const
 {
     char c;
     for(int i = 0; i < str.size(); ++i)
@@ -1089,7 +1104,7 @@ bool GiDPostBinaryReader::CheckForString(const std::string str)
     return true;
 }
 
-bool GiDPostBinaryReader::FindNext(int pos, char&c, const char* str, unsigned int len)
+bool GiDPostBinaryReader::FindNext(int pos, char& c, const char* str, unsigned int len) const
 {
     if(pos == len)
     {

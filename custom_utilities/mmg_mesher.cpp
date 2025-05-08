@@ -113,17 +113,17 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
 
     if ( MMG<TDim>::Set_meshSize(mmmgMesh, nvertices, nelements) != 1 )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "MMG failed to initialize by model_part", r_model_part.Name())
+        KRATOS_ERROR << "MMG failed to initialize by model_part " << r_model_part.Name();
     }
 
     if (muse_level_set)
     {
         if ( MMG<TDim>::Set_iparameter(mmmgMesh, mmmgLs, MMG<TDim>::IPARAM_iso, 1) != 1 )
-            KRATOS_THROW_ERROR(std::logic_error, "Error setting the level set remeshing mode", "")
+            KRATOS_ERROR << "Error setting the level set remeshing mode";
 
         if ( MMG<TDim>::Set_solSize(mmmgMesh, mmmgLs, MMG5_Vertex, nvertices, MMG5_Scalar) != 1 )
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Error setting the level set vector", "")
+            KRATOS_ERROR << "Error setting the level set vector";
         }
     }
 
@@ -133,7 +133,7 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
         /** give info for the metric structure: sol applied on vertex entities, the sol is scalar*/
         if ( MMG<TDim>::Set_solSize(mmmgMesh, mmmgMet, MMG5_Vertex, nvertices, MMG5_Scalar) != 1 )
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Error setting the refinement metric vector", "")
+            KRATOS_ERROR << "Error setting the refinement metric vector";
         }
     }
 
@@ -159,7 +159,7 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
             if (it->SolutionStepsDataHas(NODAL_MMG_LEVEL_SET))
                 MMG<TDim>::Set_scalarSol(mmmgLs, it->GetSolutionStepValue(NODAL_MMG_LEVEL_SET), cnt);
             else
-                KRATOS_THROW_ERROR(std::logic_error, "The level set is not assigned at node", it->Id())
+                KRATOS_ERROR << "The level set is not assigned at node " << it->Id();
         }
 
         std::cout << Info() << ": Read level set for " << cnt << " vertices" << std::endl;
@@ -196,7 +196,7 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
             }
 
             if (!has_metric)
-                KRATOS_THROW_ERROR(std::logic_error, "The metric is not assigned at node", it->Id())
+                KRATOS_ERROR << "The metric is not assigned at node " << it->Id();
         }
 
         std::cout << Info() << ": Read metric for " << cnt << " vertices" << std::endl;
@@ -206,23 +206,25 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
     cnt = 0;
     for (auto it = r_model_part.Elements().begin(); it != r_model_part.Elements().end(); ++it)
     {
-        MMG<TDim>::Set_element(mmmgMesh, it->GetGeometry(), static_cast<int>(it->GetProperties().Id()), ++cnt);
+        const Properties& rProperties = static_cast<const std::remove_reference_t<decltype(*it)>&>(*it).GetProperties();
+        MMG<TDim>::Set_element(mmmgMesh, it->GetGeometry(), static_cast<int>(rProperties.Id()), ++cnt);
     }
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
         std::cout << Info() << ": Read " << cnt << " triangles" << std::endl;
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
         std::cout << Info() << ": Read " << cnt << " tetrahedra" << std::endl;
 
     cnt = 0;
     for (auto it = r_model_part.Conditions().begin(); it != r_model_part.Conditions().end(); ++it)
     {
-        MMG<TDim>::Set_condition(mmmgMesh, it->GetGeometry(), static_cast<int>(it->GetProperties().Id()), ++cnt);
+        const Properties& rProperties = static_cast<const std::remove_reference_t<decltype(*it)>&>(*it).GetProperties();
+        MMG<TDim>::Set_condition(mmmgMesh, it->GetGeometry(), static_cast<int>(rProperties.Id()), ++cnt);
     }
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
         std::cout << Info() << ": Read " << cnt << " lines" << std::endl;
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
         std::cout << Info() << ": Read " << cnt << " triangles" << std::endl;
 
     if (muse_level_set)
@@ -230,7 +232,7 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
         /** check if the number of given entities match with mesh size */
         if ( MMG<TDim>::Chk_meshData(mmmgMesh, mmmgLs) != 1 )
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Error with MMG mesh", "")
+            KRATOS_ERROR << "Error with MMG mesh";
         }
     }
 
@@ -239,7 +241,7 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
         /** check if the number of given entities match with mesh size */
         if ( MMG<TDim>::Chk_meshData(mmmgMesh, mmmgMet) != 1 )
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Error with MMG mesh", "")
+            KRATOS_ERROR << "Error with MMG mesh";
         }
     }
 
@@ -256,11 +258,11 @@ void MMGMesher<TDim>::Initialize(ModelPart& r_model_part)
 
     if ( ierr == MMG5_STRONGFAILURE )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "BAD ENDING OF MMGxDLIB: UNABLE TO SAVE MESH", "");
+        KRATOS_ERROR << "BAD ENDING OF MMGxDLIB: UNABLE TO SAVE MESH";
     }
     else if ( ierr == MMG5_LOWFAILURE )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "BAD ENDING OF MMGxDLIB", "");
+        KRATOS_ERROR << "BAD ENDING OF MMGxDLIB";
     }
 
     std::cout << Info() << " is successfully initialized from model_part " << r_model_part.Name() << std::endl;
@@ -314,7 +316,7 @@ void MMGMesher<TDim>::SaveMesh(const std::string& Name) const
     if (mmmgMesh != NULL)
     {
         if ( MMG<TDim>::saveMesh(mmmgMesh, Name.c_str()) != 1 )
-            KRATOS_THROW_ERROR(std::logic_error, "Error saving mesh to", Name)
+            KRATOS_ERROR << "Error saving mesh to " << Name;
         std::cout << "Saving mesh to " << Name << " successfully" << std::endl;
     }
 }
@@ -325,7 +327,7 @@ void MMGMesher<TDim>::SaveLevelSet(const std::string& Name) const
     if (mmmgMesh != NULL && mmmgLs != NULL)
     {
         if ( MMG<TDim>::saveSol(mmmgMesh, mmmgLs, Name.c_str()) != 1 )
-            KRATOS_THROW_ERROR(std::logic_error, "Error saving level set to", Name)
+            KRATOS_ERROR << "Error saving level set to " << Name;
         std::cout << "Saving level set to " << Name << " successfully" << std::endl;
     }
 }
@@ -336,7 +338,7 @@ void MMGMesher<TDim>::SaveMetric(const std::string& Name) const
     if (mmmgMesh != NULL && mmmgMet != NULL)
     {
         if ( MMG<TDim>::saveSol(mmmgMesh, mmmgMet, Name.c_str()) != 1 )
-            KRATOS_THROW_ERROR(std::logic_error, "Error saving metric to", Name)
+            KRATOS_ERROR << "Error saving metric to " << Name;
         std::cout << "Saving metric to " << Name << " successfully" << std::endl;
     }
 }
