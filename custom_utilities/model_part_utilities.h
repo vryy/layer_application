@@ -48,7 +48,7 @@ namespace Kratos
 
 /*** Utilities for various operations on Kratos::ModelPart
  */
-class ModelPartUtilities
+class KRATOS_API(LAYER_APPLICATION) ModelPartUtilities
 {
 public:
 
