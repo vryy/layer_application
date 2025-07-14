@@ -81,7 +81,7 @@ void ModelPartUtilities::ExportNodalCoordinatesToGiD(std::ostream& rOStream, Mod
     }
 }
 
-void ModelPartUtilities::ExportEdgeInformation(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements,
+void ModelPartUtilities::ExportEdgeInformation(std::ostream& rOStream, const ModelPart::ElementsContainerType& rpElements,
     const std::string& separator)
 {
     typedef std::pair<std::size_t, std::size_t> edge_t;
@@ -96,7 +96,7 @@ void ModelPartUtilities::ExportEdgeInformation(std::ostream& rOStream, ModelPart
     }
 }
 
-void ModelPartUtilities::ExportEdgeInformationToGiD(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements)
+void ModelPartUtilities::ExportEdgeInformationToGiD(std::ostream& rOStream, const ModelPart::ElementsContainerType& rpElements)
 {
     typedef std::pair<std::size_t, std::size_t> edge_t;
     typedef std::set<edge_t> edge_container_t;
@@ -166,6 +166,31 @@ void ModelPartUtilities::ClearModelPart(ModelPart& r_model_part)
         all_constraints.push_back(it->Id());
     for (const auto id : all_constraints)
         r_model_part.RemoveMasterSlaveConstraint(id);
+}
+
+void ModelPartUtilities::CreateSubModelPartFromElements(ModelPart& r_model_part, const std::string& Name, const std::vector<std::size_t>& element_ids)
+{
+    ModelPart& r_sub_model_part = dynamic_cast<ModelPart&>(r_model_part.CreateSubModelPart(Name));
+
+    std::set<ModelPart::IndexType> node_set;
+
+    auto& rElements = r_model_part.Elements();
+    for (auto elem_id : element_ids)
+    {
+        auto elem = ModelPart::ElementType::Pointer(rElements(elem_id));
+        r_sub_model_part.AddElement(elem);
+
+        const auto& rGeometry = elem->GetGeometry();
+        for (std::size_t i = 0; i < rGeometry.size(); ++i)
+            node_set.insert(rGeometry[i].Id());
+    }
+
+    auto& rNodes = r_model_part.Nodes();
+    for (auto node_id : node_set)
+    {
+        auto node = ModelPart::NodeType::Pointer(rNodes(node_id));
+        r_sub_model_part.AddNode(node);
+    }
 }
 
 void ModelPartUtilities::GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part,
@@ -308,7 +333,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 
         for (const auto& [id, values] : step_values)
         {
-            auto& rNode = r_model_part.Nodes()[id + last_node_id];
+            auto it = r_model_part.Nodes().find(id + last_node_id);
+            if (it == r_model_part.Nodes().end())
+                continue;
+
+            auto& rNode = *it;
 
             unsigned int cnt = 0;
             for (auto it = values.rbegin(); it != values.rend(); ++it)
@@ -373,7 +402,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
 
         for (const auto& [id, values] : step_values)
         {
-            auto& rNode = r_model_part.Nodes()[id + last_node_id];
+            auto it = r_model_part.Nodes().find(id + last_node_id);
+            if (it == r_model_part.Nodes().end())
+                continue;
+
+            auto& rNode = *it;
 
             unsigned int cnt = 0;
             for (auto it = values.rbegin(); it != values.rend(); ++it)
@@ -666,7 +699,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             // get the variable from kernel
             std::string var_name = StringUtils::StripQuote(result_name, '\"');
             if (!KratosComponents<Variable<double> >::Has(var_name))
-                KRATOS_ERROR << "Variable " << var_name << " is not registerred to the kernel";
+            {
+                // KratosComponents<Variable<double> >::Add(var_name) // TODO to create new variable and add to the kernel
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                continue;
+            }
             const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
 
             // get the Gauss point record info
@@ -852,4 +889,4 @@ void ModelPartUtilities::ExtractPropertiesId(const std::string& name, int& prop_
     prop_id = -1;
 }
 
-}// namespace Kratos.
+} // namespace Kratos.

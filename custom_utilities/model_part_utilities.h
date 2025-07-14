@@ -96,17 +96,17 @@ public:
 
     /// Export the edge information to output stream
     /// REMARK: for second order element, only the 2-node edge on the side is returned
-    static void ExportEdgeInformation(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements,
+    static void ExportEdgeInformation(std::ostream& rOStream, const ModelPart::ElementsContainerType& rpElements,
         const std::string& separator);
 
     /// Export the edge information to output stream
     /// REMARK: for second order element, only the 2-node edge on the side is returned
-    static void ExportEdgeInformationToGiD(std::ostream& rOStream, ModelPart::ElementsContainerType& rpElements);
+    static void ExportEdgeInformationToGiD(std::ostream& rOStream, const ModelPart::ElementsContainerType& rpElements);
 
     /// Create a new entity out from a geometry
     template<class TEntityType>
     static typename TEntityType::Pointer CreateEntity(const std::string& sample_entity_name,
-        const std::size_t& Id, Properties::Pointer pProperties, typename TEntityType::GeometryType& rGeometry)
+        std::size_t Id, Properties::Pointer pProperties, const typename TEntityType::GeometryType& rGeometry)
     {
         if(!KratosComponents<TEntityType>::Has(sample_entity_name))
             KRATOS_ERROR << sample_entity_name << " is not registered to the KRATOS kernel";
@@ -120,7 +120,7 @@ public:
     /// Create a new entity out from a list of nodes
     template<class TEntityType>
     static typename TEntityType::Pointer CreateEntity(ModelPart& r_model_part, const std::string& sample_entity_name,
-        const std::size_t& Id, Properties::Pointer pProperties, const std::vector<std::size_t>& node_ids)
+        std::size_t Id, Properties::Pointer pProperties, const std::vector<std::size_t>& node_ids)
     {
         if(!KratosComponents<TEntityType>::Has(sample_entity_name))
             KRATOS_ERROR << sample_entity_name << " is not registered to the KRATOS kernel";
@@ -185,6 +185,9 @@ public:
     /// Clear everything from the model_part, make it fresh again
     static void ClearModelPart(ModelPart& r_model_part);
 
+    /// Create a sub-model_part from list of element
+    static void CreateSubModelPartFromElements(ModelPart& r_model_part, const std::string& Name, const std::vector<std::size_t>& element_ids);
+
     /// Fill the model_part based on GiD post result data reader
     /// A json parameters can be optionally provided to assist with search and read process. An example
     /// of the parameters looks like
@@ -225,93 +228,12 @@ public:
     ///@name Inquiry
     ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "ModelPartUtilities";
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    // decode the 1st order edges of the geometry
-    static const int msT3Edges[][2];
-    static const int msQ4Edges[][2];
-    static const int msT4Edges[][2];
-    static const int msH8Edges[][2];
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
     template<typename edge_container_t>
-    static void ExtractEdgeInformation(edge_container_t& edges, ModelPart::ElementsContainerType& rpElements)
+    static void ExtractEdgeInformation(edge_container_t& edges, const ModelPart::ElementsContainerType& rpElements)
     {
         typedef typename edge_container_t::value_type edge_t;
         std::size_t n1, n2, n;
-        for (typename ModelPart::ElementsContainerType::ptr_iterator it = rpElements.ptr_begin();
+        for (auto it = rpElements.ptr_begin();
                 it != rpElements.ptr_end(); ++it)
         {
             if ( (*it)->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3
@@ -396,6 +318,140 @@ private:
 
     static void ExtractPropertiesId(const std::string& Name, int& prop_id, std::string& layer_name);
 
+    /// Extract outer edges (2D) / faces (3D) of a list of element
+    static std::set<GeometryType::Pointer, GeometryComparator<GeometryType> > ExtractOuterFaces(const ModelPart::ElementsContainerType& rpElements)
+    {
+        std::set<GeometryType::Pointer, GeometryComparator<GeometryType> > faces;
+
+        for (auto it = rpElements.begin(); it != rpElements.end(); ++it)
+        {
+            if (it->GetGeometry().LocalSpaceDimension() == 2)
+            {
+                const auto geoms = it->GetGeometry().Edges();
+                for (auto it2 = geoms.ptr_begin(); it2 != geoms.ptr_end(); ++it2)
+                {
+                    if (faces.find(*it2) == faces.end() )
+                        faces.insert(*it2);
+                    else
+                        faces.erase(*it2);
+                }
+            }
+            else if (it->GetGeometry().LocalSpaceDimension() == 3)
+            {
+                const auto geoms = it->GetGeometry().Faces();
+                for (auto it2 = geoms.ptr_begin(); it2 != geoms.ptr_end(); ++it2)
+                {
+                    if (faces.find(*it2) == faces.end() )
+                        faces.insert(*it2);
+                    else
+                        faces.erase(*it2);
+                }
+            }
+            else
+                KRATOS_ERROR << "Invalid local space dimension " << it->GetGeometry().LocalSpaceDimension();
+        }
+
+        return faces;
+    }
+
+    /// Extract outer nodes of a list of element
+    static std::set<typename GeometryType::IndexType> ExtractOuterNodes(const ModelPart::ElementsContainerType& rpElements)
+    {
+        const auto faces = ExtractOuterFaces(rpElements);
+
+        std::set<typename GeometryType::IndexType> all_nodes;
+
+        for (auto it = faces.begin(); it != faces.end(); ++it)
+        {
+            const GeometryType& geom = *(*it);
+            for (std::size_t i = 0; i < geom.size(); ++i)
+                all_nodes.insert(geom[i].Id());
+        }
+
+        return all_nodes;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "ModelPartUtilities";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    // decode the 1st order edges of the geometry
+    static const int msT3Edges[][2];
+    static const int msQ4Edges[][2];
+    static const int msT4Edges[][2];
+    static const int msH8Edges[][2];
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -450,6 +506,6 @@ inline std::ostream& operator <<(std::ostream& rOStream, const ModelPartUtilitie
 
 ///@} addtogroup block
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_MODEL_PART_UTILITY_H_INCLUDED

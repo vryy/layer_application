@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "python/python_utils.h"
 #include "custom_utilities/parameter_list.h"
 #include "custom_utilities/mdpa_writer.h"
 #include "custom_utilities/mdpa_model_part_writer.h"
@@ -117,6 +118,15 @@ Element::Pointer ModelPartUtilities_CreateElementFromNodes(ModelPartUtilities& r
     return rDummy.CreateEntity<Element>(r_model_part, sample_elem_name, Id, pProperties, node_list);
 }
 
+void ModelPartUtilities_CreateSubModelPartFromElements(ModelPartUtilities& rDummy,
+    ModelPart& r_model_part, const std::string& Name, const boost::python::list& elem_list)
+{
+    std::vector<std::size_t> elem_vect;
+    PythonUtils::Unpack<std::size_t>(elem_list, elem_vect);
+
+    rDummy.CreateSubModelPartFromElements(r_model_part, Name, elem_vect);
+}
+
 template<class TEntityType>
 void ModelPartUtilities_CalculateLocalSystem(ModelPartUtilities& rDummy,
     TEntityType& rEntity, const ProcessInfo& rCurrentProcessInfo, const int& echo_level)
@@ -136,6 +146,40 @@ void ModelPartUtilities_GidPostBin2ModelPart(ModelPartUtilities& rDummy,
     const Parameters& mesh_info)
 {
     rDummy.GiDPostBin2ModelPart(fileName, r_model_part, mesh_info);
+}
+
+boost::python::list ModelPartUtilities_ExtractOuterFaces(ModelPartUtilities& rDummy,
+    const ModelPart::ElementsContainerType& rpElements)
+{
+    const auto faces = ModelPartUtilities::ExtractOuterFaces(rpElements);
+
+    boost::python::list output;
+    for (auto it = faces.begin(); it != faces.end(); ++it)
+    {
+        const ModelPart::GeometryType& geom = *(*it);
+
+        boost::python::list edge;
+        for (std::size_t i = 0; i < geom.size(); ++i)
+            edge.append(geom[i].Id());
+
+        output.append(edge);
+    }
+
+    return output;
+}
+
+boost::python::list ModelPartUtilities_ExtractOuterNodes(ModelPartUtilities& rDummy,
+    const ModelPart::ElementsContainerType& rpElements)
+{
+    const auto nodes = ModelPartUtilities::ExtractOuterNodes(rpElements);
+
+    boost::python::list output;
+    for (auto it = nodes.begin(); it != nodes.end(); ++it)
+    {
+        output.append(*it);
+    }
+
+    return output;
 }
 
 boost::python::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBinning& dummy, ModelPart& r_model_part, int id, double r)
@@ -331,11 +375,15 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("ExportNodesAndEdgesInfomationToGiD", &ModelPartUtilities_ExportNodesAndEdgesInfomationToGiD)
     .def("CreateElementFromCondition", &ModelPartUtilities_CreateElementFromCondition)
     .def("CreateElementFromNodes", &ModelPartUtilities_CreateElementFromNodes)
+    .def("CreateSubModelPartFromElements", &ModelPartUtilities_CreateSubModelPartFromElements)
     .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Element>)
     .def("CalculateLocalSystem", &ModelPartUtilities_CalculateLocalSystem<Condition>)
     .def("CalculateMassMatrix", &ModelPartUtilities_CalculateMassMatrix<Element>)
     .def("CalculateMassMatrix", &ModelPartUtilities_CalculateMassMatrix<Condition>)
     .def("GiDPostBin2ModelPart", &ModelPartUtilities_GidPostBin2ModelPart)
+    .def("ExtractOuterEdges", &ModelPartUtilities_ExtractOuterFaces)
+    .def("ExtractOuterFaces", &ModelPartUtilities_ExtractOuterFaces)
+    .def("ExtractOuterNodes", &ModelPartUtilities_ExtractOuterNodes)
     ;
 
     //    KratosLayerApplication_AddNodalDataStateToPython<Variable<bool> >("BoolNodalDataState");
