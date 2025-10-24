@@ -847,7 +847,53 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             }
         }
 
-        // // TODO
+        /* import Gauss point vector results */
+
+        std::vector<std::pair<std::string, std::string> > gp_vector_result_names = reader.GetGaussPointVectorValuesName();
+        KRATOS_WATCH(__LINE__)
+        KRATOS_WATCH(gp_vector_result_names.size())
+
+        for (const auto& [result_name, gp_name] : gp_vector_result_names)
+        {
+            // get the variable from kernel
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
+            if (!KratosComponents<Variable<Vector> >::Has(var_name))
+            {
+                // KratosComponents<Variable<Vector> >::Add(var_name) // TODO to create new variable and add to the kernel
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                continue;
+            }
+            const Variable<Vector>& rVariable = KratosComponents<Variable<Vector> >::Get(var_name);
+
+            // get the Gauss point record info
+            int npoints;
+            std::string gp_elem_type;
+            std::string gp_coordinates_type;
+            reader.GetGaussPointRecordInfo(gp_name, npoints, gp_elem_type, gp_coordinates_type);
+            reader.ReadGaussPointRecord(gp_name);
+
+            std::vector<array_1d<double, 3> > gp_coordinates;
+            reader.GetGaussPointRecordCoordinates(gp_name, gp_coordinates);
+
+            // results (with name) can be on different mesh. It is essential to check if the element type
+            // of the Gauss point results match with the mesh element type
+            if (gid_elem_type.compare(gp_elem_type) != 0)
+                continue;
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: found Gauss point vector value " << result_name
+                          << ", name " << gp_name
+                          << std::endl;
+
+            if (pElementalVariablesList != nullptr)
+            {
+                pElementalVariablesList->Add(rVariable);
+            }
+
+            // TODO to read the value
+
+        }
+
     } // end creating elements and conditions
 }
 

@@ -124,6 +124,12 @@ public:
         return {};
     }
 
+    /// Get the names of all the Gauss point vector values
+    virtual std::vector<std::pair<std::string, std::string> > GetGaussPointVectorValuesName() const
+    {
+        return {};
+    }
+
     /// Read the nodal values (as scalar)
     /// step_list: all the time steps that simulation produces results
     /// output values: map key is node index
@@ -162,6 +168,13 @@ public:
     /// output values: map key is element index
     ///                map values is series of scalar results at Gauss points/element at multiple time step
     virtual void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
+    {}
+
+    /// Read the Gauss point values (as scalar)
+    /// step_list: all the time steps that simulation produces results
+    /// output values: map key is element index
+    ///                map values is series of scalar results at Gauss points/element at multiple time step
+    virtual void ReadGaussPointVectorValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
     {}
 
 private:

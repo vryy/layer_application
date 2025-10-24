@@ -282,6 +282,20 @@ std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussP
     return result_list;
 }
 
+std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussPointVectorValuesName() const
+{
+    std::vector<std::pair<std::string, std::string> > result_list;
+    for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    {
+        if (mPosResult[i].Type.compare("Vector") == 0
+            && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
+        {
+            result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
+        }
+    }
+    return result_list;
+}
+
 void GiDPostBinaryReader::ReadGaussPointRecord(const std::string& GpName)
 {
     Reset();
@@ -479,6 +493,10 @@ void GiDPostBinaryReader::ReadGaussPointScalarValues(const std::string& Name, co
             }
         }
     }
+}
+
+void GiDPostBinaryReader::ReadGaussPointVectorValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
+{
 }
 
 void GiDPostBinaryReader::ReadMesh(const std::string& Name, std::map<int, std::vector<double> >& rCoordinates)
