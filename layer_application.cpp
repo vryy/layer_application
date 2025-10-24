@@ -99,11 +99,13 @@ namespace Kratos
     , LAYER_APP_CREATE_CONDITION( mPostSurfaceCondition3D9N, Quadrilateral3D9, 9 )
     , LAYER_APP_CREATE_CONDITION( mPostLineCondition2D2N, Line2D2, 2 )
     , LAYER_APP_CREATE_CONDITION( mPostLineCondition2D3N, Line2D3, 3 )
+    , LAYER_APP_CREATE_CONDITION( mPostLineCondition3D2N, Line3D2, 2 )
+    , LAYER_APP_CREATE_CONDITION( mPostLineCondition3D3N, Line3D3, 3 )
     {}
 
     void KratosLayerApplication::Register()
     {
-        std::cout << "Initializing KratosLayerApplication... " << std::endl;
+        std::cout << "Initializing KratosLayerApplication..." << std::endl;
 
         // register variables to the kernel
         this->RegisterVariables();
@@ -152,6 +154,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PostSurfaceCondition3D9N", mPostSurfaceCondition3D9N )
         KRATOS_REGISTER_CONDITION( "PostLineCondition2D2N", mPostLineCondition2D2N )
         KRATOS_REGISTER_CONDITION( "PostLineCondition2D3N", mPostLineCondition2D3N )
+        KRATOS_REGISTER_CONDITION( "PostLineCondition3D2N", mPostLineCondition3D2N )
+        KRATOS_REGISTER_CONDITION( "PostLineCondition3D3N", mPostLineCondition3D3N )
     }
 
     void KratosLayerApplication::RegisterVariables()
