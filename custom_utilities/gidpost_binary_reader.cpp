@@ -282,6 +282,34 @@ std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussP
     return result_list;
 }
 
+std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussPointVectorValuesName() const
+{
+    std::vector<std::pair<std::string, std::string> > result_list;
+    for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    {
+        if (mPosResult[i].Type.compare("Vector") == 0
+            && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
+        {
+            result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
+        }
+    }
+    return result_list;
+}
+
+std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussPointMatrixValuesName() const
+{
+    std::vector<std::pair<std::string, std::string> > result_list;
+    for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    {
+        if (mPosResult[i].Type.compare("Matrix") == 0
+            && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
+        {
+            result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
+        }
+    }
+    return result_list;
+}
+
 void GiDPostBinaryReader::ReadGaussPointRecord(const std::string& GpName)
 {
     Reset();
@@ -472,6 +500,113 @@ void GiDPostBinaryReader::ReadGaussPointScalarValues(const std::string& Name, co
                         {
                             Read(v);
                             gp_values[j] = v;
+                        }
+                        rValues[id].push_back(gp_values);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void GiDPostBinaryReader::ReadGaussPointVectorValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
+{
+    // TODO
+}
+
+void GiDPostBinaryReader::ReadGaussPointMatrixValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
+{
+    Reset();
+
+    step_list.clear();
+    rValues.clear();
+
+    for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    {
+        std::string RefName = '"' + Name + '"';
+        std::string RefGpName = '"' + GpName + '"';
+
+        bool check = (mPosResult[i].Name.compare(RefName) == 0) || (mPosResult[i].Name.compare(Name) == 0);
+        check = check && (mPosResult[i].Type.compare("Matrix") == 0);
+        check = check && (mPosResult[i].Location.compare("OnGaussPoints") == 0);
+        check = check && ((mPosResult[i].GpName.compare(RefGpName) == 0) || (mPosResult[i].GpName.compare(GpName) == 0));
+        int np;
+        bool found = false;
+        for(std::size_t j = 0; j < mGpRecord.size(); ++j)
+        {
+            if(mGpRecord[j].Name == GpName || mGpRecord[j].Name == RefGpName)
+            {
+                found = true;
+                np = mGpRecord[j].NumberOfGaussPoints;
+            }
+        }
+        if(!found)
+        {
+            ERROR2("The GpRecord", RefGpName, "does not exist")
+        }
+
+        if(check)
+        {
+            step_list.push_back(mPosResult[i].Step);
+
+            SetCurrentPosition(mPosResult[i].StartPos);
+
+            std::string line;
+            ReadString(line);
+
+            std::vector<std::string> fields;
+            boost::split(fields, line, boost::is_any_of(" \n\0"));
+//                std::cout << "fields:";
+//                for(std::size_t j = 0; j < fields.size(); ++j)
+//                    std::cout << " " << fields[j];
+//                std::cout << std::endl;
+
+            if(fields[0].compare("Values") == 0)
+            {
+                z_off_t indexed = atoi(fields[1].c_str());
+                gid_index_t id;
+                gid_value_t v;
+                z_off_t CurPos;
+//                    WATCH(GetCurrentPosition())
+
+                if(indexed == -1)
+                {
+                    do
+                    {
+                        Read(id);
+                        std::vector<std::vector<double> > gp_values(np);
+                        for(int j = 0; j < np; ++j)
+                        {
+                            gp_values[j].resize(6); // matrix result is alwayss symmetric 3x3 matrix stored as vector of size 6
+                            for(int k = 0; k < 6; ++k)
+                            {
+                                Read(v);
+                                gp_values[j][k] = v;
+                            }
+                        }
+                        if(id > 0)
+                        {
+                            rValues[id].push_back(gp_values);
+                            // REMARKS: for some reason, the last line contains the value pair: [id, v] = [-1, ##]. Probably to terminate the sequence of value. I don't know how to exclude this when I compute the end cursor position, so I make a naive comparison to make sure correct values are filtered out.
+                        }
+                        CurPos = GetCurrentPosition();
+                    }
+                    while(CurPos < mPosResult[i].EndPos);
+                }
+                else
+                {
+                    for(z_off_t i = 0; i < indexed; ++i)
+                    {
+                        Read(id);
+                        std::vector<std::vector<double> > gp_values(np);
+                        for(int j = 0; j < np; ++j)
+                        {
+                            gp_values[j].resize(6); // matrix result is alwayss symmetric 3x3 matrix stored as vector of size 6
+                            for(int k = 0; k < 6; ++k)
+                            {
+                                Read(v);
+                                gp_values[j][k] = v;
+                            }
                         }
                         rValues[id].push_back(gp_values);
                     }

@@ -198,8 +198,11 @@ void ModelPartUtilities::CreateSubModelPartFromElements(ModelPart& r_model_part,
 void ModelPartUtilities::GiDPostBin2ModelPart(const std::string& fileName, ModelPart& r_model_part,
         const Parameters& mesh_info, VariablesList<>* pElementalVariablesList)
 {
+KRATOS_WATCH(__LINE__)
     GiDPostBinaryReader reader(fileName);
+KRATOS_WATCH(__LINE__)
     GiDPost2ModelPart(reader, r_model_part, mesh_info, pElementalVariablesList);
+KRATOS_WATCH(__LINE__)
 }
 
 void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part,
@@ -376,7 +379,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
     } // end importing nodal scalar results
 
     /* import nodal vector results */
-
+KRATOS_WATCH(__LINE__)
     std::vector<std::string> nodal_vector_result_names = reader.GetNodalVectorValuesName();
 
     for (const auto& result_name : nodal_vector_result_names)
@@ -849,7 +852,113 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             }
         }
 
-        // // TODO
+        /* import Gauss point vector results */
+
+        std::vector<std::pair<std::string, std::string> > gp_vector_result_names = reader.GetGaussPointVectorValuesName();
+        KRATOS_WATCH(__FUNCTION__)
+        KRATOS_WATCH(__LINE__)
+        KRATOS_WATCH(gp_vector_result_names.size())
+
+        for (const auto& [result_name, gp_name] : gp_vector_result_names)
+        {
+            // get the variable from kernel
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
+            if (!KratosComponents<Variable<Vector> >::Has(var_name))
+            {
+                // KratosComponents<Variable<Vector> >::Add(var_name) // TODO to create new variable and add to the kernel
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                continue;
+            }
+            const Variable<Vector>& rVariable = KratosComponents<Variable<Vector> >::Get(var_name);
+
+            // get the Gauss point record info
+            int npoints;
+            std::string gp_elem_type;
+            std::string gp_coordinates_type;
+            reader.GetGaussPointRecordInfo(gp_name, npoints, gp_elem_type, gp_coordinates_type);
+            reader.ReadGaussPointRecord(gp_name);
+
+            std::vector<array_1d<double, 3> > gp_coordinates;
+            reader.GetGaussPointRecordCoordinates(gp_name, gp_coordinates);
+
+            // results (with name) can be on different mesh. It is essential to check if the element type
+            // of the Gauss point results match with the mesh element type
+            if (gid_elem_type.compare(gp_elem_type) != 0)
+                continue;
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: found Gauss point vector value " << result_name
+                          << ", name " << gp_name
+                          << std::endl;
+
+            if (pElementalVariablesList != nullptr)
+            {
+                pElementalVariablesList->Add(rVariable);
+            }
+
+            // TODO to read the value
+        }
+
+        /* import Gauss point matrix results */
+
+        std::vector<std::pair<std::string, std::string> > gp_matrix_result_names = reader.GetGaussPointMatrixValuesName();
+        KRATOS_WATCH(__FUNCTION__)
+        KRATOS_WATCH(__LINE__)
+        KRATOS_WATCH(gp_matrix_result_names.size())
+
+        for (const auto& [result_name, gp_name] : gp_matrix_result_names)
+        {
+            // get the variable from kernel
+            std::string var_name = StringUtils::StripQuote(result_name, '\"');
+
+            if (KratosComponents<Variable<Vector> >::Has(var_name))
+            // some matrix results are written as vector. Here we try to read the matrix results as vector first
+            {
+                const Variable<Vector>& rVariable = KratosComponents<Variable<Vector> >::Get(var_name);
+
+                std::cout << "Matrix result " << var_name << " is detected to save to vector varable" << std::endl;
+
+                // get the Gauss point record info
+                int npoints;
+                std::string gp_elem_type;
+                std::string gp_coordinates_type;
+                reader.GetGaussPointRecordInfo(gp_name, npoints, gp_elem_type, gp_coordinates_type);
+                reader.ReadGaussPointRecord(gp_name);
+
+                std::vector<array_1d<double, 3> > gp_coordinates;
+                reader.GetGaussPointRecordCoordinates(gp_name, gp_coordinates);
+
+                // results (with name) can be on different mesh. It is essential to check if the element type
+                // of the Gauss point results match with the mesh element type
+                if (gid_elem_type.compare(gp_elem_type) != 0)
+                    continue;
+
+                if (echo_level > 1)
+                    std::cout << "GiDPost2ModelPart: found Gauss point matrix value " << result_name
+                              << ", name " << gp_name
+                              << std::endl;
+
+                if (pElementalVariablesList != nullptr)
+                {
+                    pElementalVariablesList->Add(rVariable);
+                }
+
+                std::vector<double> step_list;
+                std::map<std::size_t, std::vector<std::vector<std::vector<double> > > > step_values;
+                reader.ReadGaussPointMatrixValues(result_name, gp_name, step_list, step_values);
+
+                // TODO
+            }
+            // else if (KratosComponents<Variable<Matrix> >::Has(var_name))
+            // {
+            //     // TODO
+            // }
+            else
+            {
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                continue;
+            }
+        }
     } // end creating elements and conditions
 }
 

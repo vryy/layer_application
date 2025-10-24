@@ -166,6 +166,12 @@ public:
     /// Get the names of all the Gauss point scalar values
     std::vector<std::pair<std::string, std::string> > GetGaussPointScalarValuesName() const override;
 
+    /// Get the names of all the Gauss point vector values
+    std::vector<std::pair<std::string, std::string> > GetGaussPointVectorValuesName() const override;
+
+    /// Get the names of all the Gauss point matrix values
+    std::vector<std::pair<std::string, std::string> > GetGaussPointMatrixValuesName() const override;
+
     void ReadGaussPointRecord(const std::string& GpName) override;
 
     void GetGaussPointRecordInfo(const std::string& GpName, int& Np, std::string& ElemType) const override;
@@ -177,6 +183,10 @@ public:
     void GetGaussPointRecordCoordinates(const std::string& GpName, std::vector<array_1d<double, 3> >& rCoordinates) const override;
 
     void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues) override;
+
+    void ReadGaussPointVectorValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues) override;
+
+    void ReadGaussPointMatrixValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues) override;
 
 protected:
 

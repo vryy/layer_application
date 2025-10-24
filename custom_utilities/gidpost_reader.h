@@ -85,7 +85,9 @@ public:
 
     /// Get the names of all the meshes in the file
     virtual std::vector<std::string> GetMeshesName() const
-    {}
+    {
+        return {};
+    }
 
     /// Get the info of the mesh
     virtual void GetMeshInfo(const std::string& Name, int& Dim, std::string& ElemType) const
@@ -124,6 +126,18 @@ public:
         return {};
     }
 
+    /// Get the names of all the Gauss point vector values
+    virtual std::vector<std::pair<std::string, std::string> > GetGaussPointVectorValuesName() const
+    {
+        return {};
+    }
+
+    /// Get the names of all the Gauss point matrix values
+    virtual std::vector<std::pair<std::string, std::string> > GetGaussPointMatrixValuesName() const
+    {
+        return {};
+    }
+
     /// Read the nodal values (as scalar)
     /// step_list: all the time steps that simulation produces results
     /// output values: map key is node index
@@ -137,6 +151,13 @@ public:
     ///                map values is series of vector results at node at multiple time step
     virtual void ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size)
     {}
+
+    // /// Read the nodal values (as vector)
+    // /// step_list: all the time steps that simulation produces results
+    // /// output values: map key is node index
+    // ///                map values is series of vector results at node at multiple time step
+    // virtual void ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size)
+    // {}
 
     virtual void ReadGaussPointRecord(const std::string& GpName)
     {}
@@ -162,6 +183,20 @@ public:
     /// output values: map key is element index
     ///                map values is series of scalar results at Gauss points/element at multiple time step
     virtual void ReadGaussPointScalarValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues)
+    {}
+
+    /// Read the Gauss point values (as vector)
+    /// step_list: all the time steps that simulation produces results
+    /// output values: map key is element index
+    ///                map values is series of vector results at Gauss points/element at multiple time step
+    virtual void ReadGaussPointVectorValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
+    {}
+
+    /// Read the Gauss point values (as matrix)
+    /// step_list: all the time steps that simulation produces results
+    /// output values: map key is element index
+    ///                map values is series of matrix results at Gauss points/element at multiple time step
+    virtual void ReadGaussPointMatrixValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
     {}
 
 private:
