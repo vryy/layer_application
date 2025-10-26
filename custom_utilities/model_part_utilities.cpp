@@ -11,7 +11,9 @@
 #if defined(PROFILING_LEVEL)
 #include "utilities/openmp_utils.h"
 #endif
+#include "utilities/math_utils.h"
 #include "utilities/string_utils.h"
+#include "utilities/triangulation_utils.h"
 #include "custom_utilities/gidpost_binary_reader.h"
 #include "custom_utilities/model_part_utilities.h"
 
@@ -897,6 +899,45 @@ void ModelPartUtilities::ExtractPropertiesId(const std::string& name, int& prop_
     }
 
     prop_id = -1;
+}
+
+void ModelPartUtilities::XY2ModelPart(const std::vector<array_1d<CoordinateType, 3> >& rPoints, ModelPart& r_model_part,
+            const IndexType prop_id, const array_1d<double, 3>& rDirector, const std::string& condition_name)
+{
+    const IndexType last_node_id = r_model_part.GetLastNodeId();
+    const IndexType last_cond_id = r_model_part.GetLastConditionId();
+
+    array_1d<double, 3> xDir, yDir;
+    MathUtils<double>::ComputeLocalCoordinateSystem(rDirector, xDir, yDir);
+
+    // add node to the model_part
+    // and also create list of point projection to compute connectivity
+    std::vector<double> xylist;
+    IndexType new_node_id = last_node_id;
+    for (const auto& p : rPoints)
+    {
+        ++new_node_id;
+        r_model_part.CreateNewNode(new_node_id, p[0], p[1], p[2]);
+
+        xylist.push_back(inner_prod(p, xDir));
+        xylist.push_back(inner_prod(p, yDir));
+    }
+
+    // triangulation
+    std::vector<std::vector<IndexType> > connectivities;
+    TriangulationUtils tri_utils;
+    tri_utils.ComputeDelaunayTriangulation(xylist, connectivities);
+
+    IndexType new_cond_id = last_cond_id;
+    auto prop = r_model_part.pGetProperties(prop_id);
+    for (const auto& c : connectivities)
+    {
+        std::vector<IndexType> conn = c;
+        for (auto& i : conn)
+            i += last_node_id + 1;
+
+        r_model_part.CreateNewCondition(condition_name, new_node_id, conn, prop);
+    }
 }
 
 } // namespace Kratos.
