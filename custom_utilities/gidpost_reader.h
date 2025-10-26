@@ -144,6 +144,13 @@ public:
     virtual void ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size)
     {}
 
+    // /// Read the nodal values (as vector)
+    // /// step_list: all the time steps that simulation produces results
+    // /// output values: map key is node index
+    // ///                map values is series of vector results at node at multiple time step
+    // virtual void ReadNodalVectorValues(const std::string& Name, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<double> > >& rValues, std::size_t vector_size)
+    // {}
+
     virtual void ReadGaussPointRecord(const std::string& GpName)
     {}
 

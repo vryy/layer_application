@@ -285,14 +285,14 @@ std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussP
 std::vector<std::pair<std::string, std::string> > GiDPostBinaryReader::GetGaussPointVectorValuesName() const
 {
     std::vector<std::pair<std::string, std::string> > result_list;
-    for(std::size_t i = 0; i < mPosResult.size(); ++i)
-    {
-        if (mPosResult[i].Type.compare("Vector") == 0
-            && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
-        {
-            result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
-        }
-    }
+    // for(std::size_t i = 0; i < mPosResult.size(); ++i)
+    // {
+    //     if (mPosResult[i].Type.compare("Matrix") == 0
+    //         && (mPosResult[i].Location.compare("OnGaussPoints") == 0))
+    //     {
+    //         result_list.push_back(std::make_pair(mPosResult[i].Name, mPosResult[i].GpName));
+    //     }
+    // }
     return result_list;
 }
 
