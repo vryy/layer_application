@@ -57,6 +57,7 @@ public:
 
     typedef ModelPart::IndexType IndexType;
     typedef ModelPart::SizeType SizeType;
+    typedef ModelPart::CoordinateType CoordinateType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
 
     /// Pointer definition
@@ -370,6 +371,54 @@ public:
 
         return all_nodes;
     }
+
+    /// Read from xyz file to point cloud
+    /// Note:   - the line starting with # will be skipped
+    ///         - the coordinate line should be id x y z
+    template<typename TDataType>
+    static std::vector<array_1d<TDataType, 3> > XYZ2PointCloud(const std::string& fileName)
+    {
+        std::vector<array_1d<TDataType, 3> > points;
+
+        std::ifstream file(fileName);
+        if (!file.is_open())
+        {
+            KRATOS_ERROR << "Could not open file " << fileName;
+            return points;
+        }
+
+        std::string line;
+        IndexType i;
+        TDataType x, y, z;
+
+        while (std::getline(file, line))
+        {
+            // Trim leading spaces (optional)
+            if (line.empty()) continue;
+            if (line[0] == '#') continue;  // Skip comment lines
+
+            std::istringstream iss(line);
+            if (iss >> i >> x >> y >> z)
+            {
+                array_1d<TDataType, 3> p;
+                p[0] = x;
+                p[1] = y;
+                p[2] = z;
+                points.push_back(p);
+            }
+        }
+
+        file.close();
+        return points;
+    }
+
+    /// Read from xyz file and add to model_part as surface
+    /// Note:   - the line starting with # will be skipped
+    ///         - the coordinate line should be id x y z
+    /// The director is served to align the point onto a surface, so that the connectivity can be created
+    static void XY2ModelPart(const std::vector<array_1d<CoordinateType, 3> >& rPoints, ModelPart& r_model_part,
+            const IndexType prop_id, const array_1d<double, 3>& rDirector = array_1d<double, 3>{0, 0, 1},
+            const std::string& condition_name = "PostSurfaceCondition3D3N");
 
     ///@}
     ///@name Input and output
