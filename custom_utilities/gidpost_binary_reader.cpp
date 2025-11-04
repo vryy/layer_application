@@ -530,7 +530,7 @@ void GiDPostBinaryReader::ReadGaussPointMatrixValues(const std::string& Name, co
         check = check && (mPosResult[i].Type.compare("Matrix") == 0);
         check = check && (mPosResult[i].Location.compare("OnGaussPoints") == 0);
         check = check && ((mPosResult[i].GpName.compare(RefGpName) == 0) || (mPosResult[i].GpName.compare(GpName) == 0));
-        int np;
+        int np = 0;
         bool found = false;
         for(std::size_t j = 0; j < mGpRecord.size(); ++j)
         {
