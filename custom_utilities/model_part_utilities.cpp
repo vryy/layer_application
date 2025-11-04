@@ -944,7 +944,132 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 std::map<std::size_t, std::vector<std::vector<std::vector<double> > > > step_values;
                 reader.ReadGaussPointMatrixValues(result_name, gp_name, step_list, step_values);
 
-                // TODO
+                for (const auto& [id, values] : step_values)
+                {
+                    if (entity_type == 1)
+                    {
+                        auto it = r_model_part.Elements().find(id + last_elem_id);
+                        if (it == r_model_part.ElementsEnd())
+                            continue;
+
+                        auto& rElement = *it;
+
+                        for (auto it2 = values.rbegin(); it2 != values.rend(); ++it2)
+                        {
+                            // do a size check
+                            if (it2->size() != npoints)
+                                KRATOS_ERROR << "The number of values does not match number of integration points in the Gauss point record. Is there something wrong?";
+
+                            if (gp_coordinates_type == "Given")
+                            {
+                                // set the integration point coordinates. The PostElement will need it to calculate the global coordinates of the integration point
+                                rElement.SetValuesOnIntegrationPoints(INTEGRATION_POINT_LOCAL, gp_coordinates, r_model_part.GetProcessInfo());
+                            }
+                            else if (gp_coordinates_type == "Internal")
+                            {
+                                // guess the integration order based on number of integration points
+                                int integration_order = GetIntegrationOrder(rElement.GetGeometry(), npoints);
+                                if (rElement.Has(INTEGRATION_ORDER))
+                                {
+                                    if (rElement.GetValue(INTEGRATION_ORDER) != integration_order)
+                                        KRATOS_ERROR << "The existing INTEGRATION_ORDER of element " << rElement.Id()
+                                                     << " conflicts with the number of integration points on Gp record."
+                                                     << " Something is inconsistent.";
+                                }
+                                else
+                                    rElement.SetValue(INTEGRATION_ORDER, integration_order);
+                            }
+                            else
+                                KRATOS_ERROR << "Unknown coordinates type " << gp_coordinates_type;
+
+                            std::vector<Vector> temp(it2->size());
+                            auto it3 = it2->begin();
+                            for (std::size_t i = 0; i < it2->size(); ++i, ++it3)
+                            {
+                                temp[i].resize(it3->size());
+                                std::copy(it3->begin(), it3->end(), temp[i].begin());
+                            }
+                            rElement.SetValuesOnIntegrationPoints(rVariable, temp, r_model_part.GetProcessInfo());
+
+                            if (echo_level > 2)
+                            {
+                                std::cout << "GiDPost2ModelPart: element " << rElement.Id() << " is assigned " << rVariable.Name()
+                                          << " with values";
+                                for (std::size_t i = 0; i < it2->size(); ++i)
+                                {
+                                    for (std::size_t j = 0; j < (*it2)[i].size(); ++j)
+                                        std::cout << " " << (*it2)[i][j];
+                                    std::cout << ";";
+                                }
+                                std::cout << std::endl;
+                            }
+                        }
+                    }
+                    else if (entity_type == 2)
+                    {
+                        auto it = r_model_part.Conditions().find(id + last_cond_id);
+                        if (it == r_model_part.ConditionsEnd())
+                            continue;
+
+                        auto& rCondition = *it;
+
+                        for (auto it2 = values.rbegin(); it2 != values.rend(); ++it2)
+                        {
+                            // do a size check
+                            if (it2->size() != npoints)
+                                KRATOS_ERROR << "The number of values does not match number of integration points in the Gauss point record. Is there something wrong?";
+
+                            if (gp_coordinates_type == "Given")
+                            {
+                                // set the integration point coordinates. The PostCondition will need it to calculate the global coordinates of the integration point
+                                rCondition.SetValuesOnIntegrationPoints(INTEGRATION_POINT_LOCAL, gp_coordinates, r_model_part.GetProcessInfo());
+                            }
+                            else if (gp_coordinates_type == "Internal")
+                            {
+                                // guess the integration order based on number of integration points
+                                int integration_order = GetIntegrationOrder(rCondition.GetGeometry(), npoints);
+                                if (rCondition.Has(INTEGRATION_ORDER))
+                                {
+                                    if (rCondition.GetValue(INTEGRATION_ORDER) != integration_order)
+                                        KRATOS_ERROR << "The existing INTEGRATION_ORDER of element " << rCondition.Id()
+                                                     << " conflicts with the number of integration points on Gp record."
+                                                     << " Something is inconsistent.";
+                                }
+                                else
+                                    rCondition.SetValue(INTEGRATION_ORDER, integration_order);
+                            }
+                            else
+                                KRATOS_ERROR << "Unknown coordinates type " << gp_coordinates_type;
+
+                            std::vector<Vector> temp(it2->size());
+                            auto it3 = it2->begin();
+                            for (std::size_t i = 0; i < it2->size(); ++i, ++it3)
+                            {
+                                temp[i].resize(it3->size());
+                                std::copy(it3->begin(), it3->end(), temp[i].begin());
+                            }
+                            rCondition.SetValuesOnIntegrationPoints(rVariable, temp, r_model_part.GetProcessInfo());
+
+                            if (echo_level > 2)
+                            {
+                                std::cout << "GiDPost2ModelPart: condition " << rCondition.Id() << " is assigned " << rVariable.Name()
+                                          << " with values";
+                                for (std::size_t i = 0; i < it2->size(); ++i)
+                                {
+                                    for (std::size_t j = 0; j < (*it2)[i].size(); ++j)
+                                        std::cout << " " << (*it2)[i][j];
+                                    std::cout << ";";
+                                }
+                                std::cout << std::endl;
+                            }
+                        }
+                    }
+                }
+
+                if (echo_level > 0)
+                {
+                    std::cout << "GiDPost2ModelPart: read Gauss point matrix values as vector variable " << rVariable.Name() << " completed" << std::endl;
+                }
             }
             // else if (KratosComponents<Variable<Matrix> >::Has(var_name))
             // {
