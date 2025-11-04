@@ -199,6 +199,38 @@ public:
     virtual void ReadGaussPointMatrixValues(const std::string& Name, const std::string& GpName, std::vector<double>& step_list, std::map<std::size_t, std::vector<std::vector<std::vector<double> > > >& rValues)
     {}
 
+    /// Try to get the directory from file name
+    std::string GetDirectory() const
+    {
+        std::size_t pos = m_filename.find_last_of("/\\"); // handle both '/' and '\'
+        std::string directory = (pos == std::string::npos) ? "" : m_filename.substr(0, pos);
+        return directory;
+    }
+
+    /// Try to get the prefix from file name
+    std::string GetPrefix() const
+    {
+        std::size_t pos = m_filename.rfind('_');
+        std::string base = m_filename.substr(0, pos);
+        std::size_t pos2 = base.find_last_of("/\\");
+        std::string fileName = (pos2 == std::string::npos) ? base : base.substr(pos2 + 1);
+        return fileName;
+    }
+
+    /// Try to get the time from file name
+    double GetTime() const
+    {
+        std::size_t pos = m_filename.rfind('_');
+        std::string last = m_filename.substr(pos + 1);
+        std::size_t pos2 = last.find('.');
+        std::string last2 = last.substr(pos2 + 1);
+        std::size_t pos3 = last2.find('.');
+        if (pos3 == std::string::npos)
+            return std::stof(last.substr(0, pos2));
+        else
+            return std::stof(last.substr(0, pos2) + "." + last2.substr(0, pos3));
+    }
+
 private:
 
     std::string m_filename;

@@ -203,6 +203,8 @@ KRATOS_WATCH(__LINE__)
 KRATOS_WATCH(__LINE__)
     GiDPost2ModelPart(reader, r_model_part, mesh_info, pElementalVariablesList);
 KRATOS_WATCH(__LINE__)
+    r_model_part.Name() = reader.GetPrefix();               // set the name
+    r_model_part.GetProcessInfo()[TIME] = reader.GetTime(); // set the time
 }
 
 void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_model_part,
