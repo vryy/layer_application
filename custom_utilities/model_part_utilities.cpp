@@ -1041,7 +1041,7 @@ void ModelPartUtilities::XY2ModelPart(const std::vector<array_1d<CoordinateType,
         for (auto& i : conn)
             i += last_node_id + 1;
 
-        r_model_part.CreateNewCondition(condition_name, new_node_id, conn, prop);
+        r_model_part.CreateNewCondition(condition_name, ++new_cond_id, conn, prop);
     }
 }
 
