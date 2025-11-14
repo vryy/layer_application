@@ -46,7 +46,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/*** Utilities for various operations on Kratos::ModelPart
+/**
+ *  Utilities for operations on Kratos::ModelPart
  */
 class KRATOS_API(LAYER_APPLICATION) ModelPartUtilities
 {
@@ -370,46 +371,6 @@ public:
         }
 
         return all_nodes;
-    }
-
-    /// Read from xyz file to point cloud
-    /// Note:   - the line starting with # will be skipped
-    ///         - the coordinate line should be id x y z
-    template<typename TDataType>
-    static std::vector<array_1d<TDataType, 3> > XYZ2PointCloud(const std::string& fileName)
-    {
-        std::vector<array_1d<TDataType, 3> > points;
-
-        std::ifstream file(fileName);
-        if (!file.is_open())
-        {
-            KRATOS_ERROR << "Could not open file " << fileName;
-            return points;
-        }
-
-        std::string line;
-        IndexType i;
-        TDataType x, y, z;
-
-        while (std::getline(file, line))
-        {
-            // Trim leading spaces (optional)
-            if (line.empty()) continue;
-            if (line[0] == '#') continue;  // Skip comment lines
-
-            std::istringstream iss(line);
-            if (iss >> i >> x >> y >> z)
-            {
-                array_1d<TDataType, 3> p;
-                p[0] = x;
-                p[1] = y;
-                p[2] = z;
-                points.push_back(p);
-            }
-        }
-
-        file.close();
-        return points;
     }
 
     /// Read from xyz file and add to model_part as surface
