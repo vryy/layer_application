@@ -715,7 +715,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             if (!KratosComponents<Variable<double> >::Has(var_name))
             {
                 // KratosComponents<Variable<double> >::Add(var_name) // TODO to create new variable and add to the kernel
-                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped." << std::endl;
                 continue;
             }
             const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(var_name);
@@ -748,6 +748,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             std::vector<double> step_list;
             std::map<std::size_t, std::vector<std::vector<double> > > step_values;
             reader.ReadGaussPointScalarValues(result_name, gp_name, step_list, step_values);
+
+            if (echo_level > 1)
+                std::cout << "GiDPost2ModelPart: Gauss point scalar value " << result_name
+                          << ", step_values.size(): " << step_values.size()
+                          << std::endl;
 
             for (const auto& [id, values] : step_values)
             {
@@ -866,7 +871,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             if (!KratosComponents<Variable<Vector> >::Has(var_name))
             {
                 // KratosComponents<Variable<Vector> >::Add(var_name) // TODO to create new variable and add to the kernel
-                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped." << std::endl;
                 continue;
             }
             const Variable<Vector>& rVariable = KratosComponents<Variable<Vector> >::Get(var_name);
@@ -943,6 +948,11 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 std::vector<double> step_list;
                 std::map<std::size_t, std::vector<std::vector<std::vector<double> > > > step_values;
                 reader.ReadGaussPointMatrixValues(result_name, gp_name, step_list, step_values);
+
+                if (echo_level > 1)
+                    std::cout << "GiDPost2ModelPart: Gauss point matrix value " << result_name
+                              << ", step_values.size(): " << step_values.size()
+                              << std::endl;
 
                 for (const auto& [id, values] : step_values)
                 {
@@ -1077,7 +1087,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             // }
             else
             {
-                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped.";
+                std::cout << "WARNING!!!Variable " << var_name << " is not registerred to the kernel. The result associated with it is skipped." << std::endl;
                 continue;
             }
         }
