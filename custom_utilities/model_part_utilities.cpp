@@ -118,7 +118,7 @@ int ModelPartUtilities::GetIntegrationOrder(const GeometryType& rGeometry, const
     for (unsigned int i = 0; i < number_of_integration_methods; ++i)
     {
         const GeometryData::IntegrationMethod ThisIntegrationMethod =
-            static_cast<GeometryData::IntegrationMethod>(i+1);
+            static_cast<GeometryData::IntegrationMethod>(i);
 
         const GeometryType::IntegrationPointsArrayType& integration_points =
             rGeometry.IntegrationPoints( ThisIntegrationMethod );
