@@ -1,5 +1,5 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosLayerApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 18 Sep 2014 $
 //   Revision:            $Revision: 1.0 $
@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup LayerApplication
 ///@{
 
 ///@name Kratos Globals
