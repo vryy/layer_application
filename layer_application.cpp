@@ -16,6 +16,8 @@
 
 
 // Project includes
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -101,6 +103,8 @@ namespace Kratos
     , LAYER_APP_CREATE_CONDITION( mPostLineCondition2D3N, Line2D3, 3 )
     , LAYER_APP_CREATE_CONDITION( mPostLineCondition3D2N, Line3D2, 2 )
     , LAYER_APP_CREATE_CONDITION( mPostLineCondition3D3N, Line3D3, 3 )
+    , LAYER_APP_CREATE_CONDITION( mPostPointCondition2D1N, Point2D, 1 )
+    , LAYER_APP_CREATE_CONDITION( mPostPointCondition3D1N, Point3D, 1 )
     {}
 
     void KratosLayerApplication::Register()
@@ -156,6 +160,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PostLineCondition2D3N", mPostLineCondition2D3N )
         KRATOS_REGISTER_CONDITION( "PostLineCondition3D2N", mPostLineCondition3D2N )
         KRATOS_REGISTER_CONDITION( "PostLineCondition3D3N", mPostLineCondition3D3N )
+        KRATOS_REGISTER_CONDITION( "PostPointCondition2D1N", mPostPointCondition2D1N )
+        KRATOS_REGISTER_CONDITION( "PostPointCondition3D1N", mPostPointCondition3D1N )
     }
 
     void KratosLayerApplication::RegisterVariables()

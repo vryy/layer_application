@@ -617,6 +617,16 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
                 entity_type = 2;
                 entity_name = "PostLineCondition3D3N";
             }
+            else if (name.find("Point2D") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostPointCondition2D1N";
+            }
+            else if (name.find("Point3D") != std::string::npos)
+            {
+                entity_type = 2;
+                entity_name = "PostPointCondition3D1N";
+            }
             else
                 KRATOS_ERROR << "Can't determine entity name for mesh " << name;
         }

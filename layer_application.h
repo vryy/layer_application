@@ -129,7 +129,6 @@ namespace Kratos
             KratosComponents<Condition>().PrintData(rOStream);
         }
 
-
         ///@}
         ///@name Friends
         ///@{
@@ -229,6 +228,9 @@ namespace Kratos
         const PostCondition mPostLineCondition2D3N;
         const PostCondition mPostLineCondition3D2N;
         const PostCondition mPostLineCondition3D3N;
+
+        const PostCondition mPostPointCondition2D1N;
+        const PostCondition mPostPointCondition3D1N;
 
         ///@}
         ///@name Private Operators
