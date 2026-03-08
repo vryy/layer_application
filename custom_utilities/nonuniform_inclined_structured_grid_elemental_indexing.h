@@ -1,5 +1,5 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        LayerApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 24 Aug 2021 $
 //   Revision:            $Revision: 1.0 $
@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup LayerApplication
 ///@{
 
 ///@name Kratos Globals
@@ -266,34 +266,21 @@ public:
         const std::vector<IndexType>& master_elements,
         Element::Pointer& pMatchedMaster, CoordinatesArrayType& local_coords) const final
     {
-        auto it = rAllElements.find(master_elements[0]);
-        if (it == rAllElements.end())
-            KRATOS_ERROR << "The master element is not yet determined";
-        pMatchedMaster = *(it.base());
-
-        const GeometryType& rGeometry = pMatchedMaster->GetGeometry();
-        // noalias(local_coords) = ZeroVector(3);
-
-        this->PredictLocalPoint(rSourcePoint, local_coords, rGeometry);
-        // CoordinatesArrayType predict_local_coords = local_coords;
-
-        if (rGeometry.IsInside(rSourcePoint, local_coords))
-        // if (IsInside(rGeometry, rSourcePoint, local_coords))
+        for (unsigned int i = 0; i < master_elements.size(); ++i)
         {
-            // if constexpr (TDim == 2)
-            // {
-            //     if (abs(local_coords[2]) > 1.0e-7)
-            //     {
-            //         KRATOS_WATCH(rSourcePoint)
-            //         KRATOS_WATCH(pMatchedMaster->Id())
-            //         for (std::size_t i = 0; i < rGeometry.size(); ++i)
-            //             KRATOS_WATCH(rGeometry[i].GetSolutionStepValue(DISPLACEMENT))
-            //         std::cout << "predict local point: " << predict_local_coords << std::endl;
-            //         std::cout << "found point: " << local_coords << std::endl;
-            //         KRATOS_ERROR << "Error computing local point";
-            //     }
-            // }
-            return true;
+            auto it = rAllElements.find(master_elements[i]);
+            if (it == rAllElements.end())
+                KRATOS_ERROR << "The master element is not yet determined";
+            pMatchedMaster = *(it.base());
+
+            const GeometryType& rGeometry = pMatchedMaster->GetGeometry();
+
+            this->PredictLocalPoint(rSourcePoint, local_coords, rGeometry);
+
+            if (rGeometry.IsInside(rSourcePoint, local_coords))
+            {
+                return true;
+            }
         }
 
         return false;
