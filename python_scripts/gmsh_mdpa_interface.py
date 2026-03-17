@@ -31,7 +31,9 @@ def GetString(gtype):
         return "Undefined"
 
 def PostFix(dim, eltype):
-    if dim == 2:
+    if dim == 1:
+        pf = "1D"
+    elif dim == 2:
         pf = "2D"
     elif dim == 3:
         pf = "3D"
@@ -67,6 +69,10 @@ def Permutation(eltype):
         return [0, 1, 2, 3]
     elif eltype == 5: # hex8
         return [0, 1, 2, 3, 4, 5, 6, 7]
+    elif eltype == 17: # hex20
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 13, 9, 10, 12, 14, 15, 16, 18, 19, 17]
+    elif eltype == 12: # hex27
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 13, 9, 10, 12, 14, 15, 16, 18, 19, 17, 20, 21, 23, 24, 22, 25, 26]
     elif eltype == 8: # line3
         return [0, 1, 2]
     elif eltype == 9: # tri6
@@ -154,7 +160,7 @@ class GmshMDPAWriter:
     def MDPA_Header(self, ifile):
         td = datetime.datetime.today()
         ifile.write("//KRATOS analysis data file\n")
-        ifile.write("//(c) " + str(td.year) + " Hoang-Giang Bui, Ruhr-University Bochum\n")
+        ifile.write("//(c) " + str(td.year) + " Hoang-Giang Bui, Durham University\n")
         ifile.write("//This file is created on " + str(td.day) + "/" + str(td.month) + "/" + str(td.year % 100) + " " + str(td.hour) + ":" + str(td.minute) + ":" + str(td.second) + "\n")
 
     def MDPA_Data(self, ifile):
@@ -326,7 +332,6 @@ class GmshMDPAWriter:
 
         ifile.write("def ReadBoundaryNodes():\n")
         ifile.write("\treturn []\n")
-        ifile.write("\n")
 
         print("Writing layers to " + str(filename) + "_layers.py completed")
         ifile.close()
