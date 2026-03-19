@@ -310,13 +310,6 @@ public:
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[i].Id();
 
-                        if ( mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
-                                || mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D3 )
-                        {
-                            nodes_id[0] = (it)->GetGeometry()[0].Id();
-                            nodes_id[1] = (it)->GetGeometry()[2].Id();
-                            nodes_id[2] = (it)->GetGeometry()[1].Id();
-                        }
                         nodes_id[(it)->GetGeometry().size()] = (it)->GetProperties().Id();
 
                         bool element_is_active = true;
