@@ -15,12 +15,6 @@
 //
 //
 
-
-
-
-
-
-
 #if !defined(KRATOS_SD_POST_IO_H_INCLUDED)
 #define  KRATOS_SD_POST_IO_H_INCLUDED
 
@@ -51,14 +45,10 @@ namespace Kratos
  * Type definitions
  */
 
-
-
 ///Flags for mesh writing
 enum WriteDeformedMeshFlag {WriteDeformed, WriteUndeformed};
 enum WriteConditionsFlag {WriteConditions, WriteElementsOnly, WriteConditionsOnly};
 enum MultiFileFlag {SingleFile, MultipleFiles};
-
-
 
 /**
  * This class defines an interface to the post processing library
@@ -134,8 +124,10 @@ public:
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle2D6, "Kratos_Triangle2D6_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle3D3, "Kratos_Triangle3D3_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Triangle3D6, "Kratos_Triangle3D6_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line1D2, "Kratos_Line1D2_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line2D2, "Kratos_Line2D2_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line3D2, "Kratos_Line3D2_Mesh" ) );
+        mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line1D3, "Kratos_Line1D3_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line2D3, "Kratos_Line2D3_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Line3D3, "Kratos_Line3D3_Mesh" ) );
         mMeshContainers.push_back( TMeshContainer( GeometryData::KratosGeometryType::Kratos_Point3D, "Kratos_Point3D_Mesh" ) );

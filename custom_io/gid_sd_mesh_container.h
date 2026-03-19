@@ -107,6 +107,8 @@ public:
             ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line3D2
             ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D3
             ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line2D2
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line1D3
+            ||  mGeometryType == GeometryData::KratosGeometryType::Kratos_Line1D2
         )
         {
             mGidElementType = GiD_Linear;
@@ -241,7 +243,11 @@ public:
                     }
 
                     //begin mesh
-                    if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
+                    if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 1 )
+                    {
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType, mMeshElements.begin()->GetGeometry().size() );
+                    }
+                    else if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType, mMeshElements.begin()->GetGeometry().size() );
                     }
@@ -372,7 +378,12 @@ public:
                     }
 
                     // begin mesh
-                    if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
+                    if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 1 )
+                    {
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
+                                        mMeshConditions.begin()->GetGeometry().size() );
+                    }
+                    else if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
