@@ -820,12 +820,12 @@ private:
             if(mGidElementFamily == GiD_Tetrahedra || mGidElementFamily == GiD_Hexahedra)
             {
                 for(std::size_t i = 0; i < integration_points.size(); ++i)
-                    GiD_fWriteGaussPoint3D( MeshFile, integration_points[i].X(), integration_points[i].Y(), integration_points[i].Z());
+                    GiD_fWriteGaussPoint3D( MeshFile, integration_points[i].X(), integration_points[i].Y(), integration_points[i].Z() );
             }
             else if(mGidElementFamily == GiD_Triangle || mGidElementFamily == GiD_Quadrilateral)
             {
                 for(std::size_t i = 0; i < integration_points.size(); ++i)
-                    GiD_fWriteGaussPoint2D( MeshFile, integration_points[i].X(), integration_points[i].Y());
+                    GiD_fWriteGaussPoint2D( MeshFile, integration_points[i].X(), integration_points[i].Y() );
             }
             GiD_fEndGaussPoint(MeshFile);
 
@@ -846,12 +846,12 @@ private:
             if(mGidElementFamily == GiD_Tetrahedra || mGidElementFamily == GiD_Hexahedra)
             {
                 for(std::size_t i = 0; i < integration_points.size(); ++i)
-                    GiD_fWriteGaussPoint3D( MeshFile, integration_points[i].X(), integration_points[i].Y(), integration_points[i].Z());
+                    GiD_fWriteGaussPoint3D( MeshFile, integration_points[i].X(), integration_points[i].Y(), integration_points[i].Z() );
             }
             else if(mGidElementFamily == GiD_Triangle || mGidElementFamily == GiD_Quadrilateral)
             {
                 for(std::size_t i = 0; i < integration_points.size(); ++i)
-                    GiD_fWriteGaussPoint2D( MeshFile, integration_points[i].X(), integration_points[i].Y());
+                    GiD_fWriteGaussPoint2D( MeshFile, integration_points[i].X(), integration_points[i].Y() );
             }
             GiD_fEndGaussPoint(MeshFile);
         }

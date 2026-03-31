@@ -928,7 +928,7 @@ void ModelPartUtilities::GiDPost2ModelPart(GiDPostReader& reader, ModelPart& r_m
             {
                 const Variable<Vector>& rVariable = KratosComponents<Variable<Vector> >::Get(var_name);
 
-                std::cout << "Matrix result " << var_name << " is detected to save to vector varable" << std::endl;
+                std::cout << "Matrix result " << var_name << " is detected to save to vector variable" << std::endl;
 
                 // get the Gauss point record info
                 int npoints;
