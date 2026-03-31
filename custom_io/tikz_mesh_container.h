@@ -224,8 +224,8 @@ public:
                                 DrawGeometry(rMeshFile, (it)->GetGeometry(), element_style);
                                 if(write_id)
                                 {
-                                    PointType C = it->GetGeometry().Center();
-                                    rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
+                                    auto C = it->GetGeometry().Center();
+                                    rMeshFile << "\\draw (" << C[0] << "," << C[1] << "," << C[2] << ") node[above] {" << it->Id() << "};" << std::endl;
                                 }
                             }
                         }
@@ -311,8 +311,8 @@ public:
                                 DrawGeometry(rMeshFile, (it)->GetGeometry(), condition_style);
                                 if(write_id)
                                 {
-                                    PointType C = (it)->GetGeometry().Center();
-                                    rMeshFile << "\\draw (" << C.X() << "," << C.Y() << "," << C.Z() << ") node[above] {" << it->Id() << "};" << std::endl;
+                                    auto C = (it)->GetGeometry().Center();
+                                    rMeshFile << "\\draw (" << C[0] << "," << C[1] << "," << C[2] << ") node[above] {" << it->Id() << "};" << std::endl;
                                 }
                             }
                         }
