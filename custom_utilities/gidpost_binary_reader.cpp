@@ -317,8 +317,8 @@ void GiDPostBinaryReader::ReadGaussPointRecord(const std::string& GpName)
     for(std::size_t i = 0; i < mGpRecord.size(); ++i)
     {
         bool check = (mGpRecord[i].Name.compare(GpName) == 0);
-        check = (mGpRecord[i].NaturalCoordinates == "Given");
 
+        check = check && (mGpRecord[i].NaturalCoordinates == "Given");
         if(!check)
             continue;
 
@@ -1009,11 +1009,10 @@ void GiDPostBinaryReader::ParseAndIndex2()
             dummy.clear(); ReadWord(dummy);
             gp_rec.NumberOfGaussPoints = atoi(dummy.c_str());
 
-            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
-            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
-            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
-            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
-            dummy.clear(); ReadWord(dummy); //WATCH(dummy)
+            while(dummy != "Coordinates:")
+            {
+                dummy.clear(); ReadWord(dummy);
+            }
             ReadWord(gp_rec.NaturalCoordinates);
 
             gp_rec.StartCoordPos = gp_rec.EndCoordPos = 0;
