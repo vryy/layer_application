@@ -728,19 +728,19 @@ private:
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
         {
-            error.printError();
+            error.printErrorStack();
             return -1;
         }
         // catch failure caused by the DataSpace operations
        catch(H5::DataSpaceIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -2;
        }
        // catch failure caused by the DataSpace operations
        catch(H5::DataTypeIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -3;
        }
     }
@@ -827,19 +827,19 @@ private:
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
         {
-            error.printError();
+            error.printErrorStack();
             return -1;
         }
         // catch failure caused by the DataSpace operations
        catch(H5::DataSpaceIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -2;
        }
        // catch failure caused by the DataSpace operations
        catch(H5::DataTypeIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -3;
        }
     }
@@ -945,19 +945,19 @@ private:
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
         {
-            error.printError();
+            error.printErrorStack();
             return -1;
         }
         // catch failure caused by the DataSpace operations
        catch(H5::DataSpaceIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -2;
        }
        // catch failure caused by the DataSpace operations
        catch(H5::DataTypeIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -3;
        }
     }
@@ -1043,19 +1043,19 @@ private:
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
         {
-            error.printError();
+            error.printErrorStack();
             return -1;
         }
         // catch failure caused by the DataSpace operations
        catch(H5::DataSpaceIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -2;
        }
        // catch failure caused by the DataSpace operations
        catch(H5::DataTypeIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -3;
        }
     }
@@ -1141,19 +1141,19 @@ private:
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
         {
-            error.printError();
+            error.printErrorStack();
             return -1;
         }
         // catch failure caused by the DataSpace operations
        catch(H5::DataSpaceIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -2;
        }
        // catch failure caused by the DataSpace operations
        catch(H5::DataTypeIException error)
        {
-          error.printError();
+          error.printErrorStack();
           return -3;
        }
     }
