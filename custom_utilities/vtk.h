@@ -17,6 +17,8 @@ enum VTK_PostMode {VTK_PostAscii, VTK_PostBinary};
 enum VTK_PostFileFormat {VTK_PostVTU, VTK_PostVTM};
 
 // reference: vtkCellType.h
+// to view the connectivity of vtk cell, see e.g.
+//   https://examples.vtk.org/site/Cxx/GeometricObjects/IsoparametricCellsDemo
 enum VTK_ElementType {
     VTK_Empty_Cell = 0,
     VTK_Vertex = 1,

@@ -82,16 +82,16 @@ public:
     {
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,
-                                          VTK_Hexahedron, "Kratos_Hexahedra3D20_Mesh" ) );
+                                          VTK_Quadratic_Hexahedron, "Kratos_Hexahedra3D20_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,
-                                          VTK_Hexahedron, "Kratos_Hexahedra3D27_Mesh" ) );
+                                          VTK_Triquadratic_Hexahedron, "Kratos_Hexahedra3D27_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,
                                           VTK_Hexahedron, "Kratos_Hexahedra3D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Prism3D15,
-                                          VTK_Wedge, "Kratos_Prism3D15_Mesh" ) );
+                                          VTK_Quadratic_Wedge, "Kratos_Prism3D15_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Prism3D6,
                                           VTK_Wedge, "Kratos_Prism3D6_Mesh" ) );
@@ -100,22 +100,22 @@ public:
                                           VTK_Quad, "Kratos_Quadrilateral2D4_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8,
-                                          VTK_Quad, "Kratos_Quadrilateral2D8_Mesh" ) );
+                                          VTK_Quadratic_Quad, "Kratos_Quadrilateral2D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9,
-                                          VTK_Quad, "Kratos_Quadrilateral2D9_Mesh" ) );
+                                          VTK_Biquadratic_Quad, "Kratos_Quadrilateral2D9_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4,
                                           VTK_Quad, "Kratos_Quadrilateral3D4_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8,
-                                          VTK_Quad, "Kratos_Quadrilateral3D8_Mesh" ) );
+                                          VTK_Quadratic_Quad, "Kratos_Quadrilateral3D8_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9,
-                                          VTK_Quad, "Kratos_Quadrilateral3D9_Mesh" ) );
+                                          VTK_Biquadratic_Quad, "Kratos_Quadrilateral3D9_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,
-                                          VTK_Tetra, "Kratos_Tetrahedra3D10_Mesh" ) );
+                                          VTK_Quadratic_Tetra, "Kratos_Tetrahedra3D10_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,
                                           VTK_Tetra, "Kratos_Tetrahedra3D4_Mesh" ) );
@@ -124,13 +124,13 @@ public:
                                           VTK_Triangle, "Kratos_Triangle2D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Triangle2D6,
-                                          VTK_Triangle, "Kratos_Triangle2D6_Mesh" ) );
+                                          VTK_Quadratic_Triangle, "Kratos_Triangle2D6_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Triangle3D3,
                                           VTK_Triangle, "Kratos_Triangle3D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Triangle3D6,
-                                          VTK_Triangle, "Kratos_Triangle3D6_Mesh" ) );
+                                          VTK_Quadratic_Triangle, "Kratos_Triangle3D6_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Line2D2,
                                           VTK_Line, "Kratos_Line2D2_Mesh" ) );
@@ -139,10 +139,10 @@ public:
                                           VTK_Line, "Kratos_Line3D2_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Line2D3,
-                                          VTK_Line, "Kratos_Line2D3_Mesh" ) );
+                                          VTK_Quadratic_Edge, "Kratos_Line2D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Line3D3,
-                                          VTK_Line, "Kratos_Line3D3_Mesh" ) );
+                                          VTK_Quadratic_Edge, "Kratos_Line3D3_Mesh" ) );
         mVtkMeshContainers.push_back( TMeshContainer(
                                           GeometryData::KratosGeometryType::Kratos_Point3D,
                                           VTK_Pixel, "Kratos_Point3D_Mesh" ) );
