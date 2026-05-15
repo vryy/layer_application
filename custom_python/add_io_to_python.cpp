@@ -59,6 +59,13 @@ void PrintElementalPartitionIndex( TGidPostIOType& dummy, const Variable<double>
 }
 
 template<typename TGidPostIOType>
+void DoublePrintOnElement( TGidPostIOType& dummy, const Variable<double>& rVariable,
+                           typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag)
+{
+    dummy.PrintOnElement( rVariable, r_model_part, SolutionTag );
+}
+
+template<typename TGidPostIOType>
 void IntegerPrintOnGaussPoints( TGidPostIOType& dummy, const Variable<int>& rVariable,
                                typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
@@ -280,6 +287,7 @@ void LayerApplication_AddGidPostIOToPython(const std::string& name)
     .def("WriteLocalAxesOnNodesNonHistorical", local_axes_write_nodal_results_NH)
 
     .def("PrintElementalPartitionIndex", PrintElementalPartitionIndex<TGidPostIOType>)
+    .def("PrintOnElement", DoublePrintOnElement<TGidPostIOType>)
     .def("PrintOnGaussPoints", IntegerPrintOnGaussPoints<TGidPostIOType>)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints<TGidPostIOType>)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints<TGidPostIOType>)

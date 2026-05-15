@@ -198,6 +198,48 @@ public:
         }
     }
 
+    void PrintElementalValue( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPartType& r_model_part,
+                              double SolutionTag )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+        {
+            std::stringstream ss;
+            ss << mGPTitle << "_" << rVariable.Key();
+            std::string new_gp_title = ss.str();
+
+            WriteGaussPoints(ResultFile, new_gp_title.c_str());
+
+            GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
+                             GiD_Scalar, GiD_OnGaussPoints, new_gp_title.c_str(), NULL, 0, NULL );
+
+            if( mMeshElements.size() != 0 )
+            {
+                for( typename ModelPartType::ElementsContainerType::iterator it = mMeshElements.begin();
+                        it != mMeshElements.end(); ++it )
+                {
+                    for( unsigned int i = 0; i < mSize; ++i )
+                    {
+                        GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), it->GetValue(rVariable) );
+                    }
+                }
+            }
+
+            if( mMeshConditions.size() != 0 )
+            {
+                for( typename ModelPartType::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                        it != mMeshConditions.end(); ++it )
+                {
+                    for( unsigned int i = 0; i < mSize; ++i )
+                    {
+                        GiD_fWriteScalar( ResultFile, static_cast<int>(it->Id()), it->GetValue(rVariable) );
+                    }
+                }
+            }
+
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
     virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPartType& r_model_part,
                                double SolutionTag, unsigned int value_index )
     {

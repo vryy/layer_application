@@ -1081,9 +1081,32 @@ public:
     }
 
     /***************************************************************************************************/
+    ///functions for printing results on element
     /***************************************************************************************************/
 
+    /**
+     * Prints the elemental value of the complete mesh
+     * @param rVariable the given variable name
+     * @param r_model_part the current model part
+     */
+    void PrintOnElement( const Variable<double>& rVariable, ModelPartType& r_model_part,
+                         double SolutionTag )
+    {
+        KRATOS_TRY;
 
+        Timer::Start("Writing Results");
+
+        for ( typename GaussPointContainerVectorType::iterator it =
+                    BaseType::mGaussPointContainers.begin();
+                it != BaseType::mGaussPointContainers.end(); it++ )
+        {
+            it->PrintElementalValue( mResultFile, rVariable, r_model_part, SolutionTag );
+        }
+
+        Timer::Stop("Writing Results");
+
+        KRATOS_CATCH("");
+    }
 
     /**
      * Prints element partition index on element of the complete mesh
