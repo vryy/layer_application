@@ -1,17 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
 //
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosLayerApplication
 //   Last Modified by:    $Author: Hoang-Giang Bui $
 //   Date:                $Date: 14 Jun 2016 $
-//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -100,11 +91,9 @@ public:
     }
 
     /***************************************************************************************************/
-    /***************************************************************************************************/
-    /***************************************************************************************************/
-
-
     ///mesh writing functions
+    /***************************************************************************************************/
+
     /**
      * opens a new mesh group
      */
@@ -246,7 +235,7 @@ public:
         Timer::Stop("Writing Mesh");
 
         KRATOS_CATCH("")
-    } //WriteNodeMesh
+    } // WriteNodeMesh
 
     /**
      * This is a multi-purpose function that writes arbitrary meshes of elements
@@ -296,13 +285,11 @@ public:
         Timer::Stop("Writing Mesh");
 
         KRATOS_CATCH("")
-    } //WriteMesh
-
+    } // WriteMesh
 
     /***************************************************************************************************/
+    ///result functions
     /***************************************************************************************************/
-    /***************************************************************************************************/
-
 
     /**
      * sets up the file names and opens the result file in case there
@@ -314,20 +301,20 @@ public:
         BaseType::mResultFileName = rResultFileName;
     }
 
-    /**
-     * TODO: check whether this is still necessary!
-     */
-    void  CloseResultFile()
+    void CloseResultFile()
     {
+        /**
+         * TODO: check whether this is still necessary!
+         */
         if ( mResultFileOpen )
             GiD_fClosePostResultFile( mResultFile );
     }
 
-    /**
-     * TODO: check whether this is still necessary!
-     */
     void Flush()
     {
+        /**
+         * TODO: check whether this is still necessary!
+         */
         GiD_fFlushPostFile( mResultFile );
     }
 
@@ -339,7 +326,6 @@ public:
         return "SD-GiD-post-io";
     }
 
-    ///result functions
     /**
      * This has to be called for each solution step BEFORE any results
      * (on nodes and on gauss points) is written
@@ -926,8 +912,8 @@ public:
     }
 
     void WriteLocalAxesOnNodes( Variable<array_1d<double, 3> > const& rVariable,
-                            const NodesContainerType& rNodes,
-                            double SolutionTag, std::size_t SolutionStepNumber)
+                                const NodesContainerType& rNodes,
+                                double SolutionTag, std::size_t SolutionStepNumber)
     {
         Timer::Start("Writing Results");
 
@@ -950,6 +936,7 @@ public:
     ///////////////////////////////////////////////////////////////////////
     //////                 NON- HISTORICAL DATABASE BLOCK             /////
     ///////////////////////////////////////////////////////////////////////
+
      /**
      * writes nodal results for variables of type bool
      */
@@ -967,8 +954,6 @@ public:
         Timer::Stop("Writing Results");
     }
 
-
-    ///functions for writing nodal results
     /**
      * writes nodal results for variables of type double
      */
@@ -1008,7 +993,6 @@ public:
         Timer::Stop("Writing Results");
     }
 
-
     /**
      * writes nodal results for variables of type Vector
      * (note that only vectors with 3 components can be printed)
@@ -1034,7 +1018,6 @@ public:
 
         Timer::Stop("Writing Results");
     }
-
 
     /**
      * writes nodal results for variables of type Matrix
@@ -1079,7 +1062,6 @@ public:
         Timer::Stop("Writing Results");
     }
 
-
     void WriteLocalAxesOnNodesNonHistorical( Variable<array_1d<double, 3> > const& rVariable, const NodesContainerType& rNodes, double SolutionTag)
     {
         Timer::Start("Writing Results");
@@ -1098,21 +1080,18 @@ public:
         Timer::Stop("Writing Results");
     }
 
-
-    /***************************************************************************************************/
     /***************************************************************************************************/
     /***************************************************************************************************/
 
 
-    ///functions for printing results on gauss points
 
     /**
-     * Prints element partition index on gauss points of the complete mesh
+     * Prints element partition index on element of the complete mesh
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
     void PrintElementalPartitionIndex( const Variable<double>& rVariable, ModelPartType& r_model_part,
-                                     double SolutionTag, int value_index, int rank )
+                                       double SolutionTag, int rank )
     {
         KRATOS_TRY;
 
@@ -1124,7 +1103,7 @@ public:
                         BaseType::mGaussPointContainers.begin();
                     it != BaseType::mGaussPointContainers.end(); it++ )
             {
-                it->PrintPartitionIndex( mResultFile, rVariable, r_model_part, SolutionTag, value_index, rank );
+                it->PrintPartitionIndex( mResultFile, rVariable, r_model_part, SolutionTag, rank );
             }
 
             Timer::Stop("Writing Results");
@@ -1132,6 +1111,10 @@ public:
 
         KRATOS_CATCH("");
     }
+
+    /***************************************************************************************************/
+    ///functions for printing results on gauss points
+    /***************************************************************************************************/
 
     /**
      * Prints variables of type int on gauss points of the complete mesh

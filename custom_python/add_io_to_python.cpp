@@ -53,9 +53,9 @@ void GidPostIO_WriteMesh( TGidPostIOType& dummy, typename TGidPostIOType::MeshTy
 
 template<typename TGidPostIOType>
 void PrintElementalPartitionIndex( TGidPostIOType& dummy, const Variable<double>& rVariable,
-                               typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag, int rank)
+                                   typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag, int rank)
 {
-    dummy.PrintElementalPartitionIndex( rVariable, r_model_part, SolutionTag, 0, rank );
+    dummy.PrintElementalPartitionIndex( rVariable, r_model_part, SolutionTag, rank );
 }
 
 template<typename TGidPostIOType>
