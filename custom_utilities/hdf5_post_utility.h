@@ -1,5 +1,5 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosLayerApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 7 Jan 2015 $
 //   Revision:            $Revision: 1.0 $
@@ -15,8 +15,6 @@
 #include <iostream>
 
 // External includes
-// #include <omp.h>
-// #include "boost/progress.hpp"
 #include "H5Cpp.h"
 
 // Project includes
@@ -47,8 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
+/** Utility to write data to HDF5.
  */
 class HDF5PostUtility
 {
@@ -67,8 +64,6 @@ public:
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-
-    typedef std::size_t IndexType;
 
     /// Pointer definition of HDF5PostUtility
     KRATOS_CLASS_POINTER_DEFINITION(HDF5PostUtility);
@@ -126,7 +121,7 @@ public:
      */
     void WriteNodes(ModelPart::Pointer pModelPart)
     {
-        NodesContainerType& pNodes = pModelPart->Nodes();
+        const NodesContainerType& pNodes = pModelPart->Nodes();
 
         typedef struct Node_t {
             int    id;
@@ -135,18 +130,18 @@ public:
             double z;
         } Node_t;
 
-        Node_t* nodes = new Node_t[pNodes.size()];
+        std::vector<Node_t> nodes(pNodes.size());
 
         /*
          * Initialize the data
          */
         int cnt = 0;
-        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
+        for(auto it = pNodes.begin(); it != pNodes.end(); ++it)
         {
-            nodes[cnt].id = (*it)->Id();
-            nodes[cnt].x = (*it)->X0();
-            nodes[cnt].y = (*it)->Y0();
-            nodes[cnt].z = (*it)->Z0();
+            nodes[cnt].id = it->Id();
+            nodes[cnt].x = it->X0();
+            nodes[cnt].y = it->Y0();
+            nodes[cnt].z = it->Z0();
             ++cnt;
         }
 
@@ -162,8 +157,8 @@ public:
         /*
          * Create the data space.
          */
-        hsize_t dim[] = {pNodes.size()};   /* Dataspace dimensions */
-        H5::DataSpace space(1, dim);
+        std::vector<hsize_t> dim = {pNodes.size()};   /* Dataspace dimensions */
+        H5::DataSpace space(1, dim.data());
 
         /*
          * Create the dataset.
@@ -174,13 +169,12 @@ public:
         /*
          * Write data to the dataset;
          */
-        dataset->write(nodes, mtype);
+        dataset->write(nodes.data(), mtype);
 
         /*
          * Release resources
          */
         delete dataset;
-        delete nodes;
     }
 
     template<class TDataType>
@@ -743,6 +737,8 @@ private:
           error.printErrorStack();
           return -3;
        }
+       // everything's fine
+       return 0;
     }
 
     int ReadNodalResults_( const Variable<array_1d<double, 3> >& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
@@ -842,6 +838,8 @@ private:
           error.printErrorStack();
           return -3;
        }
+       // everything's fine
+       return 0;
     }
 
     int ReadNodalResults_( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart )
@@ -868,6 +866,9 @@ private:
         }
         else
             KRATOS_ERROR << "Vector length " << len << " is not supported";
+
+       // everything's fine
+       return 0;
     }
 
     int ReadNodalResults_Vector_3( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
@@ -960,6 +961,8 @@ private:
           error.printErrorStack();
           return -3;
        }
+       // everything's fine
+       return 0;
     }
 
     int ReadNodalResults_Vector_6( const Variable<Vector>& rThisVariable, ModelPart::Pointer pModelPart, const bool& allow_unequal = true )
@@ -999,14 +1002,13 @@ private:
              * Get the number of dimensions in the dataspace.
              */
             int rank = dataspace.getSimpleExtentNdims();
-//            KRATOS_WATCH(rank)
 
             /*
              * Get the dimension size of each dimension in the dataspace and
              * do the bound check.
              */
-            hsize_t dims_out[rank];
-            int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+            std::vector<hsize_t> dims_out(rank);
+            int ndims = dataspace.getSimpleExtentDims(dims_out.data(), NULL);
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
@@ -1058,6 +1060,8 @@ private:
           error.printErrorStack();
           return -3;
        }
+       // everything's fine
+       return 0;
     }
 
     /*****************************************************
@@ -1156,6 +1160,8 @@ private:
           error.printErrorStack();
           return -3;
        }
+       // everything's fine
+       return 0;
     }
 
     ///@}
@@ -1205,82 +1211,6 @@ inline std::ostream& operator <<(std::ostream& rOStream, const HDF5PostUtility& 
 
 ///@} addtogroup block
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_HDF5_POST_UTILITY_H_INCLUDED
-
-
-//      void WriteNodalResults_(
-//        const Variable<Vector>& rThisVariable,
-//        ModelPart::Pointer pModelPart
-//    )
-//    {
-//        NodesContainerType& pNodes = pModelPart->Nodes();
-//
-//        int len = (*(pNodes.ptr_begin()))->GetSolutionStepValue(rThisVariable).size();
-//
-//        typedef struct Data_t {
-//          int    id;
-//          double *v;
-//        } Data_t;
-//
-//        typedef struct Data_buffer_t {
-//          int    id;
-//          hvl_t  v;
-//        } Data_buffer_t;
-//
-//        Data_t* data = new Data_t[pNodes.size()];
-//        Data_buffer_t* data_buffer = new Data_buffer_t[pNodes.size()];
-//
-//        /*
-//         * Initialize the data
-//         */
-//        int cnt = 0;
-//        for(typename NodesContainerType::ptr_iterator it = pNodes.ptr_begin(); it != pNodes.ptr_end(); ++it)
-//        {
-//            data[cnt].id = (*it)->Id();
-//            data[cnt].v = new double[len];
-//            Vector& v = (*it)->GetSolutionStepValue(rThisVariable);
-//            for(int i = 0; i < len; ++i)
-//                data[cnt].v[i] = v[i];
-//
-//            data_buffer[cnt].id = data[cnt].id;
-//            data_buffer[cnt].v.len = len;
-//            data_buffer[cnt].v.p = data[cnt].v;
-//
-//            ++cnt;
-//        }
-//
-//        /*
-//         * Create the memory data type.
-//         */
-//        H5::VarLenType vlen_tid(&H5::PredType::NATIVE_DOUBLE);
-//        H5::CompType mtype(sizeof(Data_t) );
-//        mtype.insertMember("id", HOFFSET(Data_t, id), H5::PredType::NATIVE_INT);
-//        mtype.insertMember("v", HOFFSET(Data_t, v), vlen_tid);
-//
-//        /*
-//         * Create the data space.
-//         */
-//        hsize_t dim[] = {pNodes.size()};   /* Dataspace dimensions */
-//        H5::DataSpace space(1, dim);
-//
-//        /*
-//         * Create the dataset.
-//         */
-//        H5::DataSet* dataset;
-//        dataset = new H5::DataSet(mpFile->createDataSet(rThisVariable.Name(), mtype, space));
-//
-//        /*
-//         * Write data to the dataset;
-//         */
-//        dataset->write(data_buffer, mtype);
-//
-//        /*
-//         * Release resources
-//         */
-//        delete dataset;
-//        delete data;
-//        delete data_buffer;
-//    }
-//
