@@ -64,6 +64,23 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartUtilities);
 
+    template<typename TGeometryType>
+    struct GeometryCompare
+    {
+        bool operator()(const TGeometryType& rGeometry1, const TGeometryType& rGeometry2) const
+        {
+            if (rGeometry1.size() != rGeometry2.size())
+                return rGeometry1.size() < rGeometry2.size();
+
+            for (std::size_t i = 0; i < rGeometry1.size(); ++i)
+            {
+                if (rGeometry1[i].Id() != rGeometry2[i].Id())
+                    return rGeometry1[i].Id() < rGeometry2[i].Id();
+            }
+
+            return false;
+        }
+    };
 
     ///@}
     ///@name Life Cycle
@@ -381,6 +398,22 @@ public:
             const IndexType prop_id, const array_1d<double, 3>& rDirector = array_1d<double, 3>{0, 0, 1},
             const std::string& condition_name = "PostSurfaceCondition3D3N");
 
+    /// Mapping the elements, conditions and properties to new model_part
+    /// NOTE:
+    ///     + this method assumes conforming mesh, and consistent order across elements
+    ///     + the nodal and elemental results are (for now) not transferred
+    ///     + the initialization of the new model_part is not done. User has to do it manually.
+    template<class TModelPartType>
+    static void Copy(const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart);
+
+    /// Mapping the elements, conditions and properties to new model_part and increase the order by one
+    /// NOTE:
+    ///     + this method assumes conforming mesh, and consistent order across elements
+    ///     + the nodal and elemental results are (for now) not transferred
+    ///     + the initialization of the new model_part is not done. User has to do it manually.
+    template<class TModelPartType>
+    static void CopyAndIncreaseOrder(const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart);
+
     ///@}
     ///@name Input and output
     ///@{
@@ -461,6 +494,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Find the element in the KRATOS container with specific key
+    template<class TContainerType, class TKeyType>
+    static typename TContainerType::iterator FindKey(TContainerType& ThisContainer, TKeyType ThisKey, const std::string& ComponentName)
+    {
+        typename TContainerType::iterator i_result;
+        if((i_result = ThisContainer.find(ThisKey)) == ThisContainer.end())
+        {
+            KRATOS_ERROR << ComponentName << " #" << ThisKey << " is not found.";
+        }
+
+        return i_result;
+    }
+
+    /// Create the high order element from existing element
+    template<class TEntityType, typename TNodeMapType, typename TNodesContainerType>
+    static typename TEntityType::Pointer CreateIncreasedOrderElement(const TEntityType& rElement,
+        TNodesContainerType& newNodes, TNodeMapType& edgeNodesMap, Properties::Pointer p_properties);
 
     ///@}
     ///@name Private  Access

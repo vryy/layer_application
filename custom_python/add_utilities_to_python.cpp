@@ -183,6 +183,20 @@ boost::python::list ModelPartUtilities_ExtractOuterNodes(ModelPartUtilities& rDu
     return output;
 }
 
+template<class TModelPartType>
+void ModelPartUtilities_Copy(ModelPartUtilities& rDummy,
+    const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart)
+{
+    ModelPartUtilities::Copy(rSourceModelPart, rTargetModelPart);
+}
+
+template<class TModelPartType>
+void ModelPartUtilities_CopyAndIncreaseOrder(ModelPartUtilities& rDummy,
+    const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart)
+{
+    ModelPartUtilities::CopyAndIncreaseOrder(rSourceModelPart, rTargetModelPart);
+}
+
 boost::python::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBinning& dummy, ModelPart& r_model_part, int id, double r)
 {
     boost::python::list list;
@@ -397,6 +411,12 @@ void LayerApp_AddCustomUtilitiesToPython()
     .def("ExtractOuterEdges", &ModelPartUtilities_ExtractOuterFaces)
     .def("ExtractOuterFaces", &ModelPartUtilities_ExtractOuterFaces)
     .def("ExtractOuterNodes", &ModelPartUtilities_ExtractOuterNodes)
+    .def("Copy", &ModelPartUtilities_Copy<ModelPart>)
+    .def("Copy", &ModelPartUtilities_Copy<ComplexModelPart>)
+    .def("Copy", &ModelPartUtilities_Copy<GComplexModelPart>)
+    .def("CopyAndIncreaseOrder", &ModelPartUtilities_CopyAndIncreaseOrder<ModelPart>)
+    .def("CopyAndIncreaseOrder", &ModelPartUtilities_CopyAndIncreaseOrder<ComplexModelPart>)
+    .def("CopyAndIncreaseOrder", &ModelPartUtilities_CopyAndIncreaseOrder<GComplexModelPart>)
     ;
 
     //    KratosLayerApplication_AddNodalDataStateToPython<Variable<bool> >("BoolNodalDataState");

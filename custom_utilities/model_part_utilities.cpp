@@ -7,7 +7,13 @@
 //
 // Project includes
 #include "includes/legacy_structural_app_vars.h"
-#include "layer_application_variables.h"
+#include "containers/interface_container.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_3.h"
+#include "geometries/triangle_2d_6.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_3d_8.h"
 #if defined(PROFILING_LEVEL)
 #include "utilities/openmp_utils.h"
 #endif
@@ -16,6 +22,7 @@
 #include "utilities/triangulation_utils.h"
 #include "custom_utilities/gidpost_binary_reader.h"
 #include "custom_utilities/model_part_utilities.h"
+#include "layer_application_variables.h"
 
 
 namespace Kratos
@@ -1189,5 +1196,284 @@ void ModelPartUtilities::XY2ModelPart(const std::vector<array_1d<CoordinateType,
         r_model_part.CreateNewCondition(condition_name, ++new_cond_id, conn, prop);
     }
 }
+
+template<class TModelPartType>
+void ModelPartUtilities::Copy(const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart)
+{
+    typedef typename TModelPartType::ElementType ElementType;
+    typedef typename TModelPartType::ConditionType ConditionType;
+
+    /////
+
+    // deep copy the variables list
+
+    rTargetModelPart.GetNodalSolutionStepVariablesList() = rSourceModelPart.GetNodalSolutionStepVariablesList();
+
+    // set the buffer size
+
+    rTargetModelPart.SetBufferSize(rSourceModelPart.GetBufferSize());
+
+    // create new nodes
+
+    const auto& sourceNodes = rSourceModelPart.Nodes();
+
+    for (auto it = sourceNodes.begin(); it != sourceNodes.end(); ++it)
+    {
+        rTargetModelPart.CreateNewNode(it->Id(), it->X0(), it->Y0(), it->Z0());
+    }
+
+    // create Properties
+
+    for (auto it = rSourceModelPart.PropertiesBegin(); it != rSourceModelPart.PropertiesEnd(); ++it)
+    {
+        Properties::Pointer pNewProperties = Properties::Pointer(new Properties(*it));
+        rTargetModelPart.AddProperties(pNewProperties);
+    }
+
+    // create new elements
+
+    const auto& sourceElements = rSourceModelPart.Elements();
+    auto& newNodes = rTargetModelPart.Nodes();
+
+    for (auto it = sourceElements.begin(); it != sourceElements.end(); ++it)
+    {
+        typename ElementType::NodesArrayType temp_element_nodes;
+
+        for (std::size_t i = 0; i < it->GetGeometry().size(); ++i)
+            temp_element_nodes.push_back((*(FindKey(newNodes, it->GetGeometry()[i].Id(), "Node").base())));
+
+        auto p_temp_geometry = it->GetGeometry().Create(temp_element_nodes);
+        if (p_temp_geometry == nullptr)
+            KRATOS_ERROR << "Failed creating new geometry";
+
+        auto p_properties = rTargetModelPart.pGetProperties(it->GetProperties().Id());
+
+        // create the element and add to the new model_part
+        typename ElementType::Pointer pNewElement = it->Create(it->Id(), p_temp_geometry, p_properties);
+        rTargetModelPart.AddElement(pNewElement);
+    }
+
+    rTargetModelPart.Elements().Unique();
+
+    /// create new conditions
+
+    const auto& sourceConditions = rSourceModelPart.Conditions();
+
+    for (auto it = sourceConditions.begin(); it != sourceConditions.end(); ++it)
+    {
+        typename ConditionType::NodesArrayType temp_condition_nodes;
+
+        for (std::size_t i = 0; i < it->GetGeometry().size(); ++i)
+            temp_condition_nodes.push_back((*(FindKey(newNodes, it->GetGeometry()[i].Id(), "Node").base())));
+
+        auto p_temp_geometry = it->GetGeometry().Create(temp_condition_nodes);
+        if (p_temp_geometry == nullptr)
+            KRATOS_ERROR << "Failed creating new geometry";
+
+        auto p_properties = rTargetModelPart.pGetProperties(it->GetProperties().Id());
+
+        // create the condition and add to the new model_part
+        typename ConditionType::Pointer pNewCondition = it->Create(it->Id(), p_temp_geometry, p_properties);
+        rTargetModelPart.AddCondition(pNewCondition);
+    }
+
+    rTargetModelPart.Conditions().Unique();
+}
+
+
+template<class TModelPartType>
+void ModelPartUtilities::CopyAndIncreaseOrder(const TModelPartType& rSourceModelPart, TModelPartType& rTargetModelPart)
+{
+    typedef typename TModelPartType::ElementType ElementType;
+    typedef typename TModelPartType::ElementType::GeometryType GeometryType;
+    typedef typename GeometryType::PointType NodeType;
+    typedef typename TModelPartType::ConditionType ConditionType;
+    typedef InterfaceContainer<TModelPartType> InterfaceContainerType;
+
+    /////
+
+    // create the interfaces
+
+    InterfaceContainerType edgeInterfaces;
+    edgeInterfaces.template ConstructInterfaces<2>(rSourceModelPart);
+
+    // deep copy the variables list
+
+    rTargetModelPart.GetNodalSolutionStepVariablesList() = rSourceModelPart.GetNodalSolutionStepVariablesList();
+
+    // set the buffer size
+
+    rTargetModelPart.SetBufferSize(rSourceModelPart.GetBufferSize());
+
+    /* create new nodes */
+
+    // nodes from the original model_part
+
+    const auto& sourceNodes = rSourceModelPart.Nodes();
+
+    for (auto it = sourceNodes.begin(); it != sourceNodes.end(); ++it)
+    {
+        rTargetModelPart.CreateNewNode(it->Id(), it->X0(), it->Y0(), it->Z0());
+    }
+
+    // node from the edges/interfaces
+
+    IndexType last_node_id = rTargetModelPart.GetLastNodeId();
+
+    std::map<GeometryType, std::vector<typename NodeType::Pointer>, GeometryCompare<GeometryType> > edgeNodesMap;
+
+    for (auto it = edgeInterfaces.begin(); it != edgeInterfaces.end(); ++it)
+    {
+        if ((it->first != nullptr) || (it->second != nullptr))
+        {
+            if ((it->left != nullptr) || (it->right != nullptr))
+            {
+                const auto& edge_geom = *(it->left);
+                if (edge_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2
+                 || edge_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
+                {
+                    typename ElementType::GeometryType::CoordinatesArrayType newP;
+                    newP.clear();
+                    for (std::size_t i = 0; i < edge_geom.size(); ++i)
+                        noalias(newP) += edge_geom[i].GetInitialPosition();
+                    newP /= edge_geom.size();
+
+                    ++last_node_id;
+                    auto pNewNode = rTargetModelPart.CreateNewNode(last_node_id, newP[0], newP[1], newP[2]);
+
+                    if (it->left != nullptr)
+                    {
+                        edgeNodesMap[*(it->left)] = std::vector<typename NodeType::Pointer>{pNewNode};
+                    }
+
+                    if (it->right != nullptr)
+                    {
+                        edgeNodesMap[*(it->right)] = std::vector<typename NodeType::Pointer>{pNewNode};
+                    }
+                }
+                else
+                {
+                    KRATOS_ERROR << "Geometry type " << edge_geom.GetGeometryType() << " is not supported";
+                }
+            }
+            else
+                KRATOS_ERROR << "The interface geometry is not assigned";
+        }
+    }
+
+    // create new elements
+
+    const auto& sourceElements = rSourceModelPart.Elements();
+    auto& newNodes = rTargetModelPart.Nodes();
+
+    for (auto it = sourceElements.begin(); it != sourceElements.end(); ++it)
+    {
+        auto p_properties = rTargetModelPart.pGetProperties(it->GetProperties().Id());
+        auto pNewElement = CreateIncreasedOrderElement(*it, newNodes, edgeNodesMap, p_properties);
+        rTargetModelPart.AddElement(pNewElement);
+    }
+
+    rTargetModelPart.Elements().Unique();
+
+    /// create new conditions
+
+    const auto& sourceConditions = rSourceModelPart.Conditions();
+
+    for (auto it = sourceConditions.begin(); it != sourceConditions.end(); ++it)
+    {
+        auto p_properties = rTargetModelPart.pGetProperties(it->GetProperties().Id());
+        auto pNewCondition = CreateIncreasedOrderElement(*it, newNodes, edgeNodesMap, p_properties);
+        rTargetModelPart.AddCondition(pNewCondition);
+    }
+
+    rTargetModelPart.Conditions().Unique();
+}
+
+template<class TEntityType, typename TNodeMapType, typename TNodesContainerType>
+typename TEntityType::Pointer ModelPartUtilities::CreateIncreasedOrderElement(const TEntityType& rElement,
+    TNodesContainerType& newNodes, TNodeMapType& edgeNodesMap, Properties::Pointer p_properties)
+{
+    typedef typename TEntityType::GeometryType GeometryType;
+    typedef typename GeometryType::PointType NodeType;
+
+    ///
+
+    typename TEntityType::NodesArrayType temp_element_nodes;
+    typename TEntityType::GeometryType::Pointer p_temp_geometry = nullptr;
+
+    if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2
+     || rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
+    {
+        for (std::size_t i = 0; i < rElement.GetGeometry().size(); ++i)
+            temp_element_nodes.push_back((*(FindKey(newNodes, rElement.GetGeometry()[i].Id(), "Node").base())));
+
+        auto& edgesNodes = edgeNodesMap[rElement.GetGeometry()];
+        for (auto node : edgesNodes)
+            temp_element_nodes.push_back(node);
+
+        if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
+            p_temp_geometry = typename GeometryType::Pointer(new Line2D3<NodeType>(temp_element_nodes));
+        else
+            p_temp_geometry = typename GeometryType::Pointer(new Line3D3<NodeType>(temp_element_nodes));
+    }
+    else if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3
+     || rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
+    {
+        for (std::size_t i = 0; i < rElement.GetGeometry().size(); ++i)
+            temp_element_nodes.push_back((*(FindKey(newNodes, rElement.GetGeometry()[i].Id(), "Node").base())));
+
+        auto edges = rElement.GetGeometry().Edges();
+        for (std::size_t i = 0; i < edges.size(); ++i)
+        {
+            auto& edgesNodes = edgeNodesMap[edges[i]];
+            for (auto node : edgesNodes)
+                temp_element_nodes.push_back(node);
+        }
+
+        if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+            p_temp_geometry = typename GeometryType::Pointer(new Triangle2D6<NodeType>(temp_element_nodes));
+        else
+            p_temp_geometry = typename GeometryType::Pointer(new Triangle3D6<NodeType>(temp_element_nodes));
+    }
+    else if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4
+     || rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
+    {
+        for (std::size_t i = 0; i < rElement.GetGeometry().size(); ++i)
+            temp_element_nodes.push_back((*(FindKey(newNodes, rElement.GetGeometry()[i].Id(), "Node").base())));
+
+        auto edges = rElement.GetGeometry().Edges();
+        for (std::size_t i = 0; i < edges.size(); ++i)
+        {
+            auto& edgesNodes = edgeNodesMap[edges[i]];
+            for (auto node : edgesNodes)
+                temp_element_nodes.push_back(node);
+        }
+
+        if (rElement.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+            p_temp_geometry = typename GeometryType::Pointer(new Quadrilateral2D8<NodeType>(temp_element_nodes));
+        else
+            p_temp_geometry = typename GeometryType::Pointer(new Quadrilateral3D8<NodeType>(temp_element_nodes));
+    }
+    else
+        KRATOS_ERROR << "The source geometry type " << rElement.GetGeometry().GetGeometryType() << " is not supported";
+
+    if (p_temp_geometry == nullptr)
+        KRATOS_ERROR << "Failed creating new geometry";
+
+    // create the element and add to the new model_part
+    typename TEntityType::Pointer pNewElement = rElement.Create(rElement.Id(), p_temp_geometry, p_properties);
+
+    return pNewElement;
+}
+
+///////////
+
+template void ModelPartUtilities::Copy<ModelPart>(const ModelPart&, ModelPart&);
+template void ModelPartUtilities::Copy<ComplexModelPart>(const ComplexModelPart&, ComplexModelPart&);
+template void ModelPartUtilities::Copy<GComplexModelPart>(const GComplexModelPart&, GComplexModelPart&);
+
+template void ModelPartUtilities::CopyAndIncreaseOrder<ModelPart>(const ModelPart&, ModelPart&);
+template void ModelPartUtilities::CopyAndIncreaseOrder<ComplexModelPart>(const ComplexModelPart&, ComplexModelPart&);
+template void ModelPartUtilities::CopyAndIncreaseOrder<GComplexModelPart>(const GComplexModelPart&, GComplexModelPart&);
 
 } // namespace Kratos.
