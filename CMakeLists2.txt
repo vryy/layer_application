@@ -39,11 +39,10 @@ else()
 endif()
 
 # mmg
-if((DEFINED $ENV{MMG_DIR}) OR (DEFINED MMG_DIR))
-    find_package(MMG REQUIRED)
-    set(LAYER_APPLICATION_INCLUDE_DIRS "${LAYER_APPLICATION_INCLUDE_DIRS};${MMG_INCLUDE_DIRS}")
+find_package(mmg QUIET CONFIG)
+if(mmg_FOUND)
+    #set(LAYER_APPLICATION_INCLUDE_DIRS "${LAYER_APPLICATION_INCLUDE_DIRS};${MMG_INCLUDE_DIRS}")
     set(LAYER_APPLICATION_COMPILE_DEFS "${LAYER_APPLICATION_COMPILE_DEFS};LAYER_APP_USE_MMG")
-    set(LAYER_APP_USE_MMG TRUE)
     message("LayerApplication uses MMG, includes = " ${MMG_INCLUDE_DIRS} ", libraries = " ${MMG_LIBRARIES})
 else()
     set(LAYER_APP_USE_MMG FALSE)
@@ -61,7 +60,7 @@ set( KRATOS_LAYER_APPLICATION_SOURCES
 
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/model_part_utilities.cpp APPEND_STRING PROPERTY COMPILE_DEFINITIONS "PROFILING_LEVEL=1")
 
-if(${LAYER_APP_USE_MMG} MATCHES TRUE)
+if(mmg_FOUND)
     set( KRATOS_LAYER_APPLICATION_SOURCES
         ${KRATOS_LAYER_APPLICATION_SOURCES}
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mmg_mesher.cpp
@@ -92,8 +91,8 @@ target_link_libraries(KratosLayerApplicationDependencies INTERFACE b64)
 if(${LAYER_APP_USE_HDF5} MATCHES TRUE)
     target_link_libraries(KratosLayerApplicationDependencies INTERFACE ${HDF5_LIBRARIES})
 endif()
-if(${LAYER_APP_USE_MMG} MATCHES TRUE)
-    target_link_libraries(KratosLayerApplicationDependencies INTERFACE ${MMG_LIBRARIES})
+if(mmg_FOUND)
+    target_link_libraries(KratosLayerApplicationDependencies INTERFACE Mmg::libmmg_a)
 endif()
 
 # officially link to the core and dependencies
