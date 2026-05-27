@@ -1361,6 +1361,14 @@ void ModelPartUtilities::CopyAndIncreaseOrder(const TModelPartType& rSourceModel
         }
     }
 
+    // create Properties
+
+    for (auto it = rSourceModelPart.PropertiesBegin(); it != rSourceModelPart.PropertiesEnd(); ++it)
+    {
+        Properties::Pointer pNewProperties = Properties::Pointer(new Properties(*it));
+        rTargetModelPart.AddProperties(pNewProperties);
+    }
+
     // create new elements
 
     const auto& sourceElements = rSourceModelPart.Elements();
