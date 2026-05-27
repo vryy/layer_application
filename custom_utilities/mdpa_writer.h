@@ -1,8 +1,7 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosLayerApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 15 Nov 2014 $
-//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -25,7 +24,7 @@
 namespace Kratos
 {
 
-///@addtogroup ApplicationNameApplication
+///@addtogroup LayerApplication
 ///@{
 
 ///@name Kratos Globals
@@ -47,9 +46,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
-Class defines interface for writing to MDPA data file
+/***
+Definee an interface for writing to MDPA data file
  */
 class MDPAWriter
 {
@@ -201,22 +199,22 @@ protected:
 
     virtual void MDPA_Properties(std::ostream& rOStream) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
     virtual void MDPA_Nodes(std::ostream& rOStream) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
     virtual void MDPA_Elements(std::ostream& rOStream) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
     virtual void MDPA_Conditions(std::ostream& rOStream) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Call the virtual class function of MDPAWriter: ", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
     void Begin(std::ostream& rOStream, const std::string& section) const
@@ -321,9 +319,8 @@ inline std::ostream& operator <<(std::ostream& rOStream, const MDPAWriter& rThis
     return rOStream;
 }
 
-///@} addtogroup block
+///@} addtogroup LayerApplication
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_MDPA_WRITER_H_INCLUDED
-

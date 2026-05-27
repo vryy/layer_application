@@ -97,7 +97,7 @@ void ModelPartUtilities_ExportNodesAndEdgesInfomationToGiD(ModelPartUtilities& r
 }
 
 Element::Pointer ModelPartUtilities_CreateElementFromCondition(ModelPartUtilities& rDummy,
-    const std::string& sample_elem_name, const std::size_t& Id, Properties::Pointer pProperties,
+    const std::string& sample_elem_name, const std::size_t Id, Properties::Pointer pProperties,
     Condition::Pointer pCond)
 {
     return rDummy.CreateEntity<Element>(sample_elem_name, Id, pProperties, pCond->GetGeometry());
@@ -105,7 +105,7 @@ Element::Pointer ModelPartUtilities_CreateElementFromCondition(ModelPartUtilitie
 
 Element::Pointer ModelPartUtilities_CreateElementFromNodes(ModelPartUtilities& rDummy,
     ModelPart& r_model_part, const std::string& sample_elem_name,
-    const std::size_t& Id, Properties::Pointer pProperties, boost::python::list& node_ids)
+    const std::size_t Id, Properties::Pointer pProperties, boost::python::list& node_ids)
 {
     std::vector<std::size_t> node_list;
     typedef boost::python::stl_input_iterator<int> iterator_value_type;
@@ -209,13 +209,13 @@ boost::python::list SpatialGridNodalBinning_GetNeighboursList(SpatialGridNodalBi
 }
 
 template<typename TNodalDataState>
-typename TNodalDataState::DataType NodalDataState_getitem(TNodalDataState& dummy, const std::size_t& key)
+typename TNodalDataState::DataType NodalDataState_getitem(TNodalDataState& dummy, const std::size_t key)
 {
     return dummy[key];
 }
 
 template<typename TElementalDataState>
-boost::python::list ElementalDataState_getitem(TElementalDataState& dummy, const std::size_t& key)
+boost::python::list ElementalDataState_getitem(TElementalDataState& dummy, const std::size_t key)
 {
     typedef typename TElementalDataState::DataType DataType;
     const std::vector<DataType>& data = dummy[key];

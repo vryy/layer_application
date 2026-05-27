@@ -1,8 +1,7 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosLayerApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 15 Nov 2014 $
-//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -26,7 +25,7 @@
 namespace Kratos
 {
 
-///@addtogroup ApplicationNameApplication
+///@addtogroup LayerApplication
 ///@{
 
 ///@name Kratos Globals
@@ -48,9 +47,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
-Class defines interface for writing to MDPA data file
+/**
+Writing a model_part to MDPA
  */
 class MDPAModelPartWriter : public MDPAWriter
 {
@@ -78,7 +76,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MDPAModelPartWriter()
+    ~MDPAModelPartWriter() override
     {
     }
 
@@ -90,7 +88,7 @@ public:
     ///@name Operations
     ///@{
 
-    void SetNodeIndexOffset(const std::size_t& Number)
+    void SetNodeIndexOffset(const std::size_t Number)
     {
         mnode_id_offset = Number;
     }
@@ -328,25 +326,9 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream& operator >>(std::istream& rIStream, MDPAModelPartWriter& rThis)
-{
-    return rIStream;
-}
 
-/// output stream function
-inline std::ostream& operator <<(std::ostream& rOStream, const MDPAModelPartWriter& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+///@} addtogroup LayerApplication
 
-    return rOStream;
-}
-
-///@} addtogroup block
-
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_MDPA_MODEL_PART_WRITER_H_INCLUDED
-
