@@ -149,6 +149,11 @@ struct MMG3DAdapter
         return MMG3D_Set_solSize(p_mesh, p_sol, typEntity, nvertices, typSol);
     }
 
+    static inline int Get_solSize(const mesh_t& p_mesh, const sol_t& p_sol, int& typEntity, int& nvertices, int& typSol)
+    {
+        return MMG3D_Get_solSize(p_mesh, p_sol, &typEntity, &nvertices, &typSol);
+    }
+
     static inline int Set_vertex(mesh_t& p_mesh, const double& x, const double& y, const double& z, const int& ref, const int& pos)
     {
         return MMG3D_Set_vertex(p_mesh, x, y, z, ref, pos);
@@ -163,6 +168,12 @@ struct MMG3DAdapter
     static inline int Set_scalarSol(sol_t& p_sol, const double& s, const int& pos)
     {
         return MMG3D_Set_scalarSol(p_sol, s, pos);
+    }
+
+    template<typename TVectorType>
+    static inline int Get_scalarSols(const sol_t& p_sol, TVectorType& s)
+    {
+        return MMG3D_Get_scalarSols(p_sol, &s[0]);
     }
 
     template<typename TVectorType>
