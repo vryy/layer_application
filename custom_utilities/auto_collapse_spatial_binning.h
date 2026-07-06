@@ -48,8 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/*** Detail class definition.
+/**
  * This utility class supports for spatial binning with auto collapsing functionality. This class used SpatialPoint as point data and will collapse the conincident point.
  */
 template<typename TIndexType = std::size_t, typename TDataType = double>
@@ -281,6 +280,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
     TDataType mX0, mY0, mZ0, mDx, mDy, mDz;
     TIndexType mLastNode;
     TDataType mTol;
@@ -353,10 +353,11 @@ inline std::ostream& operator <<(std::ostream& rOStream, const AutoCollapseSpati
 
    return rOStream;
 }
+
 ///@}
 
-///@} addtogroup block
+///@} addtogroup LayerApplication
 
-}// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_LAYER_APP_AUTO_COLLAPSE_SPATIAL_BINNING_H_INCLUDED defined

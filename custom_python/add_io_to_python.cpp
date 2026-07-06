@@ -60,7 +60,7 @@ void PrintElementalPartitionIndex( TGidPostIOType& dummy, const Variable<int>& r
 
 template<typename TGidPostIOType>
 void DoublePrintOnElement( TGidPostIOType& dummy, const Variable<double>& rVariable,
-                           typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag)
+                           typename TGidPostIOType::ModelPartType& r_model_part, double SolutionTag )
 {
     dummy.PrintOnElement( rVariable, r_model_part, SolutionTag );
 }
