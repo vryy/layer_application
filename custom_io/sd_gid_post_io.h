@@ -1113,7 +1113,7 @@ public:
      * @param rVariable the given variable name
      * @param r_model_part the current model part
      */
-    void PrintElementalPartitionIndex( const Variable<double>& rVariable, ModelPartType& r_model_part,
+    void PrintElementalPartitionIndex( const Variable<int>& rVariable, ModelPartType& r_model_part,
                                        double SolutionTag, int rank )
     {
         KRATOS_TRY;

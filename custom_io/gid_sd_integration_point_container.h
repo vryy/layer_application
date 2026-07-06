@@ -156,7 +156,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void PrintPartitionIndex( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPartType& r_model_part,
+    void PrintPartitionIndex( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPartType& r_model_part,
                               double SolutionTag, int rank )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
