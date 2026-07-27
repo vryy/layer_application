@@ -599,7 +599,7 @@ private:
                     temp[i] = solution(i);
                 VTK_fWriteVector( pResultFile, i_node->Id(), NumberOfComponents, temp );
             }
-            delete temp;
+            delete [] temp;
         }
         else if (mMode == VTK_PostBinary)
         {

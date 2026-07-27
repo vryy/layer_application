@@ -135,14 +135,13 @@ public:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(auto it = pNodes.begin(); it != pNodes.end(); ++it)
+        std::size_t cnt = 0;
+        for(auto it = pNodes.begin(); it != pNodes.end(); ++it, ++cnt)
         {
             nodes[cnt].id = it->Id();
             nodes[cnt].x = it->X0();
             nodes[cnt].y = it->Y0();
             nodes[cnt].z = it->Z0();
-            ++cnt;
         }
 
         /*
@@ -315,12 +314,11 @@ private:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
+        std::size_t cnt = 0;
+        for(auto it = pNodes.begin(); it != pNodes.end(); ++it, ++cnt)
         {
             data[cnt].id = it->Id();
             data[cnt].v = it->operator[](rThisVariable);
-            ++cnt;
         }
 
         /*
@@ -351,7 +349,7 @@ private:
          * Release resources
          */
         delete dataset;
-        delete data;
+        delete [] data;
     }
 
     void WriteNodalResults_( const Variable<array_1d<double, 3> >& rThisVariable, const NodesContainerType& pNodes )
@@ -371,15 +369,14 @@ private:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
+        std::size_t cnt = 0;
+        for(auto it = pNodes.begin(); it != pNodes.end(); ++it, ++cnt)
         {
             data[cnt].id = it->Id();
             array_1d<double, 3>& v = it->GetSolutionStepValue(rThisVariable);
             data[cnt].d1 = v[0];
             data[cnt].d2 = v[1];
             data[cnt].d3 = v[2];
-            ++cnt;
         }
 
         /*
@@ -412,7 +409,7 @@ private:
          * Release resources
          */
         delete dataset;
-        delete data;
+        delete [] data;
     }
 
     void WriteNodalResults_( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
@@ -455,15 +452,14 @@ private:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
+        std::size_t cnt = 0;
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it, ++cnt)
         {
             data[cnt].id = it->Id();
             Vector& v = it->GetSolutionStepValue(rThisVariable);
             data[cnt].d1 = v[0];
             data[cnt].d2 = v[1];
             data[cnt].d3 = v[2];
-            ++cnt;
         }
 
         /*
@@ -505,7 +501,7 @@ private:
          * Release resources
          */
         delete dataset;
-        delete data;
+        delete [] data;
     }
 
     void WriteNodalResults_Vector_6( const Variable<Vector>& rThisVariable, const NodesContainerType& pNodes )
@@ -529,8 +525,8 @@ private:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it)
+        std::size_t cnt = 0;
+        for(typename NodesContainerType::const_iterator it = pNodes.begin(); it != pNodes.end(); ++it, ++cnt)
         {
             data[cnt].id = it->Id();
             Vector& v = it->GetSolutionStepValue(rThisVariable);
@@ -540,7 +536,6 @@ private:
             data[cnt].d4 = v[3];
             data[cnt].d5 = v[4];
             data[cnt].d6 = v[5];
-            ++cnt;
         }
 
         /*
@@ -585,7 +580,7 @@ private:
          * Release resources
          */
         delete dataset;
-        delete data;
+        delete [] data;
     }
 
     /*****************************************************
@@ -606,15 +601,14 @@ private:
         /*
          * Initialize the data
          */
-        int cnt = 0;
-        for(typename ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it)
+        std::size_t cnt = 0;
+        for(auto it = pElements.begin(); it != pElements.end(); ++it, ++cnt)
         {
             data[cnt].id = it->Id();
             if(it->GetValue(rThisVariable) == true)
                 data[cnt].v = 1;
             else
                 data[cnt].v = 0;
-            ++cnt;
         }
 
         /*
@@ -645,7 +639,7 @@ private:
          * Release resources
          */
         delete dataset;
-        delete data;
+        delete [] data;
     }
 
     /*****************************************************
@@ -689,8 +683,8 @@ private:
              * Get the dimension size of each dimension in the dataspace and
              * do the bound check.
              */
-            hsize_t dims_out[rank];
-            int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+            std::vector<hsize_t> dims_out(rank);
+            int ndims = dataspace.getSimpleExtentDims(dims_out.data(), NULL);
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
@@ -717,7 +711,7 @@ private:
             /*
              * Release memory
              */
-            delete data;
+            delete [] data;
         }
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
@@ -781,8 +775,8 @@ private:
              * Get the dimension size of each dimension in the dataspace and
              * do the bound check.
              */
-            hsize_t dims_out[rank];
-            int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+            std::vector<hsize_t> dims_out(rank);
+            int ndims = dataspace.getSimpleExtentDims(dims_out.data(), NULL);
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
@@ -818,7 +812,7 @@ private:
             /*
              * Release memory
              */
-            delete data;
+            delete [] data;
         }
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
@@ -911,8 +905,8 @@ private:
              * Get the dimension size of each dimension in the dataspace and
              * do the bound check.
              */
-            hsize_t dims_out[rank];
-            int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+            std::vector<hsize_t> dims_out(rank);
+            int ndims = dataspace.getSimpleExtentDims(dims_out.data(), NULL);
 
             if (!allow_unequal)
                 if(dims_out[0] != pNodes.size())
@@ -941,7 +935,7 @@ private:
             /*
              * Release memory
              */
-            delete data;
+            delete [] data;
         }
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
@@ -1040,7 +1034,7 @@ private:
             /*
              * Release memory
              */
-            delete data;
+            delete [] data;
         }
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
@@ -1105,8 +1099,8 @@ private:
              * Get the dimension size of each dimension in the dataspace and
              * do the bound check.
              */
-            hsize_t dims_out[rank];
-            int ndims = dataspace.getSimpleExtentDims(dims_out, NULL);
+            std::vector<hsize_t> dims_out(rank);
+            int ndims = dataspace.getSimpleExtentDims(dims_out.data(), NULL);
 
             if(!allow_unequal)
                 if(dims_out[0] != pElements.size())
@@ -1140,7 +1134,7 @@ private:
             /*
              * Release memory
              */
-            delete data;
+            delete [] data;
         }
         // catch failure caused by the DataSet operations
         catch(H5::DataSetIException error)
