@@ -55,11 +55,7 @@ namespace Kratos
 {
 
     KratosLayerApplication::KratosLayerApplication()
-    #ifdef SD_APP_FORWARD_COMPATIBILITY
-    : KratosApplication("KratosLayerApplication")
-    #else
-    : KratosApplication()
-    #endif
+    : KratosApplication("LayerApplication")
     , LAYER_APP_CREATE_ELEMENT( mPostElement2D3N, Triangle2D3, 3 )
     , LAYER_APP_CREATE_ELEMENT( mPostElement2D4N, Quadrilateral2D4, 4 )
     , LAYER_APP_CREATE_ELEMENT( mPostElement2D6N, Triangle2D6, 6 )
